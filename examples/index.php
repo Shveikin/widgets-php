@@ -1,8 +1,8 @@
 <?php
 
-require __DIR__ . '../vendor/autolod.php';
+use Widget\c;
 
-c::div([
-	'Text',
-	c::textarea('Hello world')
-]);
+require_once __DIR__ . '/../vendor/autoload.php';
+
+
+c::textarea();
