@@ -4,14 +4,4 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 
 
-c::app([
-    c::div('Phone numver'),
-    c::input__phoneNumber([
-        'type' => 'text',
-        'placeholder' => 'Number'
-    ]),
-    c::button([
-        'child' => 'click',
-        'onclick' => c::func('alert("ee")')
-    ])
-]);
+print_r(c::div__hello_s_next_t_3('Hello'));

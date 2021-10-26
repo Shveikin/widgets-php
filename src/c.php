@@ -6,6 +6,11 @@ class c
 {
     static function __callStatic($name, $arguments)
     {
+
+        $name = preg_replace("/_tt*?_/", '$$', $name);
+        $name = preg_replace("/_ss*?_/", '$', $name);
+
+
         $element = [
             'element' => $name
         ];
