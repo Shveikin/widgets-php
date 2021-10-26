@@ -4,6 +4,8 @@ namespace Widget;
 
 class c
 {
+    static $head = '';
+    
     static function __callStatic($name, $arguments)
     {
 
@@ -28,9 +30,14 @@ class c
         return $element;
     }
 
+    static function head(string $head){
+        self::$head = $head;
+    }
+
     static function app($childs){
         $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/showDialog/master/showDialog.js');
         $jsonData = json_encode($childs);
+        $head = self::$head;
         echo <<<HTML
         
         <!DOCTYPE html>
@@ -40,6 +47,7 @@ class c
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Document</title>
+            {$head}
             <script>
                 {$sdialog}
                 c.body(
