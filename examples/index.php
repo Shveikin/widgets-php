@@ -1,21 +1,14 @@
 <?php
-
-// use Widget\c;
-
-use Widget\__;
-
+use Widget\c;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
+$textarea = c::textarea(
+    value: 'Hello', style: ['padding' => '10px']
+);
 
-// c::head('
-//     <title>Docucment</title>
-// ');
+$textarea->value = '12323';
 
-// c::app([
-    
-// ]);
-
-print_r(__::testTs('Hello'));
-
-sleep(10);
+c::app(
+    $textarea
+);
