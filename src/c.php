@@ -2,44 +2,133 @@
 
 namespace Widget;
 
-class c
+
+class widget
 {
-    static $head = '';
-    
-    static function __callStatic($name, $arguments)
+    private static $globals = [];
+    private $props = [];
+    private $childs = [];
+
+    public function __call($tag, $props)
     {
+        $layout = new widget();
+        $layout->element = $tag;
+        call_user_func_array([$layout, 'set'], $props);
 
-        $name = preg_replace("/_tt*?_/", '$$', $name);
-        $name = preg_replace("/_ss*?_/", '$', $name);
+        array_push($this->childs, $layout);
+        return $layout;
+    }
 
+    public function set(...$props)
+    {
+        $this->setProps($props);
+    }
 
-        $element = [
-            'element' => $name
-        ];
+    public function setProps(array $props)
+    {
+        foreach ($props as $prop => $value) {
+            $this->{$prop} = $value;
+        }
+    }
 
-        if (isset($arguments[0]))
-        switch (gettype($arguments[0])){
-            case 'array':
-                $element = array_merge($element, $arguments[0]);
-            break;
-            default:
-                $element['child'] = $arguments[0];
-            break;
+    public function __set($prop, $value)
+    {
+        if ($prop == 'child') {
+            array_push($this->childs, $value);
+        } else {
+            $this->props[$prop] = $value;
+        }
+    }
+
+    private static function pushChilds(&$array, $childs)
+    {
+        if (gettype($childs) == 'array') {
+            foreach ($childs as $child) {
+                self::pushChilds($array, $child);
+            }
+        } else if ($childs instanceof widget) {
+            array_push($array, $childs->toArray());
+        } else {
+            array_push($array, $childs);
+        }
+    }
+
+    public function toArray()
+    {
+        $childs = [];
+        self::pushChilds($childs, $this->childs);
+
+        $element = $this->props;
+        if (!empty($childs)) {
+            $element['child'] = $childs;
         }
 
         return $element;
     }
 
-    static function head(string $head){
-        self::$head = $head;
+    public function name($name)
+    {
+        self::$globals[$name] = $this;
+        return $this;
     }
 
-    static function app($childs){
+    public static function g($name)
+    {
+        return self::$globals[$name];
+    }
+
+    public function child($id)
+    {
+        return $this->childs[$id];
+    }
+
+    function __toString()
+    {
+        $tag = $this->props['element'];
+        $html = "<$tag >";
+
+        foreach($this->childs as $child){
+            $html .= $child->__toString();
+        }
+
+        $html .= "</$tag>";
+
+        return $html;
+    }
+}
+
+class c
+{
+    public static function app($runder, $state = [])
+    {
+        $layout = c::div();
+        if (is_callable($runder)) {
+            $runder($layout, $state);
+        } else {
+            $layout->child = $runder;
+        }
+
+        self::body($layout->toArray());
+    }
+
+    public static function __callStatic($tag, $props)
+    {
+        $element = new widget();
+        $element->element = $tag;
+        if (isset($props[0]) && count($props)==1){
+            $element->child = $props[0];
+        } else {
+            $element->setProps($props);
+        }
+        return $element;
+    }
+
+    public static function body($childs)
+    {
         $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/showDialog/master/showDialog.js');
         $jsonData = json_encode($childs);
-        $head = self::$head;
         echo <<<HTML
-        
+
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -47,7 +136,6 @@ class c
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Document</title>
-            {$head}
             <script>
                 {$sdialog}
                 c.body(
@@ -60,14 +148,8 @@ class c
         HTML;
     }
 
-    static function func($body){
-        return [
-            'element' => 'function',
-            'function' => $body,
-        ];
+    public static function g($name)
+    {
+        return widget::g($name);
     }
-}
-
-function js_function($body){
-    return c::func($body);
 }
