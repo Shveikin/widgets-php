@@ -5,16 +5,22 @@ namespace Widget;
 
 class widget
 {
-    private static $globals = [];
     private $props = [];
     private $childs = [];
+    public static $globals = [];
+    static private $names_length = 0;
+
+    function __construct($tag, $props = [])
+    {
+        self::$names_length++;
+        $this->element = $tag;
+        $this->_name = "element_" . self::$names_length;
+        $this->setProps($props);
+    }
 
     public function __call($tag, $props)
     {
-        $layout = new widget();
-        $layout->element = $tag;
-        call_user_func_array([$layout, 'set'], $props);
-
+        $layout = new widget($tag, $props);
         array_push($this->childs, $layout);
         return $layout;
     }
@@ -26,8 +32,12 @@ class widget
 
     public function setProps(array $props)
     {
-        foreach ($props as $prop => $value) {
-            $this->{$prop} = $value;
+        if (isset($props[0]) && count($props)==1){
+            $this->child = $props[0];
+        } else {
+            foreach ($props as $prop => $value) {
+                $this->{$prop} = $value;
+            }
         }
     }
 
@@ -68,6 +78,8 @@ class widget
 
     public function name($name)
     {
+        
+        $this->props['_name'] = $name;
         self::$globals[$name] = $this;
         return $this;
     }
@@ -111,15 +123,9 @@ class c
         self::body($layout->toArray());
     }
 
-    public static function __callStatic($tag, $props)
+    public static function __callStatic($tag, $props = false)
     {
-        $element = new widget();
-        $element->element = $tag;
-        if (isset($props[0]) && count($props)==1){
-            $element->child = $props[0];
-        } else {
-            $element->setProps($props);
-        }
+        $element = new widget($tag, $props);
         return $element;
     }
 
@@ -148,7 +154,7 @@ class c
         HTML;
     }
 
-    public static function g($name)
+    public static function name($name)
     {
         return widget::g($name);
     }
