@@ -50,11 +50,11 @@ class widget
         }
     }
 
-    private static function pushChilds(&$array, $childs)
+    private static function childsToArray(&$array, $childs)
     {
         if (gettype($childs) == 'array') {
             foreach ($childs as $child) {
-                self::pushChilds($array, $child);
+                self::childsToArray($array, $child);
             }
         } else if ($childs instanceof widget) {
             array_push($array, $childs->toArray());
@@ -63,12 +63,30 @@ class widget
         }
     }
 
+    private static function propsToArray(&$array, array $props)
+    {
+        foreach ($props as $key => $prop) {
+            $newProp = [];
+            if (gettype($prop) == 'array') {
+                self::propsToArray($newProps, $prop);
+            } if ($prop instanceof widget) {
+                self::childsToArray($newProp, $prop);
+            } else {
+                $newProp = $prop;
+            }
+
+            $array[$key] = $newProp;
+        }
+    }
+
     public function toArray()
     {
         $childs = [];
-        self::pushChilds($childs, $this->childs);
+        self::childsToArray($childs, $this->childs);
 
-        $element = $this->props;
+        $element = [];
+        self::propsToArray($element, $this->props);
+
         if (!empty($childs)) {
             $element['child'] = $childs;
         }
@@ -78,15 +96,27 @@ class widget
 
     public function name($name)
     {
-        
         $this->props['_name'] = $name;
         self::$globals[$name] = $this;
+        return $this;
+    }
+
+    public function indexName(int $index, $name)
+    {
+        $newName = "{$name}_{$index}";
+        $this->props['_name'] = $newName;
+        self::$globals[$newName] = $this;
         return $this;
     }
 
     public static function g($name)
     {
         return self::$globals[$name];
+    }
+
+    public static function indexg(int $index, $name)
+    {
+        return self::$globals["{$name}_{$index}"];
     }
 
     public function child($id)
@@ -157,5 +187,10 @@ class c
     public static function name($name)
     {
         return widget::g($name);
+    }
+
+    public static function indexName($index, $name)
+    {
+        return widget::indexg($index, $name);
     }
 }

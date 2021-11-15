@@ -53,7 +53,7 @@ c::app(function ($layout) use ($filter, $open) {
             style: 'border-top: 1px solid #ccc; border-right: 1px solid #ccc;',
             type: $element['url'],
             child: [
-                c::div(
+                c::div( // title
                     style: 'display: flex; justify-content: space-between; padding: 10px;',
                     child: [
 
@@ -62,9 +62,9 @@ c::app(function ($layout) use ($filter, $open) {
                         "[open]",
 
                     ]
-                )->name("title_$key"),
+                )->indexName($key, "title"),
 
-                c::div(
+                c::div( // body
                     style: ['padding' => '10px', 'display' => $open?'block':'none', ],
                     child: [
                         c::input(
@@ -72,45 +72,47 @@ c::app(function ($layout) use ($filter, $open) {
                             style: 'border: 1px solid #ccc; padding: 7px; width: 100%; box-sizing: border-box;', 
                             placeholder: 'Поиск'
                         ),
-                        c::div('')->name("content_$key"),
+                        c::div('')->indexName($key, "content"),
                     ]
-                )->name("body_$key"),
+                )->indexName($key, "body"),
             ]
         );
 
-        // echo "<pre>";
-        // print_r(widget::$globals);
-        // echo "</pre>";
 
-        
-        $content = c::name("content_$key");
+        $content = c::indexName($key, "content");
         foreach($element['content'] as $groups){
-            $groupx = $content->div(style: 'display: flex;');
+            $groupList = $content->div(style: 'display: flex;');
             $image = false;
             $checkboxes = c::div();
 
-
-
             foreach($groups as $checkbox){
-                if ($image==false && isset($checkbox['img'])){
+                if ($image==false && isset($checkbox['img'])) {
                     $image = c::img(
                         href: $checkbox['img']
                     );
                 }
 
-                $checkboxes->child = $checkbox['title'];
+                $checkboxes->child = c::div(
+                    style: 'display: flex;',
+                    child: c::Label(
+                        title: $checkbox['title'],
+                        input: c::input(type: 'checkbox'),
+                        inline: true,
+                        inputFirst: true,
+                    ),
+                );
             }
 
-            
 
-            $groupx->child = [
+
+            $groupList->child = [
                 c::div($image),
                 $checkboxes
             ];
         }
     }
 
-    // echo "<pre>";
-    // print_r($layout->toArray());
-    // echo "</pre>";
+    echo "<pre>";
+    print_r($layout->toArray());
+    echo "</pre>";
 });
