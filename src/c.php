@@ -125,7 +125,7 @@ class c
 
     public static function body($childs)
     {
-        $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/showDialog/master/showDialog.js');
+        $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
         $jsonData = json_encode($childs);
         echo <<<HTML
 

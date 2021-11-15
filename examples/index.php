@@ -1,6 +1,6 @@
 <?php
-use Widget\c;
 require_once __DIR__ . '/../vendor/autoload.php';
+use Widget\c;
 
 
 $textarea = c::textarea(

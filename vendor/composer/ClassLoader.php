@@ -568,6 +568,5 @@ class ClassLoader
  */
 function includeFile($file)
 {
-    echo "loadFile $file\n";
     include $file;
 }
