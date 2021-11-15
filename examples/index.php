@@ -94,12 +94,13 @@ c::app(function ($layout) use ($filter, $open) {
 
                 $checkboxes->child = c::div(
                     style: 'display: flex;',
-                    child: c::Label(
-                        title: $checkbox['title'],
-                        input: c::input(type: 'checkbox'),
-                        inline: true,
-                        inputFirst: true,
-                    ),
+                    child: c::label([
+                        c::input(type: 'checkbox'),
+                        c::div(
+                            style: 'display: inline-block',
+                            child: $checkbox['title'],
+                        )
+                    ]),
                 );
             }
 

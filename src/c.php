@@ -101,11 +101,11 @@ class widget
         return $this;
     }
 
-    public function indexName(int $index, $name)
+    public function indexName($index, $name)
     {
         $newName = "{$name}_{$index}";
-        $this->props['_name'] = $newName;
-        self::$globals[$newName] = $this;
+        $this->name($newName);
+
         return $this;
     }
 
@@ -161,7 +161,7 @@ class c
 
     public static function body($childs)
     {
-        $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
+        $sdialog = '';//file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
         $jsonData = json_encode($childs);
         echo <<<HTML
 
@@ -192,5 +192,12 @@ class c
     public static function indexName($index, $name)
     {
         return widget::indexg($index, $name);
+    }
+
+    static function js_function($function_body){
+        return [
+            'element' => 'function', 
+            'function' => $function_body
+        ];
     }
 }
