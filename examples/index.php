@@ -44,76 +44,22 @@ $filter = [
 
 $open = true;
 
-c::app(function ($layout) use ($filter, $open) {
-    $layout->style = 'width: 300px; border-bottom: 1px solid #ccc;';
+c::app(
+    function ($layout, $state) {
+        $layout->child = [
+            $state->watch('count'),
+            c::button(
+                child: 'click', 
+                onclick: $state->set('count', "{$state}['count'] + 1")
+            )
+        ];
 
-    foreach ($filter as $key => $element) {
-        $layout->div(
-            className:"_group table__{$element['url']}",
-            style: 'border-top: 1px solid #ccc; border-right: 1px solid #ccc;',
-            type: $element['url'],
-            child: [
-                c::div( // title
-                    style: 'display: flex; justify-content: space-between; padding: 10px;',
-                    child: [
+        echo "<pre>";
+        print_r($layout->toArray());
+        echo "</pre>";
 
-                        c::div(className:'icon-block eye_open', style:'padding: 10px; background: #f00;'),
-                        $element['title'],
-                        "[open]",
-
-                    ]
-                )->indexName($key, "title"),
-
-                c::div( // body
-                    style: ['padding' => '10px', 'display' => $open?'block':'none', ],
-                    child: [
-                        c::input(
-                            type: 'text', 
-                            style: 'border: 1px solid #ccc; padding: 7px; width: 100%; box-sizing: border-box;', 
-                            placeholder: 'Поиск'
-                        ),
-                        c::div('')->indexName($key, "content"),
-                    ]
-                )->indexName($key, "body"),
-            ]
-        );
-
-
-        $content = c::indexName($key, "content");
-        foreach($element['content'] as $groups){
-            $groupList = $content->div(style: 'display: flex;');
-            $image = false;
-            $checkboxes = c::div();
-
-            foreach($groups as $checkbox){
-                if ($image==false && isset($checkbox['img'])) {
-                    $image = c::img(
-                        href: $checkbox['img']
-                    );
-                }
-
-                $checkboxes->child = c::div(
-                    style: 'display: flex;',
-                    child: c::label([
-                        c::input(type: 'checkbox'),
-                        c::div(
-                            style: 'display: inline-block',
-                            child: $checkbox['title'],
-                        )
-                    ]),
-                );
-            }
-
-
-
-            $groupList->child = [
-                c::div($image),
-                $checkboxes
-            ];
-        }
-    }
-
-    echo "<pre>";
-    print_r($layout->toArray());
-    echo "</pre>";
-});
+    }, 
+    [
+        'count' => 1
+    ]
+);

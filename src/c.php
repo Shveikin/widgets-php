@@ -141,16 +141,19 @@ class widget
 
 class c
 {
+    static $globalState = false;
+
     public static function app($runder, $state = [])
     {
+        $globalState = new state(data: $state);
         $layout = c::div();
         if (is_callable($runder)) {
-            $runder($layout, $state);
+            $runder($layout, $globalState);
         } else {
             $layout->child = $runder;
         }
 
-        self::body($layout->toArray());
+        self::body($layout->toArray(), $globalState->toArray());
     }
 
     public static function __callStatic($tag, $props = false)
@@ -159,10 +162,14 @@ class c
         return $element;
     }
 
-    public static function body($childs)
+    public static function body($childs, $state = false)
     {
-        $sdialog = '';//file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
+        $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
         $jsonData = json_encode($childs);
+        $useState = '';
+        if ($state){
+            $useState = "WidgetState.use(" . json_encode($state) . ')';
+        }
         echo <<<HTML
 
         <!DOCTYPE html>
@@ -174,6 +181,7 @@ class c
             <title>Document</title>
             <script>
                 {$sdialog}
+                {$useState}
                 c.body(
                     {$jsonData}
                 )
@@ -199,5 +207,46 @@ class c
             'element' => 'function', 
             'function' => $function_body
         ];
+    }
+}
+
+
+class state
+{
+    private $data = [];
+    private $update = [];
+    private $name = 'global';
+
+    function __construct($name = 'global', $data)
+    {
+        $this->name = $name;
+        $this->data = $data;
+
+        $this->data['_name'] = $name;
+    }
+
+    function watch($watch, $callback = false){
+        return c::watcher(
+            state: $this->name, 
+            watch: $watch,
+            callback: $callback,
+        );
+    }
+
+    function set($key, $value){
+        return c::js_function("{$this}.{$key} = {$value};");
+    }
+    
+    function get($key){
+        return c::js_function("return {$this}.{$key}");
+    }
+
+    function toArray(){
+        return $this->data;
+    }
+
+    function __toString()
+    {
+        return "WidgetState.name('{$this->name}')";
     }
 }
