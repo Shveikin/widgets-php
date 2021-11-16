@@ -124,18 +124,41 @@ class widget
         return $this->childs[$id];
     }
 
-    function __toString()
+    static function childToString($childs){
+        $str = '';
+        if (is_array($childs)){
+            foreach ($childs as $itm) {
+                $str .= widget::childToString($itm);
+            }
+        } else if ($childs instanceof widget) {
+            $str .= $childs->html();
+        } else if (gettype($childs)=='string') {
+            $str .= $childs;
+        }
+        return $str;
+    }
+
+    function html()
     {
         $tag = $this->props['element'];
-        $html = "<$tag >";
-
-        foreach($this->childs as $child){
-            $html .= $child->__toString();
+        $html = "<$tag ";
+        foreach ($this->props as $key => $value) {
+            if (!in_array($key,['element', 'child'])) {
+                if (!is_array($value)){
+                    $html .= " $key = '$value' ";
+                }
+            }
         }
-
+        $html .= '>';
+        $html .= widget::childToString($this->childs);
         $html .= "</$tag>";
 
         return $html;
+    }
+
+    function __toString()
+    {
+        return $this->html();
     }
 }
 
@@ -145,7 +168,7 @@ class c
 
     public static function app($runder, $state = [])
     {
-        $globalState = new state(data: $state);
+        $globalState = new state($state);
         $layout = c::div();
         if (is_callable($runder)) {
             $runder($layout, $globalState);
@@ -164,7 +187,7 @@ class c
 
     public static function body($childs, $state = false)
     {
-        $sdialog = file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
+        $sdialog = '';//file_get_contents('https://raw.githubusercontent.com/Shveikin/widgets-js/main/src/widgets.js');
         $jsonData = json_encode($childs);
         $useState = '';
         if ($state){
@@ -217,7 +240,7 @@ class state
     private $update = [];
     private $name = 'global';
 
-    function __construct($name = 'global', $data)
+    function __construct($data, $name = 'global')
     {
         $this->name = $name;
         $this->data = $data;
@@ -226,11 +249,12 @@ class state
     }
 
     function watch($watch, $callback = false){
-        return c::watcher(
-            state: $this->name, 
-            watch: $watch,
-            callback: $callback,
-        );
+        return [
+            'element' => 'watcher',
+            'state' => $this->name, 
+            'watch' => $watch,
+            'callback' => $callback,
+        ];
     }
 
     function set($key, $value){
@@ -249,4 +273,5 @@ class state
     {
         return "WidgetState.name('{$this->name}')";
     }
+
 }
