@@ -420,7 +420,7 @@ class WidgetTools{
 		}
         if (path.length!=0){
             if (!(key in state)){
-                state[key] = {};
+                state[key] = WidgetState.use({});
             }
 			return WidgetTools.getStateFromPath(state[key], path)
         } else {

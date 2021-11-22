@@ -64,6 +64,7 @@ class state
 
     static function set($key, $value){
         self::setPath(self::$data, explode('.', $key), $value);
+        // return c::js_function(self::$name.".$key = " . state::name().".filterOpen.$key")
     }
 
     static function init(...$state){
@@ -113,6 +114,14 @@ class state
 
     static function name(){
         return "WidgetState.name('" . self::$name . "')";
+    }
+    
+    // static function appy($props, $value){
+
+    // }
+
+    static function checkTurn($props){
+        return c::js_function(self::name().".$props = !" . self::name() . ".$props");
     }
 
 }

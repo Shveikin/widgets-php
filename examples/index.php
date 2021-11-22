@@ -13,7 +13,7 @@ state::init(
 );
 
 state::set('filterOpen.connect', true);
-state::set('filterOpen.material', true);
+// state::set('filterOpen.material', true);
 
 
 $element = c::div('Фильтр');
@@ -25,7 +25,7 @@ foreach(['material', 'connect', 'dn'] as $key){
             $key,
             c::button(
                 child: 'click',
-                onclick: c::js_function(state::name().".filterOpen.$key = false")
+                onclick: state::checkTurn("filterOpen.$key"),
             ),
             state::check("filterOpen.$key", 
                 c::div('Содержимое', style: 'padding: 10px; color: #f00')
@@ -36,5 +36,5 @@ foreach(['material', 'connect', 'dn'] as $key){
 
 
 echo $element->html(true);
-echo "<hr>";
-$element->print_r();
+// echo "<hr>";
+// $element->print_r();

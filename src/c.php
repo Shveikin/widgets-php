@@ -73,7 +73,8 @@ class widget
             if (gettype($prop) == 'array') {
                 self::propsToArray($newProps, $prop);
             } else if ($prop instanceof widget) {
-                self::childsToArray($newProp, $prop);
+                $newProp = $prop->toArray();
+                // self::childsToArray($newProp, $prop);
             } else if (is_callable($prop)){
                 $newProp = c::js_function('alert("11")');
             } else {
@@ -139,7 +140,7 @@ class widget
         $str = '';
         if (is_array($childs)){
             foreach ($childs as $itm) {
-                $str .= widget::childToString($itm);
+                $str .= '<div>'. widget::childToString($itm) . '</div>';
             }
         } else if ($childs instanceof widget) {
             $str .= $childs->html();
@@ -167,6 +168,7 @@ class widget
         "source" => false, 
         "track" => false,  
         "wbr" => false,
+        "function" => false,
     ];
 
     static function view($element) {
@@ -174,10 +176,11 @@ class widget
             return $element;
         } else 
         if (gettype($element)=='array'){
-            $html = '';
+            $html = '<div>';
             foreach($element as $el){
                 $html .= self::view($el);
             }
+            $html .= '</div>';
             return $html;
         } else
         if ($element instanceof widget){
@@ -318,7 +321,8 @@ class c
 
     static function js_function($function_body){
         return c::{'function'}(
-            function: $function_body
+            function: $function_body,
+            view: str_replace("'","`", $function_body)
         );
 
         //     'element' => 'function', 
