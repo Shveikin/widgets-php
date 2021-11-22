@@ -43,7 +43,7 @@ class widget
 
     public function __set($prop, $value)
     {
-        if ($prop == 'child') {
+        if ($prop == 'child' || $prop == 0) {
             array_push($this->childs, $value);
         } else {
             $this->props[$prop] = $value;
@@ -57,10 +57,13 @@ class widget
                 self::childsToArray($array, $child);
             }
         } else if ($childs instanceof widget) {
-            array_push($array, $childs->toArray());
+            $wgt = $childs->toArray();
+            array_push($array, $wgt);
         } else {
             array_push($array, $childs);
         }
+
+
     }
 
     private static function propsToArray(&$array, array $props)
@@ -69,14 +72,22 @@ class widget
             $newProp = [];
             if (gettype($prop) == 'array') {
                 self::propsToArray($newProps, $prop);
-            } if ($prop instanceof widget) {
+            } else if ($prop instanceof widget) {
                 self::childsToArray($newProp, $prop);
+            } else if (is_callable($prop)){
+                $newProp = c::js_function('alert("11")');
             } else {
                 $newProp = $prop;
             }
 
             $array[$key] = $newProp;
         }
+    }
+
+    public function print_r(){
+        echo "<pre>";
+        print_r($this->toArray());
+        echo "</pre>";
     }
 
     public function toArray()
@@ -138,29 +149,109 @@ class widget
         return $str;
     }
 
-    function html()
-    {
-        $tag = $this->props['element'];
-        $html = "<$tag ";
-        foreach ($this->props as $key => $value) {
-            if (!in_array($key,['element', 'child'])) {
-                if (!is_array($value)){
-                    $html .= " $key = '$value' ";
+    
+
+    static private $childsTarget = [
+        "area" => false,  
+        "base" => false, 
+        "br" => false, 
+        "col" => false,  
+        "embed" => false,  
+        "hr" => false,  
+        "img" => 'src',  
+        "input" => 'value',  
+        "link" => 'href',  
+        "menuitem" => false,  
+        "meta" => false,  
+        "param" => false,  
+        "source" => false, 
+        "track" => false,  
+        "wbr" => false,
+    ];
+
+    static function view($element) {
+        if (gettype($element)=='string'){
+            return $element;
+        } else 
+        if (gettype($element)=='array'){
+            $html = '';
+            foreach($element as $el){
+                $html .= self::view($el);
+            }
+            return $html;
+        } else
+        if ($element instanceof widget){
+            if (isset($element->props['view'])) {
+                return self::view($element->props['view']);
+            }
+
+
+
+            $tag = $element->props['element'];
+            $html = "<$tag ";
+            foreach ($element->props as $key => $value) {
+                    if ($key!='_name')
+                    if (!in_array($key,['element', 'child'])) {
+                    if (!is_array($value) && !is_callable($value)){
+                        $html .= "$key='$value' ";
+                    }
                 }
             }
-        }
-        $html .= '>';
-        $html .= widget::childToString($this->childs);
-        $html .= "</$tag>";
+            
+            if (isset(self::$childsTarget[$tag])){
+                if (!empty($element->childs) && self::$childsTarget[$tag])
+                $html .= self::$childsTarget[$tag] ."='".widget::childToString($element->childs)."' ";
 
-        return $html;
+                $html .= '>';
+            } else {
+                $html .= '>';
+                $html .= widget::childToString($element->childs);
+                $html .= "</$tag>";
+            }
+
+            return self::view($html);
+        } else {
+            return '';
+        }
+    }
+
+    function html($activate = false)
+    {
+        $result = self::view($this);
+
+
+        if ($activate){
+            $result = "
+<div id='app'>{$result}</div>
+<script>
+    c.app(
+        ".json_encode($this->toArray()).",
+        ".json_encode(state::toArray())."
+    )
+</script>";
+        }
+
+        return $result;
     }
 
     function __toString()
     {
-        return $this->html();
+        $result = $this->html();
+        return $result;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 class c
 {
@@ -208,7 +299,7 @@ class c
                 c.body(
                     {$jsonData}
                 )
-            </script>
+            </>
         </head>
         <body></body>
         </html>
@@ -226,52 +317,16 @@ class c
     }
 
     static function js_function($function_body){
-        return [
-            'element' => 'function', 
-            'function' => $function_body
-        ];
+        return c::{'function'}(
+            function: $function_body
+        );
+
+        //     'element' => 'function', 
+        //     'function' => 
+        // ];
     }
 }
 
 
-class state
-{
-    private $data = [];
-    private $update = [];
-    private $name = 'global';
 
-    function __construct($data, $name = 'global')
-    {
-        $this->name = $name;
-        $this->data = $data;
 
-        $this->data['_name'] = $name;
-    }
-
-    function watch($watch, $callback = false){
-        return [
-            'element' => 'watcher',
-            'state' => $this->name, 
-            'watch' => $watch,
-            'callback' => $callback,
-        ];
-    }
-
-    function set($key, $value){
-        return c::js_function("{$this}.{$key} = {$value};");
-    }
-    
-    function get($key){
-        return c::js_function("return {$this}.{$key}");
-    }
-
-    function toArray(){
-        return $this->data;
-    }
-
-    function __toString()
-    {
-        return "WidgetState.name('{$this->name}')";
-    }
-
-}
