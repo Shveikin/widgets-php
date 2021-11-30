@@ -1,5 +1,52 @@
 
 
+const c = new Proxy({}, {
+	get:(_, tag) => {
+		if (typeof widget[tag] === 'function'){
+            // c.app(sett)
+			return widget[tag]
+		} else {
+            // c.div(props) -> return proxi with class
+
+            return (property = {}, state = false) => {
+				property = widget.propsCorrector(property);
+				const lite = {_name: property._name}
+
+				const _widget = {
+					widget: new widget(tag, lite)
+				}
+                const proxyProps = new Proxy(
+                    _widget, 
+					{
+                        get: (el, prop) => {
+							if (typeof _widget.widget[prop] == 'function'){
+								return _widget.widget[prop]()
+							} else {
+								return (value, dopvalue = false) => {
+									return el.widget.setProp(proxyProps, prop, value, dopvalue)
+								}
+							}
+                        },
+                        set: (el, prop, value) => {
+							el.widget.assignProp(prop, value)
+                            return true;
+                        }
+                    }
+                )
+
+				widget.proxys[property._name] = proxyProps
+				_widget.widget.assignProps(property)
+				// Object.keys(property).map(prop => {
+				// 	if (prop!='_name')
+				// 		_widget.widget.assignProp(prop, property[prop])
+				// })
+                return proxyProps
+            }
+		}
+	},
+	set:(el, tag, props) => widget.widgetRegister(tag, props)
+})
+
 class widget {
 	static defaultTag = 'div'
 	static lastDialog = null
@@ -8,253 +55,127 @@ class widget {
     static names = {}
     static names_length = 0
 	
-	
     static proxys = {}
 	static name(name){
 		if ('widget' in widget.proxys[name]){
 			return widget.proxys[name];
 		} else {
 			const props = widget.proxys[name];
-			return c[props.element](props)
+			const element = c[props.element](props)
+			widget.proxys[name] = element;
+			return element;
 		}
     }
 
-	static convertor(element, state = false) {
-		if (element===false || element===undefined)
-			return false;
-		if (element instanceof HTMLElement) {
-			return element
-		}
+	static checkType(element, to){
+		return to.includes(widget.getType(element))
+	}
 
-		if (element && typeof element == 'object' && 'widget' in element){
-			return widget.convertor(element.element())
-		} else
+	static getType(element){
+		let type = 'String'
+		if (element instanceof HTMLElement)
+			type = 'HTML'
+		else
+		if (typeof element == 'object' && 'widget' in element)
+			type = 'Widget'
+		else
+		if (WidgetState.canBind(element))
+			type = 'State'
+		else
 		if (element && typeof element == 'object' && 'element' in element){
-			const tag = element.element
-			// delete element.element
-
-			if (typeof WidgetTools[tag] === 'function'){
-				return widget.convertor(WidgetTools[tag](element));
-			} else {
-				return widget.convertor(widget.createElement(tag, element, state))
+			type = 'Element'
+			if (typeof WidgetTools[element.element] === 'function'){
+				type = 'WidgetTools'
 			}
-		} else 
-		if (WidgetState.canBind(element)){ // попытка отобразить watcher
-			const temp_child = document.createElement(widget.defaultTag)
-			element.link(temp_child, 'child')
-			return temp_child
-		} else
-		if (typeof element == 'function'){
-			if (state){ // layout function
-				const layout = c.div();
-				layout.element = 'div';
-
-				element(layout, WidgetState.use(state))
-
-				return widget.convertor(layout)
-			} else {
-				return widget.convertor(element())
-			}
-		} else {
-			const temp_child = document.createElement(widget.defaultTag)
-			temp_child.innerHTML = element
-			return temp_child
 		}
+		else
+		if (typeof element == 'function')
+			type = 'Function'
+		else
+		if (Array.isArray(element))
+			type = 'Array'
+		
+		return type;
 	}
 
-    static* childToHTMLElement(child, state = false) {
-		if (Array.isArray(child)){
-			for(const _child of child){
-				const cheldGenerator = widget.childToHTMLElement(_child)
-				for(const __child of cheldGenerator){
-					yield widget.convertor(__child)
-				}
-			}
-		} else {
-			yield widget.convertor(child, state)
-		}
-
-	}
-
-	static createElement(element, props = false, state = false) {
-        let tag = 'div'
-
-		if (typeof props == 'object' && 'element' in props){
-			if (!(element instanceof HTMLElement)){
-				element = props.element
-			}
-		}
-
-		if (state){
-			state = WidgetState.use(state)
-		}
-
-		// Оброботка state
-		if (typeof props == 'function'){
-			props = props(state==false?WidgetState.use({}):state)
-		}
-
-		const true_elements = [
-			"area", "base", "br", 
-			"col", "embed", "hr", 
-			"img", "input", "link", 
-			"menuitem", "meta", "param", 
-			"source", "track", "wbr"
-		]
-
-		function isEmpty(obj) { 
-			for (var x in obj) { return false; }
-			return true;
-		}
-
-		// Оброботка props
-		if (props 
-			&& true_elements.indexOf(element)==-1 
-			&& !isEmpty(props)
-			&& (
-			Array.isArray(props)
-			|typeof props == 'string'
-			|(typeof props == 'function' && state==false)
-			|(typeof props == 'object' && 
-				((
-					!('_name' in props) && 
-					!('child' in props) && 
-					!('innerHTML' in props) && 
-					!('value' in props) && 
-					!(element in widget.widgetStore)
-				) 
-				// | (('element' in props))
-				)
-			) 
-			|props instanceof HTMLElement
-		)) {
+	static propsCorrector(props){
+		if (widget.getType(props)=='State'){
 			props = {child: props}
 		}
 
+		props._name = widget.nextName(props)
 
-		// Оброботка element
-		if (element in widget.widgetStore){
-			return widget.widgetStore[element](props, state)
-		} else 
-		if (typeof element == 'string'){
+		return props;
+	}
 
-
-			// быстрые классы
-			if (element.indexOf("__")!=-1){
-				const classes = element.split('__')
-				element = classes[0]
-				let classList = ''
-				classes[1]
-					.replaceAll('$$', '-')
-					.replaceAll('$', ' ')
-					.split('')
-					.map(char => {
-					if (char!=char.toLowerCase(char)){
-						classList += '-' + char.toLowerCase(char)
-					} else {
-						classList += char
-					}
-				})
-
-				if (!props)
-					props = {}
-
-				props['className'] = classList
-			}
-
-
-			if (element!='') tag = element
-			element = document.createElement(tag)
+	static convertor({element, state = false,  to}) {
+		// console.log(element, ' >> ', widget.getType(element), '>>>>', to)
+		if (widget.checkType(element, to)) {
+			// console.log('_____exit________')
+			return element
 		}
 
-		let oncreate = false;
+		switch(widget.getType(element)){
+			case 'Widget':
+				return widget.convertor({
+					element: element.element(),
+					state,
+					to
+				})
+			case 'WidgetTools':
+				return widget.convertor({
+					element: WidgetTools[element.element](element),
+					state,
+					to
+				})
+			case 'Element':
+				const tag = element.element
+				return widget.convertor({
+					element: c[tag](element),
+					state,
+					to
+				})
+			case 'State':
+				const stateWrapper = c.div()
+				WidgetState.inspector(element, [stateWrapper.name, 'child'])
+				return widget.convertor({
+					element: stateWrapper,
+					state,
+					to
+				})
+			case 'Function':
+				return widget.convertor({
+					element: element(WidgetState.use(state)),
+					state,
+					to
+				})
+			case 'String':
+				return widget.convertor({
+					element: c[widget.defaultTag]({innerHTML: element}),
+					state,
+					to
+				})
+			case 'Array':
+				const wrapper = document.createElement('div')
+				element.map(itm => {
+					wrapper.appendChild(
+						widget.convertor({
+							element: itm,
+							to: ['HTML']
+						})
+					)
+				})
+				return widget.convertor({
+					element: wrapper,
+					to
+				})
+		}
 
-        const childAsValue = ['textarea', 'input']
+		return false;
+	}
 
-		// Применение свойств
-		if (props) 
-		for (let i of Object.keys(props)) { 
-			let prop = props[i];
-
-            if (i=='child' && childAsValue.includes(tag)) {
-                i = 'value'
-            }
-
-			if (prop && typeof prop == 'object' && 'element' in prop && prop.element == 'function'){
-				eval(`prop = function(){
-					${prop?.function}
-				}`)
-			}
-
-			if (prop && typeof prop == 'object' && 'element' in prop){
-				if (typeof WidgetTools[prop.element]=='function'){
-					const new_prop = WidgetTools[prop.element](prop); 
-					prop = new_prop;
-				}
-			}
-
-
-			switch (i) {
-				case 'element':
-
-				break;
-                case '_name':
-                    widget.names[prop] = element
-					if (!(prop in widget.proxys)) {
-						widget.proxys[prop] = props
-						widget.proxys[prop]['element'] = tag;
-					}
-                break;
-				case 'oncreate':
-					oncreate = prop.bind(element)
-				break;
-				case 'style':
-					if (typeof prop == 'string')
-						element.style = prop
-					else
-						for (let j of Object.keys(prop)) {
-							const styleElement = prop[j]
-							if (Array.isArray(styleElement)){
-								element.style[j] = styleElement[0]
-								setTimeout(() => 
-									element.style[j] = styleElement[1]
-								, 10)
-							} else {
-								if ((typeof styleElement == 'object' && 'link' in styleElement) | typeof styleElement == 'function') {
-									WidgetState.inspector(styleElement, [element, i, j])
-								} else {
-									element.style[j] = styleElement
-								}
-							}
-						}
-				break;
-				case 'child':
-					while (element.firstChild)
-						element.removeChild(element.firstChild);
-
-					const cheldGenerator = widget.childToHTMLElement(prop)
-					for(const _child of cheldGenerator){
-						if (_child)
-							element.appendChild(_child)
-					}
-
-				break;
-				default:
-					if (WidgetState.canBind(prop) || (typeof value == 'function' && i.substr(0, 2) != 'on')) {
-						WidgetState.inspector(prop, [element, i])
-					} else {
-						element[i] = prop
-					}
-				break;
-			}
-		} 
-		if (oncreate && typeof oncreate == 'function') oncreate();
-
-
-		props
-		state
-
-		return element
+	static createElement(tag = false, props = false, state = false) {
+		return c[tag](props, state)
 	}
 
     static widgetRegister(name, _widget = () => false) {
@@ -268,58 +189,165 @@ class widget {
 		return true;
 	}
 
-    constructor(tag, props = {}, state = false){
+	static nextName(props){
 		let _name = 'element_';
 		if (typeof props == 'object' && '_name' in props){
-			let _name = props._name;
+			_name = props._name;
 		} else {
 			widget.names_length++
 			_name += widget.names_length;
 		}
+		return _name;
+	}
+
+	static indexName(index, name){
+        return widget.name(name + '_' + index)
+    }
+
+	static singleElement = {
+		area: false,
+		base: false,
+		br: false,
+		col: false,
+		embed: false,
+		hr: false,
+		img: 'src',
+		input: 'value',
+		textarea: 'value',
+		link: 'href',
+		menuitem: false,
+		meta: false,
+		param: false,
+		source: false,
+		track: false,
+		wbr: false,
+	}
+
+    constructor(tag, props = {}, state = false) {
+		const _name = widget.nextName(props)
+
         this.childs = []
         this.props = {
             element: tag,
             _name
         }
 
+		this.element = document.createElement(tag);
+		widget.names[_name] = this.element
+
         if (typeof props == 'function' && state){
             props = props(WidgetState.use(state))
         }
 
-		if (Array.isArray(props)){
-			props.map(child => {
-				// this.assignProp('child', props)
-				this.childs.push(child)
-			})
-		} else
-        if (typeof props == 'object' && !('widget' in props)){
-            Object.keys(props).map(prop => {
-                this.assignProp(prop, props[prop])
-            })
-        } else {
-            this.assignProp('child', props)
-        }
+		this.assignProps(props)
     }
 
-	static indexName(index, name){
-        return widget.name(name + '_' + index)
-    }
+	assignProps(props){
+		if (Array.isArray(props)){
+			// this.assignProp('child', props)
+			this.setChild(props)
+		} else {
+			if (typeof props == 'object' && !('widget' in props)){
+				Object.keys(props).map(prop => {
+					this.assignProp(prop, props[prop])
+				})
+			} else {
+				// this.assignProp('child', props)
+				this.setChild(props)
+			}
+		}
+	}
+
+	setChild(child){
+		if (Array.isArray(child)){
+			this.childs = child
+		} else {
+			this.childs = [child]
+		}
+
+		this.renderChilds()
+	}
+	
+	renderChilds(){
+		this.element.innerHTML = '';
+		
+		this.childs.map(child => {
+			const _child = widget.convertor({
+				element: child,
+				to: ['HTML']
+			})
+
+			this.element.appendChild(_child)
+		})
+	}
 
     assignProp(prop, value){ // prop = value
-        if (prop=='child'){
-            this.childs.push(value)
-			// if (this.props._name in widget.names){
-			// 	delete widget.names[this.props._name]
-			// }
-        } else {
-            this.props[prop] = value
-        }
+		if (prop=='child' && this.props.element in widget.singleElement){
+			const setChildToProp = widget.singleElement[this.props.element]
+			if (setChildToProp){
+				this.__link(setChildToProp, value)
+			}
+		}
 
-        if (this.props._name in widget.names){
-            const elenemt = widget.names[this.props._name]
-            widget.createElement(elenemt, this.toArray())
+        if (prop=='child'){
+			
+			this.setChild(value)
+
+        } else {
+			let update = true;
+			if (widget.getType(this.props[prop])=='WidgetTools'){
+				update = this.props[prop]['view'] != value
+				if (update)
+					this.props[prop]['view'] = value
+			} else {
+				update = this.props[prop] != value
+				if (update)
+					this.props[prop] = value
+			}
+			if (update){
+				this.assignPropToElement(prop, value);
+			}
         }
     }
+
+	
+	assignPropToElement(prop, value){
+		switch (prop) {
+			case '_name':
+			
+			break;
+			case 'child':
+				this.setChild(value)
+			break;
+			case 'style':
+				
+			break;
+			default:
+				this.__link(prop, value)
+			break;
+		}
+	}
+
+	__link(prop, value){
+		value = widget.convertor({
+			element: value,
+			to: (prop.substr(0,2)!='on' && typeof value != 'function')
+				?['State', 'String']
+				:['Function']
+		})
+
+		// if (prop=='0') prop = 'child'
+
+		if (!Array.isArray(prop)){
+			if (WidgetState.canBind(value)) {
+				WidgetState.inspector(value, [this.props._name, prop])
+			} else {
+				this.element[prop] = value
+			}
+		} else {
+			console.info('__link','Применение массива не поддурживается', props, value);
+		}
+	}
 
     static pushChilds(array, childs){
         if (Array.isArray(childs)) {
@@ -346,13 +374,18 @@ class widget {
     }
 
     toElement(){
-		const name = this.props._name;
-		if (name in widget.names){
-			return widget.names[name]
-		} else {
-			return widget.createElement('__', this.toArray())
-		}
+		return this.element
+		// const name = this.props._name;
+		// if (name in widget.names){
+		// 	return widget.names[name]
+		// } else {
+		// 	// return widget.createElement('__', this.toArray())
+		// }
     }
+
+	name(){
+		return this.props._name;
+	}
 
 	setName(self, name){
 		const _last_name = this.props._name
@@ -387,7 +420,11 @@ class widget {
 
 
     static renderTo(querySelector, element, state = false){
-		element = widget.convertor(element, state)
+		element = widget.convertor({
+			element, 
+			state,
+			to: ['HTML']
+		})
 		let toElement = window.document.querySelector(querySelector);
 		if (toElement){
 			toElement.innerHTML = '';
@@ -408,7 +445,6 @@ class widget {
     static body(element, state){
         widget.renderTo('body', element, state)
     }
-
 }
 
 
@@ -428,7 +464,7 @@ class WidgetTools{
         }
 	}
 
-	static watcher(props){
+	static state_watcher(props){
 		let callback = props.watch;
 		if ('callback' in props && props.callback){
 			eval(`
@@ -448,62 +484,47 @@ class WidgetTools{
 		)
 		const prop = array_props.slice(-1).join('.')
 
-
 		return state.check(prop,
 			props._true, 
 			props._false
 		)
-
-		// return WidgetState.name(props.state)
-		// 	.check(
-		// 		WidgetTools.getStatePropFromPath(
-		// 			WidgetState.name(props.state),
-		// 			props.prop.split('.')
-		// 		), 
-		// 		props._true, 
-		// 		props._false
-		// 	);
 	}
+
+	static func(props){
+		let func = Function(props.function);
+		// eval(`
+		// 	func = async function(){
+		// 		${}
+		// 	}
+		// `)
+		return func
+	}
+
 }
 
 const w = (element, params = false, state = false) => widget.createElement(element, params, state);
-const c = new Proxy({}, {
-	get:(_, tag) => {
-		if (typeof widget[tag] === 'function'){
-            // c.app(sett)
-			return widget[tag]
-		} else {
-            // c.div(props) -> return proxi with class
-            return (property) => {
-                const proxyProps = new Proxy(
-                    {
-                        widget: new widget(tag, property)
-                    }, {
-                        get: (el, prop) => {
-                            return (value, dopvalue = false) => {
-                                return el.widget.setProp(proxyProps, prop, value, dopvalue)
-                            }
-                        },
-                        set: (el, prop, value) => {
-                            el.widget.assignProp(prop, value)
-                            return true;
-                        }
-                    }
-                )
-                return proxyProps
-            }
-		}
-	},
-	set:(el, tag, props) => widget.widgetRegister(tag, props)
-})
+
 
 
 class WidgetState {
-	static names = {}; 
+	// static names = {}; 
 	static state_length = 0;
+	static names = {};
 
 	static name(name){
+		if (!(name in WidgetState.names)){
+			console.info(`state ${name} отсутствует! Используется пустой state`)
+			WidgetState.names[name] = WidgetState.use({_name: name})
+		}
 		return WidgetState.names[name]
+	}
+
+	static update(globalState){
+		const _name = globalState._name;
+		Object.keys(globalState).map(itm => {
+			if (itm!='_name')
+				WidgetState.name(_name)[itm] = globalState[itm]
+		})
 	}
 
     static use(obj){
@@ -522,7 +543,6 @@ class WidgetState {
 		}
 
 
-
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
 				
@@ -538,7 +558,6 @@ class WidgetState {
 					obj[i] = WidgetState.use(obj[i])
 					setParents.push(i)
 				}
-
 			}
 		})
 
@@ -570,9 +589,13 @@ class WidgetState {
 			state[i].set('___parent', state)
 		})
 
-		WidgetState.names[stateName] = state;
+		WidgetState.useName(stateName, state)
         return state;
     }
+
+	static useName(name, state){
+		WidgetState.names[name] = state;
+	}
 
 	static set(self, key, value){
 		self[key] = value
@@ -595,6 +618,13 @@ class WidgetState {
 
 	static keys(self){
 		return WidgetState.filterSystemVars(Object.keys(self))
+	}
+
+	static data(self){
+		const data = { ...self }
+		delete data['___parent']
+		delete data['___updates']
+		return data
 	}
 
 	static values(self){
@@ -622,6 +652,13 @@ class WidgetState {
 						?_true
 						:_false
 			})
+		}
+	}
+
+	static checkTurn(self){
+		const state = this;
+		return (prop) => {
+			state[prop] = !state[prop]
 		}
 	}
 
@@ -715,6 +752,10 @@ class WidgetState {
 					const mp = [...updateList.path]
 
 					let element = mp.shift();
+					if (typeof element == 'string'){
+						element = widget.name(element)
+					}
+
 					let elementPropperty = 'child'
 					while (mp.length!=0){
 						elementPropperty = mp.shift();
@@ -730,9 +771,7 @@ class WidgetState {
 					})
 					
 					const value = update.apply(this, properties);
-					w(element, {
-						[elementPropperty]: value
-					})
+					element[elementPropperty] = value
 				})
 			}
 		})

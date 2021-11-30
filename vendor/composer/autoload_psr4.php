@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Widget\\' => array($baseDir . '/src'),
+    'Opis\\Closure\\' => array($vendorDir . '/opis/closure/src'),
 );

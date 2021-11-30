@@ -1,40 +1,42 @@
-<script src="/js/widgets-js/src/widgets.js"></script>
-
 <?php
+
 require_once __DIR__ . '/../vendor/autoload.php';
+use Widget\RequestController;
 use Widget\c;
 use Widget\state;
 
+RequestController::init();
 
+echo '<script src="/js/widgets-js/src/widgets.js"></script>';
 
-state::init(
-    name: 'Василий',
-    showInput: true,
+state::set('counter', 1);
+
+$app = c::div(
+    [
+        c::input(state::watch('counter')),
+        c::button(
+            '+',
+            onclick: function(){
+                $state = state::global();
+                $state->counter++;
+            }
+        ),
+        c::button(
+            '-',
+            onclick: function(){
+                $state = state::global();
+                $state->counter--;
+            }
+        ),
+    ]
 );
 
-state::set('filterOpen.connect', true);
-// state::set('filterOpen.material', true);
 
+// echo $app->html(false);
 
-$element = c::div('Фильтр');
-
-foreach(['material', 'connect', 'dn'] as $key){
-    $element->child = c::div(
-        style: 'border-top: 1px solid #ccc; padding: 10px;',
-        child: [
-            $key,
-            c::button(
-                child: 'click',
-                onclick: state::checkTurn("filterOpen.$key"),
-            ),
-            state::check("filterOpen.$key", 
-                c::div('Содержимое', style: 'padding: 10px; color: #f00')
-            )
-        ]
-    );
-}
-
-
-echo $element->html(true);
+echo $app->html(true);
 // echo "<hr>";
-// $element->print_r();
+// echo $app->print_r();
+
+
+?>

@@ -9,12 +9,39 @@ class state
     private $update = [];
     static $name = 'global';
 
+
+    static function __callStatic($name, $arguments)
+    {
+        return new state($name);
+    }
+
+    function __construct($name)
+    {
+        // $this->name = $name;
+    }
+
+    function __set($prop, $value)
+    {
+        self::$data[$prop] = $value;
+    }
+
+    function __get($prop)
+    {
+        if (!isset(self::$data[$prop])){
+            self::$data[$prop] = 0;
+        }
+        return self::$data[$prop];
+    }
+
+
+
+
     static function watch($watch, $callback = false){
         return c::state_watcher(
             state: self::$name,
             watch: $watch,
             callback: $callback,
-            view: self::val($watch),
+            view: self::get($watch),
         );
     }
 
@@ -22,7 +49,7 @@ class state
         return c::state_model(
             state:self::$name,
             prop:$prop,
-            view: self::val($prop),
+            view: self::get($prop),
         );
     }
 
@@ -32,13 +59,13 @@ class state
             prop: $prop,
             _true: $true,
             _false: $false,
-            view: self::val($prop)
+            view: self::get($prop)
                     ?$true
                     :$false,
         );
     }
 
-    static function val($key){
+    static function get($key){
         $key = explode('.', $key);
         $val = self::$data;
         foreach ($key as $_key){
@@ -67,7 +94,12 @@ class state
         // return c::js_function(self::$name.".$key = " . state::name().".filterOpen.$key")
     }
 
+
     static function init(...$state){
+        self::$data = $state;
+    }
+
+    static function initArray(array $state){
         self::$data = $state;
     }
 
@@ -121,7 +153,7 @@ class state
     // }
 
     static function checkTurn($props){
-        return c::js_function(self::name().".$props = !" . self::name() . ".$props");
+        return c::js_function(self::name().".checkTurn('$props')");
     }
 
 }

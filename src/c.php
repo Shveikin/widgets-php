@@ -3,6 +3,8 @@
 namespace Widget;
 
 
+
+
 class widget
 {
     private $props = [];
@@ -43,7 +45,14 @@ class widget
 
     public function __set($prop, $value)
     {
-        if ($prop == 'child' || $prop == 0) {
+        if ($prop==0) $prop = 'child';
+
+        if ($prop == 'child' && isset(self::$childsTarget[$this->props['element']])) {
+            $prop = self::$childsTarget[$this->props['element']];
+        }
+
+        if ($prop)
+        if ($prop == 'child') {
             array_push($this->childs, $value);
         } else {
             $this->props[$prop] = $value;
@@ -62,8 +71,6 @@ class widget
         } else {
             array_push($array, $childs);
         }
-
-
     }
 
     private static function propsToArray(&$array, array $props)
@@ -75,8 +82,8 @@ class widget
             } else if ($prop instanceof widget) {
                 $newProp = $prop->toArray();
                 // self::childsToArray($newProp, $prop);
-            } else if (is_callable($prop)){
-                $newProp = c::js_function('alert("11")');
+            } else if (c::is_function($prop)){
+                $newProp = RequestController::addFunction($prop);
             } else {
                 $newProp = $prop;
             }
@@ -84,6 +91,7 @@ class widget
             $array[$key] = $newProp;
         }
     }
+
 
     public function print_r(){
         echo "<pre>";
@@ -195,7 +203,7 @@ class widget
             foreach ($element->props as $key => $value) {
                     if ($key!='_name')
                     if (!in_array($key,['element', 'child'])) {
-                    if (!is_array($value) && !is_callable($value)){
+                    if (!is_array($value) && !c::is_function($value)){
                         $html .= "$key='$value' ";
                     }
                 }
@@ -264,13 +272,17 @@ class c
     {
         $globalState = new state($state);
         $layout = c::div();
-        if (is_callable($runder)) {
+        if (c::is_function($runder)) {
             $runder($layout, $globalState);
         } else {
             $layout->child = $runder;
         }
 
         self::body($layout->toArray(), $globalState->toArray());
+    }
+
+    static function is_function($obj){
+        return gettype($obj)!='string' && is_callable($obj);
     }
 
     public static function __callStatic($tag, $props = false)
@@ -319,15 +331,18 @@ class c
         return widget::indexg($index, $name);
     }
 
-    static function js_function($function_body){
-        return c::{'function'}(
-            function: $function_body,
-            view: str_replace("'","`", $function_body)
-        );
-
-        //     'element' => 'function', 
-        //     'function' => 
-        // ];
+    static function js_function($function_body, $view = false) 
+    {
+        if ($view===false) $view = str_replace("'","`", $function_body);
+        // return c::{'func'}(
+        //     function: $function_body,
+        //     view: str_replace("'","`", $function_body)
+        // );
+        return [
+            'element' => 'func',
+            'function' => $function_body,
+            'view' => $view,
+        ];
     }
 }
 
