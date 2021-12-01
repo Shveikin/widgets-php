@@ -12,7 +12,11 @@
     <script>
         c.app(
             state => c.div([
-                state.watch('counter'),
+                c.input({
+                    element: 'state_watcher',
+                    state: 'global',
+                    watch: 'counter'
+                }),
                 c.button({
                     child: '+',
                     onclick(){

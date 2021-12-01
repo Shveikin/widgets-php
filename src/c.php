@@ -94,9 +94,9 @@ class widget
 
 
     public function print_r(){
-        echo "<pre>";
-        print_r($this->toArray());
-        echo "</pre>";
+        return "<pre>".
+        print_r($this->toArray(), true)
+        ."</pre>";
     }
 
     public function toArray()

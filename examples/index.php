@@ -33,10 +33,11 @@ $app = c::div(
 
 
 // echo $app->html(false);
-
-echo $app->html(true);
+echo c::textarea($app->print_r(), style: 'width: 900px; height: 300px;');
 // echo "<hr>";
-// echo $app->print_r();
+// echo $app->html(true);
+
+
 
 
 ?>

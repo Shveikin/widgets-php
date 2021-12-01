@@ -1,2 +1,4 @@
-vendor
-.vscode
+vendor/
+.vscode/
+/vendor
+/.vscode

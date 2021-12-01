@@ -99,8 +99,13 @@ class widget {
 	}
 
 	static propsCorrector(props){
-		if (widget.getType(props)=='State'){
-			props = {child: props}
+		const type = widget.getType(props)
+		switch (type){
+			case 'State':
+			case 'Element':
+			case 'WidgetTools':
+				props = {child: props}
+			break;
 		}
 
 		props._name = widget.nextName(props)
