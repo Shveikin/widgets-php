@@ -77,7 +77,7 @@ class widget
     {
         foreach ($props as $key => $prop) {
             $newProp = [];
-            if (gettype($prop) == 'array') {
+            if (gettype($prop) == 'array' && !isset($prop['element'])) {
                 self::propsToArray($newProps, $prop);
             } else if ($prop instanceof widget) {
                 $newProp = $prop->toArray();
