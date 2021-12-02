@@ -2,3 +2,4 @@ vendor/
 .vscode/
 /vendor
 /.vscode
+watcher.exe

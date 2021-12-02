@@ -1,0 +1,12 @@
+{
+    "from": "C:/Users/X/Desktop/App/widgets-php/examples/js/widgets-js/src/",
+    "to": "C:/Users/X/Desktop/App/widgets-php/examples/js/widgets-js/build/widgets.js",
+    "list": [
+        "convertor.js",
+        "widgets.js",
+        "childController.js",
+        "widgetTools.js",
+        "widgetState.js",
+        "c.js"
+    ]
+}
