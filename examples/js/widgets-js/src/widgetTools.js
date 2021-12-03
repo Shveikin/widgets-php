@@ -1,5 +1,9 @@
 
 class WidgetTools{
+	static create(element){
+		return WidgetTools[element.element](element)
+	}
+
 	static getStateFromPath(state, path){
 		let key
 		if (path.length!=0){

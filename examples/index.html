@@ -19,22 +19,12 @@
     <div id="app"></div>
     <script>
         c.app(
-            c.div({
-                element: 'div',
-                child: [
-                    {
-                        element: 'input',
-                        _name: 'element_2',
-                        value: {
-                            element: 'state_watcher',
-                            _name: 'element_1',
-                            state: 'global',
-                            watch: 'counter',
-                            callback: false,
-                            view: 1,
-                        }
-                    }
-                ]
+            c.button({
+                child: 'Hello',
+                onclick: {
+                    element: 'func',
+                    function: 'alert(11)'
+                }
             })
         )
     </script>

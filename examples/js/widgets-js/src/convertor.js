@@ -59,7 +59,7 @@ class WidgetConvertor {
 	}
 
 	static WidgetToolsToState(element){
-		return WidgetTools[element.element](element)
+		return WidgetTools.create(element)
 	}
 
 	static propsCorrector(props){

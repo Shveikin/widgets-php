@@ -60,7 +60,7 @@ class WidgetConvertor {
 	}
 
 	static WidgetToolsToState(element){
-		return WidgetTools[element.element](element)
+		return WidgetTools.create(element)
 	}
 
 	static propsCorrector(props){
@@ -385,7 +385,12 @@ class widget {
 	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
+			if (WidgetConvertor.getType(value)=='WidgetTools'){
+				value = WidgetTools.create(value)
+			}
+
 			const type = WidgetConvertor.getType(value)
+
 			switch(type){
 				case 'String':
 				case 'Int':
@@ -393,10 +398,17 @@ class widget {
 				break;
 				case 'WidgetTools':
 					value = WidgetConvertor.toState(value)
-				case "State":
+				case 'State':
 					WidgetState.inspector(value, [this.props._name, prop])
 				break;
-				case 'default':
+				case 'Function':
+					if (prop.substr(0,2)=='on'){
+						this.element[prop] = value
+					} else {
+						this.element[prop] = value()
+					}
+				break;
+				default:
 					console.info('Не применено', prop, value, type)
 				break;
 			}
@@ -504,6 +516,10 @@ class widget {
 // widgetTools.js
 
 class WidgetTools{
+	static create(element){
+		return WidgetTools[element.element](element)
+	}
+
 	static getStateFromPath(state, path){
 		let key
 		if (path.length!=0){
