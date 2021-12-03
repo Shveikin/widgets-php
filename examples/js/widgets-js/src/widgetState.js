@@ -132,11 +132,6 @@ class WidgetState {
 		return WidgetState.keys(self).length
 	}
 
-	static canBind(value){
-		const res = (typeof value == 'object' && value!=null && 'link' in value)
-		return res
-	}
-
 	static check(self){
 		const state = this;
 		return (prop, _true, _false = false) => {

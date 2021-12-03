@@ -35,10 +35,6 @@ const c = new Proxy({}, {
 
 				widget.proxys[property._name] = proxyProps
 				_widget.widget.assignProps(property)
-				// Object.keys(property).map(prop => {
-				// 	if (prop!='_name')
-				// 		_widget.widget.assignProp(prop, property[prop])
-				// })
                 return proxyProps
             }
 		}

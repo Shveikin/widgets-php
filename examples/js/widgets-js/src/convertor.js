@@ -1,17 +1,24 @@
 
 class WidgetConvertor {
 
-    static toHTML(element){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML')
-    }
-
-    static convert(element, from, to){
+    static convert(element, from, to, state = false){
         const func = `${from}To${to}`
+		console.log(func, element)
         if (func in WidgetConvertor){
-            return WidgetConvertor[func](element)
+			const result = WidgetConvertor[func](element, state)
+			const newType = WidgetConvertor.getType(result)
+			if (newType==to){
+				return result;
+			} else {
+				return WidgetConvertor.convert(result, newType, to)
+			}
         } else {
             throw new Error(`${func} отсутствует!`);
         }
+    }
+
+	static toHTML(element, state = false){
+        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
     static StringToHTML(element){
@@ -20,7 +27,28 @@ class WidgetConvertor {
         return wrapper
     }
 
+	static WidgetToHTML(element){
+        return element.element()
+    }
 
+	static FunctionToHTML(func, state = false){
+		if (state && typeof state=='object' && WidgetConvertor.getType(state)!='State'){
+			state = WidgetState.use(state)
+		}
+        return func(state)
+    }
+
+	static StateToHTML(state){
+		return c.div({innerHTML: state})
+	}
+
+	static ArrayToHTML(array){
+		const wrapper = document.createElement('div')
+		array.map(element => {
+			wrapper.appendChild(WidgetConvertor.toHTML(element))
+		})
+		return wrapper
+	}
 
 	static propsCorrector(props){
 		const type = WidgetConvertor.getType(props)
@@ -54,14 +82,18 @@ class WidgetConvertor {
      * @returns type
      */
     static getType(element){
-		let type = 'String'
+		let type = 'Unknown'
+		if (typeof element=='number')
+			type = 'Int'
+		if (typeof element=='string')
+			type = 'String'
 		if (element instanceof HTMLElement)
 			type = 'HTML'
 		else
 		if (typeof element == 'object' && 'widget' in element)
 			type = 'Widget'
 		else
-		if (WidgetState.canBind(element))
+		if (typeof element == 'object' && 'link' in element)
 			type = 'State'
 		else
 		if (element && typeof element == 'object' && 'element' in element){

@@ -2,17 +2,24 @@
 
 class WidgetConvertor {
 
-    static toHTML(element){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML')
-    }
-
-    static convert(element, from, to){
+    static convert(element, from, to, state = false){
         const func = `${from}To${to}`
+		console.log(func, element)
         if (func in WidgetConvertor){
-            return WidgetConvertor[func](element)
+			const result = WidgetConvertor[func](element, state)
+			const newType = WidgetConvertor.getType(result)
+			if (newType==to){
+				return result;
+			} else {
+				return WidgetConvertor.convert(result, newType, to)
+			}
         } else {
             throw new Error(`${func} отсутствует!`);
         }
+    }
+
+	static toHTML(element, state = false){
+        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
     static StringToHTML(element){
@@ -21,7 +28,28 @@ class WidgetConvertor {
         return wrapper
     }
 
+	static WidgetToHTML(element){
+        return element.element()
+    }
 
+	static FunctionToHTML(func, state = false){
+		if (state && typeof state=='object' && WidgetConvertor.getType(state)!='State'){
+			state = WidgetState.use(state)
+		}
+        return func(state)
+    }
+
+	static StateToHTML(state){
+		return c.div({innerHTML: state})
+	}
+
+	static ArrayToHTML(array){
+		const wrapper = document.createElement('div')
+		array.map(element => {
+			wrapper.appendChild(WidgetConvertor.toHTML(element))
+		})
+		return wrapper
+	}
 
 	static propsCorrector(props){
 		const type = WidgetConvertor.getType(props)
@@ -55,14 +83,18 @@ class WidgetConvertor {
      * @returns type
      */
     static getType(element){
-		let type = 'String'
+		let type = 'Unknown'
+		if (typeof element=='number')
+			type = 'Int'
+		if (typeof element=='string')
+			type = 'String'
 		if (element instanceof HTMLElement)
 			type = 'HTML'
 		else
 		if (typeof element == 'object' && 'widget' in element)
 			type = 'Widget'
 		else
-		if (WidgetState.canBind(element))
+		if (typeof element == 'object' && 'link' in element)
 			type = 'State'
 		else
 		if (element && typeof element == 'object' && 'element' in element){
@@ -259,27 +291,29 @@ class widget {
 	}
 
 	setChild(child){
-		if (Array.isArray(child)){
-			this.childs = child
-		} else {
-			this.childs = [child]
-		}
-
+		this.childs = child
 		this.renderChilds()
 	}
 	
 	renderChilds(){
 		this.element.innerHTML = '';
-		
-		this.childs.map(child => {
-			const _child = WidgetConvertor.toHTML(child) 
-			// widget.convertor({
-			// 	element: child,
-			// 	to: ['HTML']
-			// })
+		let _chils = this.childs
 
-			this.element.appendChild(_child)
-		})
+		switch(WidgetConvertor.getType(this.childs)){
+			case "String":
+				this.element.innerHTML = _chils;
+			break;
+			case "Widget":
+			case "State":
+			case "Function":
+			case "Array":
+				_chils = WidgetConvertor.toHTML(this.childs)
+			default:
+
+				this.element.appendChild(_chils)
+			break;
+		}
+		
 	}
 
     assignProp(prop, value){ // prop = value
@@ -288,12 +322,9 @@ class widget {
 			if (setChildToProp){
 				this.__link(setChildToProp, value)
 			}
-		}
-
+		} else 
         if (prop=='child'){
-			
 			this.setChild(value)
-
         } else {
 			let update = true;
 			if (WidgetConvertor.getType(this.props[prop])=='WidgetTools'){
@@ -330,17 +361,8 @@ class widget {
 	}
 
 	__link(prop, value){
-		value = widget.convertor({
-			element: value,
-			to: (prop.substr(0,2)!='on' && typeof value != 'function')
-				?['State', 'String']
-				:['Function']
-		})
-
-		// if (prop=='0') prop = 'child'
-
 		if (!Array.isArray(prop)){
-			if (WidgetState.canBind(value)) {
+			if (WidgetConvertor.getType(value)=='State') {
 				WidgetState.inspector(value, [this.props._name, prop])
 			} else {
 				this.element[prop] = value
@@ -421,11 +443,7 @@ class widget {
 
 
     static renderTo(querySelector, element, state = false){
-		element = widget.convertor({
-			element, 
-			state,
-			to: ['HTML']
-		})
+		element = WidgetConvertor.toHTML(element, state)
 		let toElement = window.document.querySelector(querySelector);
 		if (toElement){
 			toElement.innerHTML = '';
@@ -640,11 +658,6 @@ class WidgetState {
 		return WidgetState.keys(self).length
 	}
 
-	static canBind(value){
-		const res = (typeof value == 'object' && value!=null && 'link' in value)
-		return res
-	}
-
 	static check(self){
 		const state = this;
 		return (prop, _true, _false = false) => {
@@ -837,10 +850,6 @@ const c = new Proxy({}, {
 
 				widget.proxys[property._name] = proxyProps
 				_widget.widget.assignProps(property)
-				// Object.keys(property).map(prop => {
-				// 	if (prop!='_name')
-				// 		_widget.widget.assignProp(prop, property[prop])
-				// })
                 return proxyProps
             }
 		}

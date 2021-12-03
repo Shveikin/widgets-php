@@ -107,27 +107,29 @@ class widget {
 	}
 
 	setChild(child){
-		if (Array.isArray(child)){
-			this.childs = child
-		} else {
-			this.childs = [child]
-		}
-
+		this.childs = child
 		this.renderChilds()
 	}
 	
 	renderChilds(){
 		this.element.innerHTML = '';
-		
-		this.childs.map(child => {
-			const _child = WidgetConvertor.toHTML(child) 
-			// widget.convertor({
-			// 	element: child,
-			// 	to: ['HTML']
-			// })
+		let _chils = this.childs
 
-			this.element.appendChild(_child)
-		})
+		switch(WidgetConvertor.getType(this.childs)){
+			case "String":
+				this.element.innerHTML = _chils;
+			break;
+			case "Widget":
+			case "State":
+			case "Function":
+			case "Array":
+				_chils = WidgetConvertor.toHTML(this.childs)
+			default:
+
+				this.element.appendChild(_chils)
+			break;
+		}
+		
 	}
 
     assignProp(prop, value){ // prop = value
@@ -136,12 +138,9 @@ class widget {
 			if (setChildToProp){
 				this.__link(setChildToProp, value)
 			}
-		}
-
+		} else 
         if (prop=='child'){
-			
 			this.setChild(value)
-
         } else {
 			let update = true;
 			if (WidgetConvertor.getType(this.props[prop])=='WidgetTools'){
@@ -178,17 +177,8 @@ class widget {
 	}
 
 	__link(prop, value){
-		value = widget.convertor({
-			element: value,
-			to: (prop.substr(0,2)!='on' && typeof value != 'function')
-				?['State', 'String']
-				:['Function']
-		})
-
-		// if (prop=='0') prop = 'child'
-
 		if (!Array.isArray(prop)){
-			if (WidgetState.canBind(value)) {
+			if (WidgetConvertor.getType(value)=='State') {
 				WidgetState.inspector(value, [this.props._name, prop])
 			} else {
 				this.element[prop] = value
@@ -269,11 +259,7 @@ class widget {
 
 
     static renderTo(querySelector, element, state = false){
-		element = widget.convertor({
-			element, 
-			state,
-			to: ['HTML']
-		})
+		element = WidgetConvertor.toHTML(element, state)
 		let toElement = window.document.querySelector(querySelector);
 		if (toElement){
 			toElement.innerHTML = '';

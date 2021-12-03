@@ -5,12 +5,37 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="/examples/js/widgets-js/build/widgets.js"></script>
+    <!-- <script src="/js/widgets-js/build/widgets.js"></script> -->
+
+    <script src="/js/widgets-js/src/convertor.js"></script>
+    <script src="/js/widgets-js/src/widgets.js"></script>
+    <script src="/js/widgets-js/src/childController.js"></script>
+    <script src="/js/widgets-js/src/widgetTools.js"></script>
+    <script src="/js/widgets-js/src/widgetState.js"></script>
+    <script src="/js/widgets-js/src/c.js"></script>
+
 </head>
 <body>
     <div id="app"></div>
     <script>
-        console.log(c.div('Hello').element())
+        c.app(
+            state => [
+                c.input({
+                    child: 111,
+                    type: state.check('isPassword', 'password', 'text')
+                }),
+                c.button({
+                    child: state.check('isPassword', 'показать', 'скрыть'),
+                    onclick(){
+                        state.checkTurn('isPassword')
+                    }
+                })
+            ],
+            {
+                isPassword: false,
+                _name: 'filter'
+            }
+        )
     </script>
 </body>
 </html>
