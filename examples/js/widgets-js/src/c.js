@@ -10,6 +10,9 @@ const c = new Proxy({}, {
             return (property = {}, state = false) => {
 				property = WidgetConvertor.propsCorrector(property);
 				const lite = {_name: property._name}
+				if ('element' in property){
+					tag = property.element
+				}
 
 				const _widget = {
 					widget: new widget(tag, lite)

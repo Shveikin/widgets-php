@@ -22,6 +22,10 @@ class WidgetConvertor {
         return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
+	static toState(element){
+        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'State')
+    }
+
     static StringToHTML(element){
         const wrapper = document.createElement('div')
         wrapper.innerHTML = element
@@ -51,11 +55,18 @@ class WidgetConvertor {
 		return wrapper
 	}
 
+	static ElementToHTML(element){
+		return c.div(element)
+	}
+
+	static WidgetToolsToState(element){
+		return WidgetTools[element.element](element)
+	}
+
 	static propsCorrector(props){
 		const type = WidgetConvertor.getType(props)
 		switch (type){
 			case 'State':
-			case 'Element':
 			case 'WidgetTools':
             case 'String':
 				props = {child: props}
@@ -303,6 +314,7 @@ class widget {
 			case "String":
 				this.element.innerHTML = _chils;
 			break;
+			case "Element":
 			case "Widget":
 			case "State":
 			case "Function":
@@ -360,12 +372,33 @@ class widget {
 		}
 	}
 
+	/**
+	 * Установка свойства
+	 * @param {*} prop 
+	 * @param {*} value 
+	 * 
+	 * Свойство может быть следующих типо
+	 * String
+	 * State
+	 * Array - анимация
+	 * WidgetTools - проверить на widgettools
+	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
-			if (WidgetConvertor.getType(value)=='State') {
-				WidgetState.inspector(value, [this.props._name, prop])
-			} else {
-				this.element[prop] = value
+			const type = WidgetConvertor.getType(value)
+			switch(type){
+				case 'String':
+				case 'Int':
+					this.element[prop] = value
+				break;
+				case 'WidgetTools':
+					value = WidgetConvertor.toState(value)
+				case "State":
+					WidgetState.inspector(value, [this.props._name, prop])
+				break;
+				case 'default':
+					console.info('Не применено', prop, value, type)
+				break;
 			}
 		} else {
 			console.info('__link','Применение массива не поддурживается', props, value);
@@ -825,6 +858,9 @@ const c = new Proxy({}, {
             return (property = {}, state = false) => {
 				property = WidgetConvertor.propsCorrector(property);
 				const lite = {_name: property._name}
+				if ('element' in property){
+					tag = property.element
+				}
 
 				const _widget = {
 					widget: new widget(tag, lite)

@@ -21,6 +21,10 @@ class WidgetConvertor {
         return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
+	static toState(element){
+        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'State')
+    }
+
     static StringToHTML(element){
         const wrapper = document.createElement('div')
         wrapper.innerHTML = element
@@ -50,11 +54,18 @@ class WidgetConvertor {
 		return wrapper
 	}
 
+	static ElementToHTML(element){
+		return c.div(element)
+	}
+
+	static WidgetToolsToState(element){
+		return WidgetTools[element.element](element)
+	}
+
 	static propsCorrector(props){
 		const type = WidgetConvertor.getType(props)
 		switch (type){
 			case 'State':
-			case 'Element':
 			case 'WidgetTools':
             case 'String':
 				props = {child: props}

@@ -7,9 +7,10 @@ use Widget\state;
 
 RequestController::init();
 
-echo '<script src="/js/widgets-js/src/widgets.js"></script>';
+echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
 state::set('counter', 1);
+
 
 $app = c::div(
     [
@@ -34,8 +35,8 @@ $app = c::div(
 
 // echo $app->html(false);
 echo c::textarea($app->print_r(), style: 'width: 900px; height: 300px;');
-// echo "<hr>";
-// echo $app->html(true);
+echo "<hr>";
+echo $app->html(true);
 
 
 
