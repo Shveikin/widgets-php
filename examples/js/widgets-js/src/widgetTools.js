@@ -46,13 +46,30 @@ class WidgetTools{
 	}
 
 	static func(props){
-		let func = Function(props.function);
-		// eval(`
-		// 	func = async function(){
-		// 		${}
-		// 	}
-		// `)
-		return func
+		return Function(props.function);
+	}
+
+	static widget_request(props){
+		return {
+			link: function([element, prop]){
+				return function(){
+					fetch(props.url, {
+						method: 'POST',
+						body: JSON.stringify({
+							state: props.useState.map(stateName => {
+								return WidgetState.name(stateName).data()
+							}),
+							this: widget.name(element).toArray,
+							props
+						})
+					})
+					.then(res => res.json())
+					.then(res => {
+						console.log('>>>>>', res)
+					})
+				}
+			}
+		}
 	}
 
 }

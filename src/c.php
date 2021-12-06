@@ -82,6 +82,8 @@ class widget
             } else if ($prop instanceof widget) {
                 $newProp = $prop->toArray();
                 // self::childsToArray($newProp, $prop);
+            } else if ($prop instanceof BindElement) {
+                $newProp = $prop->appy();
             } else if (c::is_function($prop)){
                 $newProp = RequestController::addFunction($prop);
             } else {
@@ -203,7 +205,7 @@ class widget
             foreach ($element->props as $key => $value) {
                     if ($key!='_name')
                     if (!in_array($key,['element', 'child'])) {
-                    if (!is_array($value) && !c::is_function($value)){
+                    if (!is_object($value) && !is_array($value) && !c::is_function($value)){
                         $html .= "$key='$value' ";
                     }
                 }

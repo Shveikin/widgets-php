@@ -18,15 +18,15 @@
 <body>
     <div id="app"></div>
     <script>
-        c.app(
+        c.app([
+            c.input('Hello').setName('input'),
             c.button({
                 child: 'Hello',
-                onclick: {
-                    element: 'func',
-                    function: 'alert(11)'
+                onclick(){
+                    alert(widget.name('input').element.value)
                 }
             })
-        )
+        ])
     </script>
 </body>
 </html>

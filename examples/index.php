@@ -1,42 +1,50 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
-use Widget\RequestController;
-use Widget\c;
-use Widget\state;
+use ntext\Filter;
 
-RequestController::init();
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once 'Filter.php';
+// use Widget\RequestController;
+// use Widget\c;
+// use Widget\state;
+
+// RequestController::init();
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
-state::set('counter', 1);
+
+echo Filter::element();
+echo Filter::print_r();
 
 
-$app = c::div(
-    [
-        c::input(state::watch('counter')),
-        c::button(
-            '+',
-            onclick: function(){
-                $state = state::global();
-                $state->counter++;
-            }
-        ),
-        c::button(
-            '-',
-            onclick: function(){
-                $state = state::global();
-                $state->counter--;
-            }
-        ),
-    ]
-);
+// state::set('counter', 1);
 
 
-// echo $app->html(false);
-echo c::textarea($app->print_r(), style: 'width: 900px; height: 300px;');
-echo "<hr>";
-echo $app->html(true);
+// $app = c::div(
+//     [
+//         c::input(state::watch('counter')),
+//         c::button(
+//             '+',
+//             onclick: function(){
+//                 $state = state::global();
+//                 $state->counter++;
+//             }
+//         ),
+//         c::button(
+//             '-',
+//             onclick: function(){
+//                 $state = state::global();
+//                 $state->counter--;
+//             }
+//         ),
+//     ]
+// );
+
+
+// // echo $app->html(false);
+// echo c::textarea($app->print_r(), style: 'width: 900px; height: 300px;');
+// echo "<hr>";
+// echo $app->html(true);
 
 
 

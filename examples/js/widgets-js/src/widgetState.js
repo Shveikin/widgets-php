@@ -195,10 +195,21 @@ class WidgetState {
                         })
                         WidgetState.updateAll(self, prop)
                     })
+
+					return false;
                 }
             }
         }
     }
+
+
+	static inspector(func, to) {
+		if ('link' in func)
+			return func.link(to)
+	}
+
+
+
 
 	/**
 	 * Установить значение по пути до элемента
@@ -277,12 +288,4 @@ class WidgetState {
 		})
         return props;
     }
-
-
-    static inspector(func, to) {
-		if ('link' in func)
-			func.link(to)
-		else
-			console.log('Find State');
-	}
 }

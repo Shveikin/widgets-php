@@ -80,7 +80,7 @@ class widget {
             _name
         }
 
-		this.element = document.createElement(tag);
+		this.element = tag instanceof HTMLElement?tag:document.createElement(tag);
 		widget.names[_name] = this.element
 
         if (typeof props == 'function' && state){
@@ -134,6 +134,9 @@ class widget {
 	}
 
     assignProp(prop, value){ // prop = value
+		// if (prop=='name'){
+		// 	this.setMyName(this, value)
+		// } else
 		if (prop=='child' && this.props.element in widget.singleElement){
 			const setChildToProp = widget.singleElement[this.props.element]
 			if (setChildToProp){
@@ -194,17 +197,16 @@ class widget {
 				value = WidgetTools.create(value)
 			}
 
+			if (WidgetConvertor.getType(value)=='State'){
+				value = WidgetState.inspector(value, [this.props._name, prop])
+			}
+
 			const type = WidgetConvertor.getType(value)
 
 			switch(type){
 				case 'String':
 				case 'Int':
 					this.element[prop] = value
-				break;
-				case 'WidgetTools':
-					value = WidgetConvertor.toState(value)
-				case 'State':
-					WidgetState.inspector(value, [this.props._name, prop])
 				break;
 				case 'Function':
 					if (prop.substr(0,2)=='on'){
@@ -223,6 +225,7 @@ class widget {
 	}
 
     static pushChilds(array, childs){
+		if (this.tag == '')
         if (Array.isArray(childs)) {
             childs.map(itm => {
                 widget.pushChilds(array, itm)
@@ -236,15 +239,22 @@ class widget {
 
     toArray(){
         const childs = []
-        widget.pushChilds(childs, this.childs);
+        widget.pushChilds(childs, this.childs); 
 
         const element = this.props;
+		if ('value' in element) {
+			element.value = widget.name(element._name).value 
+		}
         if (childs.length!=0) {
             element['child'] = childs;
         }
 
         return element;
     }
+
+	element(){
+		return () => this.element
+	}
 
     toElement(){
 		return this.element
@@ -260,7 +270,7 @@ class widget {
 		return this.props._name;
 	}
 
-	setName(self, name){
+	setMyName(self, name){
 		const _last_name = this.props._name
 		if (_last_name in widget.names){
 			const domElement = widget.names[_last_name]
@@ -274,11 +284,12 @@ class widget {
     setProp(self, prop, value, dopvalue){ // prop.(val)
         switch(prop){
 			case 'indexName':
-				this.setName(self, dopvalue + '_' + value)
+				this.setMyName(self, dopvalue + '_' + value)
                 return self
 			break;
+			case 'setName': 
             case 'name': 
-                this.setName(self, value)
+                this.setMyName(self, value)
                 return self
             case 'toArray':
                 return this.toArray();

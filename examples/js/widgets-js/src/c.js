@@ -23,11 +23,17 @@ const c = new Proxy({}, {
                         get: (el, prop) => {
 							if (typeof _widget.widget[prop] == 'function'){
 								return _widget.widget[prop]()
+							} else
+							if (prop!='setName' && prop.substr(0,3)=='set'){
+								return function(value){
+									el.widget.assignProp(prop.substr(3).toLowerCase(), value)
+									return proxyProps;
+								}
 							} else {
 								return (value, dopvalue = false) => {
 									return el.widget.setProp(proxyProps, prop, value, dopvalue)
 								}
-							}
+							} 
                         },
                         set: (el, prop, value) => {
 							el.widget.assignProp(prop, value)
