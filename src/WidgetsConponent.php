@@ -2,7 +2,7 @@
 
 namespace Widget;
 
-abstract class WidgetsApp
+abstract class WidgetsConponent
 {
     static $include_script = true;
     static $url = false;
@@ -24,7 +24,8 @@ abstract class WidgetsApp
         return static::main()->{"static__{$name}"}(...$arguments);
     }
 
-    function draw($layout){
+    function draw($layout)
+    {
         $layout->child = 'Метод draw не инициализирован!';
     }
 
@@ -33,7 +34,8 @@ abstract class WidgetsApp
     }
 
     private $layout = false; 
-    function layout(){
+    function layout()
+    {
         if ($this->layout==false){
             $this->layout = c::div();
             $this->draw($this->layout);
@@ -41,17 +43,28 @@ abstract class WidgetsApp
         return $this->layout;
     }
 
-    function static__element(){
+    function static__element()
+    {
+        return $this;
+    }
+
+    function static__html()
+    {
         return $this->layout()->html(static::$include_script);
     }
 
-    function static__print_r(){
+    function __toString()
+    {
+        return $this->static__html();
+    }
+
+    function static__print_r()
+    {
         return $this->layout()->print_r();
     }
 
     function __get($function_name)
     {
-
         return new BindElement(
             function: $function_name,
             url: static::$url?static::$url:realpath(__FILE__),
@@ -60,7 +73,15 @@ abstract class WidgetsApp
         );
     }
 
-    static function runFetchRequest($data){
+    function __construct($createDefaultState = true)
+    {
+        if ($createDefaultState){
+            $this->selfState();
+        }
+    }
+
+    static function runFetchRequest($data)
+    {
         $props = $data['props'];
         $class = $props['class'];
         $function = $props['function'];
@@ -73,7 +94,8 @@ abstract class WidgetsApp
         $instance->{$function}(...$function_props);
     }
 
-    static function init(){
+    static function init()
+    {
         $data = file_get_contents('php://input');
         if ($data) {
             $data = json_decode($data, true);
@@ -82,9 +104,16 @@ abstract class WidgetsApp
             }
         }
     }
+
+    /** 
+     * Собственный стейт
+    */
+    function selfState(){
+
+    }
 }
 
 
 register_shutdown_function(function(){
-    WidgetsApp::init();
+    WidgetsConponent::init();
 });

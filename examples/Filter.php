@@ -4,9 +4,9 @@ namespace ntext;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Widget\c;
+use Widget\WidgetsConponent;
 
-
-class Filter extends \Widget\WidgetsApp
+class Filter extends WidgetsConponent
 {
     static $url = 'http://localhost:2000/Filter.php';
     static $useState = ['global'];

@@ -3,7 +3,7 @@
 use ntext\Filter;
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once 'Filter.php';
+require_once 'components/SredaController.php';
 // use Widget\RequestController;
 // use Widget\c;
 // use Widget\state;
@@ -13,8 +13,12 @@ require_once 'Filter.php';
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
 
-echo Filter::element();
-echo Filter::print_r();
+
+
+echo SredaController::element();
+
+// echo Filter::element();
+// echo Filter::print_r();
 
 
 // state::set('counter', 1);

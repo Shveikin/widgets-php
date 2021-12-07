@@ -5,38 +5,44 @@ namespace Widget;
 
 class state
 {
-    static private $data = [];
-    private $update = [];
-    static $name = 'global';
+    static $names = [];
 
-
-    static function __callStatic($name, $arguments)
+    static function name(string $stateName){
+        return self::$names[$stateName];
+    }
+    
+    static function create($stateName, $defaultArray = []){
+        self::$names[$stateName] = new state($stateName, $defaultArray);
+    }    
+    
+    private $name = '';
+    private $data = [];
+    function __construct($name, $defaultArray = [])
     {
-        return new state($name);
+        $this->name = $name;
+        $this->data = $defaultArray;
     }
 
-    function __construct($name)
-    {
-        // $this->name = $name;
-    }
 
     function __set($prop, $value)
     {
-        self::$data[$prop] = $value;
+        $this->data[$prop] = $value;
     }
+
 
     function __get($prop)
     {
-        if (!isset(self::$data[$prop])){
-            self::$data[$prop] = 0;
+        if (!isset($this->data[$prop])){
+            $this->data[$prop] = 0;
         }
-        return self::$data[$prop];
+        
+        return $this->data[$prop];
     }
 
 
 
 
-    static function watch($watch, $callback = false){
+    function watch($watch, $callback = false){
         return c::state_watcher(
             state: self::$name,
             watch: $watch,
@@ -45,7 +51,7 @@ class state
         );
     }
 
-    static function model($prop){
+    function model($prop){
         return c::state_model(
             state:self::$name,
             prop:$prop,
@@ -53,7 +59,7 @@ class state
         );
     }
 
-    static function check($prop, $true, $false = false){
+    function check($prop, $true, $false = false){
         return c::state_check(
             state: self::$name,
             prop: $prop,
@@ -65,43 +71,43 @@ class state
         );
     }
 
-    static function get($key){
-        $key = explode('.', $key);
-        $val = self::$data;
-        foreach ($key as $_key){
-            if (isset($val[$_key]))
-                $val = $val[$_key];
-            else
-                return false;
-        }
-        return $val;
-    }
+    // function get($key){
+    //     $key = explode('.', $key);
+    //     $val = self::$data;
+    //     foreach ($key as $_key){
+    //         if (isset($val[$_key]))
+    //             $val = $val[$_key];
+    //         else
+    //             return false;
+    //     }
+    //     return $val;
+    // }
 
-    static function setPath(&$prop, array $path, $value){
-        $key = array_shift($path);
-        if (!empty($path)){
-            if (!isset($prop[$key])){
-                $prop[$key] = [];
-            }
-            self::setPath($prop[$key], $path, $value);
-        } else {
-            $prop[$key] = $value;
-        }
-    }
+    // static function setPath(&$prop, array $path, $value){
+    //     $key = array_shift($path);
+    //     if (!empty($path)){
+    //         if (!isset($prop[$key])){
+    //             $prop[$key] = [];
+    //         }
+    //         self::setPath($prop[$key], $path, $value);
+    //     } else {
+    //         $prop[$key] = $value;
+    //     }
+    // }
 
-    static function set($key, $value){
-        self::setPath(self::$data, explode('.', $key), $value);
-        // return c::js_function(self::$name.".$key = " . state::name().".filterOpen.$key")
-    }
+    // static function set($key, $value){
+    //     self::setPath(self::$data, explode('.', $key), $value);
+    //     // return c::js_function(self::$name.".$key = " . state::name().".filterOpen.$key")
+    // }
 
 
-    static function init(...$state){
-        self::$data = $state;
-    }
+    // static function init(...$state){
+    //     self::$data = $state;
+    // }
 
-    static function initArray(array $state){
-        self::$data = $state;
-    }
+    // static function initArray(array $state){
+    //     self::$data = $state;
+    // }
 
     // public function set($key, $value)
     // {
@@ -133,10 +139,14 @@ class state
     //     return $result;
     // }
 
-    static function toArray(){
-        $data = self::$data;
-        $data['_name'] = self::$name;
-        return $data;
+    static function toArray() 
+    {
+        $result = [];
+        foreach (self::$names as $state){
+            array_push($result, array_merge($state->data, ['_name' => $state->name]));
+        }
+
+        return $result;
     }
 
     public function __toString()
@@ -144,16 +154,17 @@ class state
         return "WidgetState.name('{$this->name}')";
     }
 
-    static function name(){
-        return "WidgetState.name('" . self::$name . "')";
-    }
+    // static function name(){
+    //     return "WidgetState.name('" . self::$name . "')";
+    // }
     
+
     // static function appy($props, $value){
 
     // }
 
-    static function checkTurn($props){
-        return c::js_function(self::name().".checkTurn('$props')");
+    function checkTurn($props){
+        return c::js_function($this . ".checkTurn('$props')");
     }
 
 }
