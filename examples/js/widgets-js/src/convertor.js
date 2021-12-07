@@ -32,7 +32,7 @@ class WidgetConvertor {
     }
 
 	static WidgetToHTML(element){
-        return element.element()
+        return element.element
     }
 
 	static FunctionToHTML(func, state = false){

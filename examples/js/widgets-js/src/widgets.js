@@ -171,9 +171,9 @@ class widget {
 			case 'child':
 				this.setChild(value)
 			break;
-			case 'style':
+			// case 'style':
 				
-			break;
+			// break;
 			default:
 				this.__link(prop, value)
 			break;
@@ -245,6 +245,12 @@ class widget {
 		if ('value' in element) {
 			element.value = widget.name(element._name).value 
 		}
+
+		if (this.props.element in widget.singleElement && widget.singleElement[this.props.element]){
+			const child = widget.singleElement[this.props.element]
+			element[child] = widget.name(element._name).element[child] 
+		}
+
         if (childs.length!=0) {
             element['child'] = childs;
         }

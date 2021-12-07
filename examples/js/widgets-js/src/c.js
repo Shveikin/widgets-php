@@ -21,8 +21,8 @@ const c = new Proxy({}, {
                     _widget, 
 					{
                         get: (el, prop) => {
-							if (typeof _widget.widget[prop] == 'function'){
-								return _widget.widget[prop]()
+							if (typeof _widget.widget[prop] != 'undefined'){
+								return _widget.widget[prop]
 							} else
 							if (prop!='setName' && prop.substr(0,3)=='set'){
 								return function(value){
