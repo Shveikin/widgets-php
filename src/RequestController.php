@@ -3,53 +3,44 @@
 namespace Widget;
 use Opis\Closure\SerializableClosure;
 
-
-class RequestController
-{
+class RequestController {
     static $func = [];
 
     static $requestController = false;
-    static function main(){
-        if (self::$requestController==false){
+    static function main() {
+        if (self::$requestController == false) {
             self::$requestController = new RequestController();
         }
 
         return self::$requestController;
     }
 
-    function __destruct()
-    {
-        
+    function __destruct() {
 
         file_put_contents('api.json', json_encode(self::$func));
     }
 
-
-    static function getURL() 
-    {
+    static function getURL() {
         return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     }
 
-
-
-    static function loadFromApi(){
+    static function loadFromApi() {
         if (file_exists('api.json')) {
             $apiData = json_decode(file_get_contents('api.json'), true);
-            foreach($apiData as $key => $func){
+            foreach ($apiData as $key => $func) {
                 self::$func[$key] = unserialize($func);
             }
         }
     }
 
-    static function run($key){
-        if (isset(self::$func[$key])){
+    static function run($key) {
+        if (isset(self::$func[$key])) {
             return self::$func[$key]();
         }
         return false;
     }
 
-    static function init(bool|callable $func = false)
-    {
+    static function init(bool | callable $func = false) {
         $request = file_get_contents('php://input');
         if ($request) {
             $request = json_decode($request, true);
@@ -59,15 +50,13 @@ class RequestController
 
             die(json_encode(state::toArray()));
         }
-    } 
+    }
 
-
-
-    static function addFunction($prop){
+    static function addFunction($prop) {
         return RequestController::main()->_addFunction($prop);
     }
-    
-    function _addFunction($func){
+
+    function _addFunction($func) {
         $hash = $this->hashFunction($func);
         $hashName = sha1($hash);
 
@@ -76,19 +65,19 @@ class RequestController
         return $this->js_request($hashName);
     }
 
-    function hashFunction($func){
+    function hashFunction($func) {
         $wrapper = new SerializableClosure($func);
         $serialized = serialize($wrapper);
         return $serialized;
     }
 
-    function js_request($hashName){
+    function js_request($hashName) {
         // $url = self::getURL();
         // $stateName = state::$name;
         // return c::js_function(<<<JS
-        //     fetch('/', 
+        //     fetch('/',
         //         {
-        //             method: 'POST', 
+        //             method: 'POST',
         //             headers: {
         //                 'Accept': 'application/json',
         //                 'Content-Type': 'application/json'
@@ -99,11 +88,10 @@ class RequestController
         //             })
         //         }
         //     ).then(response => response.json()).then(response => {
-                
+
         //         WidgetState.update(response)
 
         //     })
-            
 
         // JS, '');
     }

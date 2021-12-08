@@ -2,8 +2,7 @@
 
 namespace Widget;
 
-abstract class WidgetsConponent
-{
+abstract class WidgetsConponent {
     /**
      * добавить строку подключения в html
      */
@@ -14,21 +13,19 @@ abstract class WidgetsConponent
      */
     static $url = false;
 
-    /** 
+    /**
      * использовать список дополнительных стейтов
-    */
+     */
     static $useState = [];
 
-    /** 
+    /**
      * Единый стейт для всех копий компонента
-    */
+     */
     static $singleState = false;
-
 
     private static $element;
     private static $widgetsApp = false;
-    public static function main()
-    {
+    public static function main() {
         if (static::$widgetsApp == false) {
             static::$widgetsApp = new static();
         }
@@ -36,24 +33,20 @@ abstract class WidgetsConponent
         return static::$widgetsApp;
     }
 
-    public static function __callStatic($name, $arguments)
-    {
+    public static function __callStatic($name, $arguments) {
         return static::main()->{"static__{$name}"}(...$arguments);
     }
 
-    public function draw($layout)
-    {
+    public function draw($layout) {
         $layout->child = 'Метод draw не инициализирован!';
     }
 
-    public function static__get($function_name)
-    {
+    public function static__get($function_name) {
         return static::main()->{$function_name};
     }
 
     private $layout = false;
-    public function layout()
-    {
+    public function layout() {
         if ($this->layout == false) {
             $this->layout = c::div();
             $this->draw($this->layout);
@@ -61,28 +54,23 @@ abstract class WidgetsConponent
         return $this->layout;
     }
 
-    public function static__element()
-    {
+    public function static__element() {
         return $this->layout();
     }
 
-    public function static__html()
-    {
+    public function static__html() {
         return $this->layout()->html(static::$include_script);
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->static__html();
     }
 
-    public function static__print_r()
-    {
+    public function static__print_r() {
         return $this->layout()->print_r();
     }
 
-    public function __get($function_name)
-    {
+    public function __get($function_name) {
         return new BindElement(
             function :$function_name,
             url:static::$url ? static::$url : realpath(__FILE__),
@@ -91,15 +79,13 @@ abstract class WidgetsConponent
         );
     }
 
-    public function __construct($createDefaultState = true)
-    {
+    public function __construct($createDefaultState = true) {
         if ($createDefaultState) {
-            $this->state();
+            $this->mainState();
         }
     }
 
-    public static function runFetchRequest($data)
-    {
+    public static function runFetchRequest($data) {
         $props = $data['props'];
         $class = $props['class'];
         $function = $props['function'];
@@ -112,8 +98,7 @@ abstract class WidgetsConponent
         $instance->{$function}(...$function_props);
     }
 
-    public static function init()
-    {
+    public static function init() {
         $data = file_get_contents('php://input');
         if ($data) {
             $data = json_decode($data, true);
@@ -126,40 +111,57 @@ abstract class WidgetsConponent
     /**
      * Собственный стейт
      */
-    public function state()
-    {
-        
+    public function mainState() {
+
     }
 
-
-    static private $stateCounter = [];
-    static function getStateName($stateName){
-        if (!static::$singleState){
-            if (!isset(static::$stateCounter[$stateName])){
+    private static $stateCounter = [];
+    public static function getStateAlias($stateName) {
+        if (!static::$singleState) {
+            if (!isset(static::$stateCounter[$stateName])) {
                 static::$stateCounter[$stateName] = 1;
             } else {
                 static::$stateCounter[$stateName]++;
             }
-            
+
             $stateName .= '_' . static::$stateCounter[$stateName];
         }
-        
-        
-        
+
         return $stateName;
     }
 
-    /** 
-     * Создать стейт
-     * @return newStateName
+    /**
+     * Псевдонимы для стейта
      */
-    function createState(string $stateName, array $stateBody){
-        $stateName = static::getStateName($stateName);
+    private $stateAlias = [];
+
+    /**
+     * Создать стейт
+     * @return stateAlias
+     */
+    public function createState(string $stateName, array $stateBody) {
+        $stateAlias = static::getStateAlias($stateName);
+        $this->stateAlias[$stateName] = $stateAlias;
+        state::create($stateAlias, $stateBody);
+        return $stateAlias;
+    }
+
+    /**
+     * Создать глобальный стейт
+     * @return stateName
+     */
+    public function createGlobalState(string $stateName, array $stateBody) {
+        $this->stateAlias[$stateName] = $stateName;
         state::create($stateName, $stateBody);
         return $stateName;
     }
-    
 
+    /**
+     * Подучить стейт по псевдониму
+     */
+    public function state(string $stateName) {
+        return state::name($this->stateAlias[$stateName]);
+    }
 }
 
 register_shutdown_function(function () {

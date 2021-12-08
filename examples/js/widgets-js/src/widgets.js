@@ -115,16 +115,20 @@ class widget {
 		this.element.innerHTML = '';
 		let _chils = this.childs
 
-		switch(WidgetConvertor.getType(this.childs)){
+		const neeChils = WidgetConvertor.applyState(this.props._name, 'child',  _chils)
+		if (neeChils) _chils = neeChils
+
+		switch(WidgetConvertor.getType(_chils)){
 			case "String":
 				this.element.innerHTML = _chils;
 			break;
+
 			case "Element":
 			case "Widget":
 			case "State":
 			case "Function":
 			case "Array":
-				_chils = WidgetConvertor.toHTML(this.childs)
+				_chils = WidgetConvertor.toHTML(_chils)
 			default:
 
 				this.element.appendChild(_chils)
@@ -193,13 +197,9 @@ class widget {
 	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
-			if (WidgetConvertor.getType(value)=='WidgetTools'){
-				value = WidgetTools.create(value)
-			}
-
-			if (WidgetConvertor.getType(value)=='State'){
-				value = WidgetState.inspector(value, [this.props._name, prop])
-			}
+			const neeValue = WidgetConvertor.applyState(this.props._name, prop, value)
+			if (neeValue) value = neeValue
+			
 
 			const type = WidgetConvertor.getType(value)
 
@@ -215,6 +215,9 @@ class widget {
 						this.element[prop] = value()
 					}
 				break;
+				case 'Element':
+					this.element[prop] = WidgetConvertor.toStr(value)
+				break;
 				default:
 					console.info('Не применено', prop, value, type)
 				break;
@@ -223,6 +226,9 @@ class widget {
 			console.info('__link','Применение массива не поддурживается', props, value);
 		}
 	}
+
+	static AppyState
+
 
     static pushChilds(array, childs){
 		if (this.tag == '')

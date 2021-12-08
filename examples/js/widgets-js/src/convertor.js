@@ -17,6 +17,10 @@ class WidgetConvertor {
         }
     }
 
+	static toStr(element){
+		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'String')
+	}
+
 	static toHTML(element, state = false){
         return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
@@ -58,8 +62,17 @@ class WidgetConvertor {
 		return c.div(element)
 	}
 
+	static ElementToString(element){
+		return c.div(element).element.outerHTML;
+	}
+
 	static WidgetToolsToState(element){
 		return WidgetTools.create(element)
+	}
+
+	static WidgetToolsToHTML(element){
+		const element2 = WidgetTools.create(element)
+		return WidgetConvertor.toHTML(element2);
 	}
 
 	static propsCorrector(props){
@@ -121,6 +134,21 @@ class WidgetConvertor {
 			type = 'Array'
 		
 		return type;
+	}
+
+
+
+	static applyState(name, prop, value){
+		let result = false;
+		if (WidgetConvertor.getType(value)=='WidgetTools'){
+			result = WidgetTools.create(value)
+		}
+
+		if (WidgetConvertor.getType(value)=='State'){
+			result = WidgetState.inspector(value, [name, prop])
+		}
+
+		return result
 	}
 
 

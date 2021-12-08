@@ -18,6 +18,10 @@ class WidgetConvertor {
         }
     }
 
+	static toStr(element){
+		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'String')
+	}
+
 	static toHTML(element, state = false){
         return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
     }
@@ -33,7 +37,7 @@ class WidgetConvertor {
     }
 
 	static WidgetToHTML(element){
-        return element.element()
+        return element.element
     }
 
 	static FunctionToHTML(func, state = false){
@@ -59,8 +63,17 @@ class WidgetConvertor {
 		return c.div(element)
 	}
 
+	static ElementToString(element){
+		return c.div(element).element.outerHTML;
+	}
+
 	static WidgetToolsToState(element){
 		return WidgetTools.create(element)
+	}
+
+	static WidgetToolsToHTML(element){
+		const element2 = WidgetTools.create(element)
+		return WidgetConvertor.toHTML(element2);
 	}
 
 	static propsCorrector(props){
@@ -122,6 +135,21 @@ class WidgetConvertor {
 			type = 'Array'
 		
 		return type;
+	}
+
+
+
+	static applyState(name, prop, value){
+		let result = false;
+		if (WidgetConvertor.getType(value)=='WidgetTools'){
+			result = WidgetTools.create(value)
+		}
+
+		if (WidgetConvertor.getType(value)=='State'){
+			result = WidgetState.inspector(value, [name, prop])
+		}
+
+		return result
 	}
 
 
@@ -310,16 +338,20 @@ class widget {
 		this.element.innerHTML = '';
 		let _chils = this.childs
 
-		switch(WidgetConvertor.getType(this.childs)){
+		const neeChils = WidgetConvertor.applyState(this.props._name, 'child',  _chils)
+		if (neeChils) _chils = neeChils
+
+		switch(WidgetConvertor.getType(_chils)){
 			case "String":
 				this.element.innerHTML = _chils;
 			break;
+
 			case "Element":
 			case "Widget":
 			case "State":
 			case "Function":
 			case "Array":
-				_chils = WidgetConvertor.toHTML(this.childs)
+				_chils = WidgetConvertor.toHTML(_chils)
 			default:
 
 				this.element.appendChild(_chils)
@@ -366,9 +398,9 @@ class widget {
 			case 'child':
 				this.setChild(value)
 			break;
-			case 'style':
+			// case 'style':
 				
-			break;
+			// break;
 			default:
 				this.__link(prop, value)
 			break;
@@ -388,13 +420,9 @@ class widget {
 	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
-			if (WidgetConvertor.getType(value)=='WidgetTools'){
-				value = WidgetTools.create(value)
-			}
-
-			if (WidgetConvertor.getType(value)=='State'){
-				value = WidgetState.inspector(value, [this.props._name, prop])
-			}
+			const neeValue = WidgetConvertor.applyState(this.props._name, prop, value)
+			if (neeValue) value = neeValue
+			
 
 			const type = WidgetConvertor.getType(value)
 
@@ -410,6 +438,9 @@ class widget {
 						this.element[prop] = value()
 					}
 				break;
+				case 'Element':
+					this.element[prop] = WidgetConvertor.toStr(value)
+				break;
 				default:
 					console.info('Не применено', prop, value, type)
 				break;
@@ -418,6 +449,9 @@ class widget {
 			console.info('__link','Применение массива не поддурживается', props, value);
 		}
 	}
+
+	static AppyState
+
 
     static pushChilds(array, childs){
 		if (this.tag == '')
@@ -440,6 +474,12 @@ class widget {
 		if ('value' in element) {
 			element.value = widget.name(element._name).value 
 		}
+
+		if (this.props.element in widget.singleElement && widget.singleElement[this.props.element]){
+			const child = widget.singleElement[this.props.element]
+			element[child] = widget.name(element._name).element[child] 
+		}
+
         if (childs.length!=0) {
             element['child'] = childs;
         }
@@ -916,8 +956,8 @@ const c = new Proxy({}, {
                     _widget, 
 					{
                         get: (el, prop) => {
-							if (typeof _widget.widget[prop] == 'function'){
-								return _widget.widget[prop]()
+							if (typeof _widget.widget[prop] != 'undefined'){
+								return _widget.widget[prop]
 							} else
 							if (prop!='setName' && prop.substr(0,3)=='set'){
 								return function(value){

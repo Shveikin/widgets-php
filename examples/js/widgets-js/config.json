@@ -1,6 +1,6 @@
 {
-    "from": "C:/Users/X/Desktop/App/widgets-php/examples/js/widgets-js/src/",
-    "to": "C:/Users/X/Desktop/App/widgets-php/examples/js/widgets-js/build/widgets.js",
+    "from": "src/",
+    "to": "build/widgets.js",
     "list": [
         "convertor.js",
         "widgets.js",

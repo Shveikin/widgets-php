@@ -18,12 +18,30 @@
 <body>
     <div id="app"></div>
     <script>
+        WidgetState.use({
+            _name: 'mix',
+            isOpen: true
+        })
+
         c.app([
-            c.input('Hello').setName('input'),
-            c.button({
-                child: 'Hello',
-                onclick(){
-                    alert(widget.name('input').element.value)
+            c.div({
+                child: {
+                    element: 'state_check',
+                    state: 'mix',
+                    prop: 'isOpen',
+                    _true: {
+                        element: 'div',
+                        _name: 'element_3',
+                        child: [
+                            'aaa'
+                        ],
+                    },
+                    _false: {
+                        element: 'div',
+                        child: [
+                            'bbb'
+                        ],
+                    },
                 }
             })
         ])

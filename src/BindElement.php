@@ -2,19 +2,17 @@
 
 namespace Widget;
 
-class BindElement
-{
+class BindElement {
     private $props;
-    function __construct(...$props)
-    {
+    function __construct(...$props) {
         $this->props = $props;
     }
 
-    function get($prop){
-        return isset($this->props[$prop])?$this->props[$prop]:'';
+    function get($prop) {
+        return isset($this->props[$prop]) ? $this->props[$prop] : '';
     }
 
-    function appy(...$props){
+    function appy(...$props) {
         // return c::widget_request(
         //     function: $this->get('function'),
         //     props: [$props],
@@ -23,7 +21,6 @@ class BindElement
         //     useState: $this->get('useState'),
         //     view: '',
         // );
-
 
         return [
             'element' => 'widget_request',
