@@ -18,33 +18,33 @@
 <body>
     <div id="app"></div>
     <script>
-        WidgetState.use({
+        const mix = WidgetState.use({
             _name: 'mix',
-            isOpen: true
+            _list: [
+                {environment: 'f1'},
+                {environment: 'f2'},
+                {environment: 'f4'},
+                {environment: 'f10'},
+                {environment: 'f132'},
+            ]
         })
 
-        c.app([
+        c.app(
             c.div({
+                // style: 'display: flex;',
                 child: {
-                    element: 'state_check',
+                    element: 'state_map',
                     state: 'mix',
-                    prop: 'isOpen',
-                    _true: {
+                    prop: '_list',
+                    refernce: {
                         element: 'div',
-                        _name: 'element_3',
-                        child: [
-                            'aaa'
-                        ],
+                        innerHTML: '**environment**'
                     },
-                    _false: {
-                        element: 'div',
-                        child: [
-                            'bbb'
-                        ],
-                    },
+                    useColls: ['environment'],
+                    view: '***'
                 }
             })
-        ])
+        )
     </script>
 </body>
 </html>

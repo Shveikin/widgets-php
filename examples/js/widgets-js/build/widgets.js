@@ -347,15 +347,17 @@ class widget {
 			case "String":
 				this.element.innerHTML = _chils;
 			break;
-
+			case "Array":
+				_chils.map(chl => {
+					chl = WidgetConvertor.toHTML(chl)
+					this.element.appendChild(chl)
+				})
+			break;
 			case "Element":
 			case "Widget":
 			case "State":
 			case "Function":
-			case "Array":
 				_chils = WidgetConvertor.toHTML(_chils)
-			default:
-
 				this.element.appendChild(_chils)
 			break;
 		}
@@ -363,9 +365,6 @@ class widget {
 	}
 
     assignProp(prop, value){ // prop = value
-		// if (prop=='name'){
-		// 	this.setMyName(this, value)
-		// } else
 		if (prop=='child' && this.props.element in widget.singleElement){
 			const setChildToProp = widget.singleElement[this.props.element]
 			if (setChildToProp){
@@ -639,6 +638,19 @@ class WidgetTools{
 				}
 			}
 		}
+	}
+
+	static state_map(props){
+		return WidgetState.name(props.state).watch(props.prop, function(array){
+			return array.map(itm => {
+				let reference = JSON.stringify(props.refernce)
+				props.useColls.map(replace => {
+					reference = reference.replaceAll(`**${replace}**`, itm[replace])
+				})
+				const myProps = JSON.parse(reference)
+				return c.div(myProps)
+			})
+		})
 	}
 
 }

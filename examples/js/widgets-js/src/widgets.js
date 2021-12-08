@@ -122,15 +122,17 @@ class widget {
 			case "String":
 				this.element.innerHTML = _chils;
 			break;
-
+			case "Array":
+				_chils.map(chl => {
+					chl = WidgetConvertor.toHTML(chl)
+					this.element.appendChild(chl)
+				})
+			break;
 			case "Element":
 			case "Widget":
 			case "State":
 			case "Function":
-			case "Array":
 				_chils = WidgetConvertor.toHTML(_chils)
-			default:
-
 				this.element.appendChild(_chils)
 			break;
 		}
@@ -138,9 +140,6 @@ class widget {
 	}
 
     assignProp(prop, value){ // prop = value
-		// if (prop=='name'){
-		// 	this.setMyName(this, value)
-		// } else
 		if (prop=='child' && this.props.element in widget.singleElement){
 			const setChildToProp = widget.singleElement[this.props.element]
 			if (setChildToProp){

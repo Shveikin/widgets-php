@@ -72,4 +72,17 @@ class WidgetTools{
 		}
 	}
 
+	static state_map(props){
+		return WidgetState.name(props.state).watch(props.prop, function(array){
+			return array.map(itm => {
+				let reference = JSON.stringify(props.refernce)
+				props.useColls.map(replace => {
+					reference = reference.replaceAll(`**${replace}**`, itm[replace])
+				})
+				const myProps = JSON.parse(reference)
+				return c.div(myProps)
+			})
+		})
+	}
+
 }

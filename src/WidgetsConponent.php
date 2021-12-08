@@ -139,7 +139,7 @@ abstract class WidgetsConponent {
      * Создать стейт
      * @return stateAlias
      */
-    public function createState(string $stateName, array $stateBody) {
+    final public function createState(string $stateName, array $stateBody) {
         $stateAlias = static::getStateAlias($stateName);
         $this->stateAlias[$stateName] = $stateAlias;
         state::create($stateAlias, $stateBody);
@@ -150,7 +150,7 @@ abstract class WidgetsConponent {
      * Создать глобальный стейт
      * @return stateName
      */
-    public function createGlobalState(string $stateName, array $stateBody) {
+    final public function createGlobalState(string $stateName, array $stateBody) {
         $this->stateAlias[$stateName] = $stateName;
         state::create($stateName, $stateBody);
         return $stateName;
@@ -159,7 +159,7 @@ abstract class WidgetsConponent {
     /**
      * Подучить стейт по псевдониму
      */
-    public function state(string $stateName) {
+    final public function state(string $stateName) {
         return state::name($this->stateAlias[$stateName]);
     }
 }

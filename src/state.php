@@ -66,6 +66,19 @@ class state {
         );
     }
 
+    public function map($prop, $callback){
+        $imprint = new Imprint();
+        $refernce = $callback($imprint);
+
+        return c::state_map(
+            state: $this->name,
+            prop: $prop,
+            refernce: $refernce->toArray(),
+            useColls: $imprint->getColls(),
+            view: '***',
+        );
+    }
+
     public static function toJs(){
         $stateArray = state::toArray();
         $js = '';
