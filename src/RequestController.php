@@ -83,28 +83,28 @@ class RequestController
     }
 
     function js_request($hashName){
-        $url = self::getURL();
-        $stateName = state::$name;
-        return c::js_function(<<<JS
-            fetch('/', 
-                {
-                    method: 'POST', 
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        api: '{$hashName}',
-                        state: WidgetState.name('{$stateName}').data()
-                    })
-                }
-            ).then(response => response.json()).then(response => {
+        // $url = self::getURL();
+        // $stateName = state::$name;
+        // return c::js_function(<<<JS
+        //     fetch('/', 
+        //         {
+        //             method: 'POST', 
+        //             headers: {
+        //                 'Accept': 'application/json',
+        //                 'Content-Type': 'application/json'
+        //             },
+        //             body: JSON.stringify({
+        //                 api: '{$hashName}',
+        //                 state: WidgetState.name('{$stateName}').data()
+        //             })
+        //         }
+        //     ).then(response => response.json()).then(response => {
                 
-                WidgetState.update(response)
+        //         WidgetState.update(response)
 
-            })
+        //     })
             
 
-        JS, '');
+        // JS, '');
     }
 }

@@ -84,6 +84,8 @@ class widget
                 // self::childsToArray($newProp, $prop);
             } else if ($prop instanceof BindElement) {
                 $newProp = $prop->appy();
+            } else if ($key=="view" && c::is_function($prop)){
+                $newProp = $prop();
             } else if (c::is_function($prop)){
                 $newProp = RequestController::addFunction($prop);
             } else {
@@ -182,6 +184,9 @@ class widget
     ];
 
     static function view($element) {
+        if (c::is_function($element)){
+            return $element();
+        } else
         if (gettype($element)=='string'){
             return $element;
         } else 
@@ -198,16 +203,14 @@ class widget
                 return self::view($element->props['view']);
             }
 
-
+            $exception = ['_name', 'innerHTML', 'element', 'child'];
 
             $tag = $element->props['element'];
-            $html = "<$tag ";
+            $html = "<$tag";
             foreach ($element->props as $key => $value) {
-                    if ($key!='_name')
-                    if (!in_array($key,['element', 'child'])) {
-                    if (!is_object($value) && !is_array($value) && !c::is_function($value)){
-                        $html .= "$key='$value' ";
-                    }
+                if (!in_array($key, $exception))
+                if (!is_object($value) && !is_array($value) && !c::is_function($value)){
+                    $html .= " $key='$value'";
                 }
             }
             
@@ -218,7 +221,13 @@ class widget
                 $html .= '>';
             } else {
                 $html .= '>';
-                $html .= widget::childToString($element->childs);
+                if (isset($element->props['innerHTML'])){
+                    $html .= $element->props['innerHTML'];
+                } else if ($tag=='textarea' && isset($element->props['value'])) {
+                    $html .= $element->props['value'];
+                } else {
+                    $html .= widget::childToString($element->childs);
+                }
                 $html .= "</$tag>";
             }
 

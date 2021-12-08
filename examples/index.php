@@ -15,7 +15,9 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
 
 
-echo SredaController::element();
+echo SredaController::html();
+// echo SredaController::element()->print_r();
+
 
 // echo Filter::element();
 // echo Filter::print_r();

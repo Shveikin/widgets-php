@@ -2,72 +2,74 @@
 
 namespace Widget;
 
-
 class state
 {
     static $names = [];
 
-    static function name(string $stateName){
+    public static function name(string $stateName)
+    {
         return self::$names[$stateName];
     }
-    
-    static function create($stateName, $defaultArray = []){
+
+    public static function create($stateName, $defaultArray = [])
+    {
         self::$names[$stateName] = new state($stateName, $defaultArray);
-    }    
-    
+    }
+
     private $name = '';
     private $data = [];
-    function __construct($name, $defaultArray = [])
+    public function __construct($name, $defaultArray = [])
     {
         $this->name = $name;
         $this->data = $defaultArray;
     }
 
-
-    function __set($prop, $value)
+    public function __set($prop, $value)
     {
         $this->data[$prop] = $value;
     }
 
-
-    function __get($prop)
+    public function __get($prop)
     {
-        if (!isset($this->data[$prop])){
+        if (!isset($this->data[$prop])) {
             $this->data[$prop] = 0;
         }
-        
+
         return $this->data[$prop];
     }
 
-
-
-
-    function watch($watch, $callback = false){
+    public function watch($watch, $callback = false)
+    {
         return c::state_watcher(
-            state: self::$name,
+            state: $this->name,
             watch: $watch,
             callback: $callback,
-            view: self::get($watch),
+            view: function() use($watch){
+                return $this->data[$watch];
+            }
+            ,
         );
     }
 
-    function model($prop){
+    public function model($prop)
+    {
         return c::state_model(
             state:self::$name,
             prop:$prop,
-            view: self::get($prop),
+            view:self::get($prop),
         );
     }
 
-    function check($prop, $true, $false = false){
+    public function check($prop, $true, $false = false)
+    {
         return c::state_check(
-            state: self::$name,
-            prop: $prop,
-            _true: $true,
-            _false: $false,
-            view: self::get($prop)
-                    ?$true
-                    :$false,
+            state:self::$name,
+            prop:$prop,
+            _true:$true,
+            _false:$false,
+            view:self::get($prop)
+            ? $true
+            : $false,
         );
     }
 
@@ -99,7 +101,6 @@ class state
     //     self::setPath(self::$data, explode('.', $key), $value);
     //     // return c::js_function(self::$name.".$key = " . state::name().".filterOpen.$key")
     // }
-
 
     // static function init(...$state){
     //     self::$data = $state;
@@ -139,10 +140,10 @@ class state
     //     return $result;
     // }
 
-    static function toArray() 
+    public static function toArray()
     {
         $result = [];
-        foreach (self::$names as $state){
+        foreach (self::$names as $state) {
             array_push($result, array_merge($state->data, ['_name' => $state->name]));
         }
 
@@ -157,13 +158,13 @@ class state
     // static function name(){
     //     return "WidgetState.name('" . self::$name . "')";
     // }
-    
 
     // static function appy($props, $value){
 
     // }
 
-    function checkTurn($props){
+    public function checkTurn($props)
+    {
         return c::js_function($this . ".checkTurn('$props')");
     }
 
