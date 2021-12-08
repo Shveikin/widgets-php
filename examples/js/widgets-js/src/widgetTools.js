@@ -40,6 +40,7 @@ class WidgetTools{
 		const prop = array_props.slice(-1).join('.')
 
 		return state.check(prop,
+			props.value, 
 			props._true, 
 			props._false
 		)
@@ -73,16 +74,27 @@ class WidgetTools{
 	}
 
 	static state_map(props){
-		return WidgetState.name(props.state).watch(props.prop, function(array){
+		const state_map = WidgetState.name(props.state).watch(props.prop, function(array){
 			return array.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
 				})
 				const myProps = JSON.parse(reference)
-				return c.div(myProps)
+				if ('_name' in myProps) delete myProps['_name']
+				const newElement = c.div(myProps)
+
+				return newElement
 			})
 		})
+
+		return c.div({child: state_map})
+	}
+
+	static state_update(props){
+		return () => {
+			WidgetState.name(props.state)[props.prop] = props.value
+		}
 	}
 
 }

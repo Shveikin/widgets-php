@@ -134,9 +134,9 @@ class WidgetState {
 
 	static check(self){
 		const state = this;
-		return (prop, _true, _false = false) => {
+		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop
+				return prop==val
 						?_true
 						:_false
 			})

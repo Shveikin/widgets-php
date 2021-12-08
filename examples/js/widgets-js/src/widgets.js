@@ -209,7 +209,10 @@ class widget {
 				break;
 				case 'Function':
 					if (prop.substr(0,2)=='on'){
-						this.element[prop] = value
+						this.element[prop] = () => {
+							value(); 
+							console.log('test!111')
+						}
 					} else {
 						this.element[prop] = value()
 					}
@@ -218,7 +221,7 @@ class widget {
 					this.element[prop] = WidgetConvertor.toStr(value)
 				break;
 				default:
-					console.info('Не применено', prop, value, type)
+					// console.info('Не применено', prop, value, type)
 				break;
 			}
 		} else {

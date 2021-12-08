@@ -3,7 +3,7 @@ class WidgetConvertor {
 
     static convert(element, from, to, state = false){
         const func = `${from}To${to}`
-		console.log(func, element)
+		// console.log(func, element)
         if (func in WidgetConvertor){
 			const result = WidgetConvertor[func](element, state)
 			const newType = WidgetConvertor.getType(result)

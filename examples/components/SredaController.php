@@ -17,8 +17,8 @@ class SredaController extends WidgetsConponent {
         ]);
 
         $this->createState('sredaControllerProps', [
-            'isOpen' => true,
-            '_list' => $this->loadList(0, 10),
+            'isOpen' => false,
+            '_list' => $this->loadList(0, 20),
         ]);
     }
 
@@ -33,9 +33,14 @@ class SredaController extends WidgetsConponent {
                     onclick: $propertyState->checkTurn('isOpen')
                 ),
                 c::div(
-                    child: $propertyState->check('isOpen', 
+                    child: $propertyState->check('isOpen', true,
                         c::div(
-                            style: 'border: 1px solid #ccc; padding: 5px; height: 100px; margin-top: -1px;',
+                            style: 'border: 1px solid #ccc; 
+                                    padding: 5px; 
+                                    height: 200px; 
+                                    margin-top: -1px;
+                                    overflow: auto;
+                            ',
                             child: $this->drawList()
                         ),
                         ''
@@ -53,7 +58,7 @@ class SredaController extends WidgetsConponent {
             style: 'display: flex; justify-content: space-between;',
             child: [
                 $this->state('sreda')->watch('sreda_title'),
-                $this->state('sredaControllerProps')->check('isOpen', '▲', '▼')
+                $this->state('sredaControllerProps')->check('isOpen', true, '▲', '▼')
             ]
         );
 
@@ -61,13 +66,16 @@ class SredaController extends WidgetsConponent {
     }
 
     function drawList(){
-        return $this->state('sredaControllerProps')->map('_list', function($ref){
+        return $this->state('sredaControllerProps')->map('_list', function($itm){
                 return c::div(
-                    innerHTML: $ref->environment
+                    style: state::name('sreda')->check('sreda_id', $itm->id, 'color: #f00', 'color: #222'),
+                    innerHTML: $itm->environment,
+                    onclick: state::name('sreda')->update('sreda_title', $itm->environment)
                 );
             }
         );
     }
+
 
     function loadList($offset, $limit, $search = false){
         global $mysqli_JINO;

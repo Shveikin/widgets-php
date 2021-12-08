@@ -1,5 +1,7 @@
 <?php
 
+use Widget\c;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once 'components/SredaController.php';
 
@@ -40,7 +42,12 @@ $mysqli_JINO = getConnect(JINO);
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
-echo SredaController::html();
-echo SredaController::element()->print_r();
+$first = SredaController::element();
+echo c::div([
+    $first,
+    SredaController::element(),
+])->html(true);
+
+echo $first->print_r();
 
 ?>

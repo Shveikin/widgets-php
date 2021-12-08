@@ -55,7 +55,7 @@ class widget {
     }
 
     private static function childsToArray(&$array, $childs) {
-        if (gettype($childs) == 'array') {
+        if (gettype($childs) == 'array' && !isset($childs['element'])) {
             foreach ($childs as $child) {
                 self::childsToArray($array, $child);
             }
@@ -70,7 +70,7 @@ class widget {
     private static function propsToArray(&$array, array $props) {
         foreach ($props as $key => $prop) {
             $newProp = [];
-            if (gettype($prop) == 'array' && !isset($prop['element'])) {
+            if (gettype($prop) == 'array') {
                 self::propsToArray($newProp, $prop);
             } else if ($prop instanceof widget) {
                 $newProp = $prop->toArray();

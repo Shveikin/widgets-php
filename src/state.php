@@ -52,10 +52,11 @@ class state {
         );
     }
 
-    public function check($prop, $true, $false = false) {
+    public function check($prop, $value, $true, $false = false) {
         return c::state_check(
             state: $this->name,
             prop: $prop,
+            value: $value,
             _true: $true,
             _false: $false,
             view: function () use ($prop, $true, $false) {
@@ -70,13 +71,25 @@ class state {
         $imprint = new Imprint();
         $refernce = $callback($imprint);
 
-        return c::state_map(
+        $state_map = c::state_map(
             state: $this->name,
             prop: $prop,
             refernce: $refernce->toArray(),
             useColls: $imprint->getColls(),
             view: '***',
         );
+
+        return $state_map;
+    }
+
+    public function update($prop, $value){
+        $state_update = c::state_update(
+            state: $this->name,
+            prop: $prop,
+            value: $value
+        );
+
+        return $state_update;
     }
 
     public static function toJs(){

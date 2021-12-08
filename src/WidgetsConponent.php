@@ -47,16 +47,23 @@ abstract class WidgetsConponent {
 
     private $layout = false;
     public function layout() {
-        if ($this->layout == false) {
-            $this->layout = c::div();
-            $this->draw($this->layout);
-        }
+        // if ($this->layout == false) {
+        $this->layout = c::div();
+        $this->draw($this->layout);
+        // }
         return $this->layout;
     }
 
-    public function static__element() {
-        return $this->layout();
+
+    static function element(){
+        $element = new static();
+        return $element->layout();
     }
+
+
+    // public function static__element() {
+    //     return $this->layout();
+    // }
 
     public function static__html() {
         return $this->layout()->html(static::$include_script);

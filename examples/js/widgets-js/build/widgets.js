@@ -4,7 +4,7 @@ class WidgetConvertor {
 
     static convert(element, from, to, state = false){
         const func = `${from}To${to}`
-		console.log(func, element)
+		// console.log(func, element)
         if (func in WidgetConvertor){
 			const result = WidgetConvertor[func](element, state)
 			const newType = WidgetConvertor.getType(result)
@@ -434,7 +434,10 @@ class widget {
 				break;
 				case 'Function':
 					if (prop.substr(0,2)=='on'){
-						this.element[prop] = value
+						this.element[prop] = () => {
+							value(); 
+							console.log('test!111')
+						}
 					} else {
 						this.element[prop] = value()
 					}
@@ -443,7 +446,7 @@ class widget {
 					this.element[prop] = WidgetConvertor.toStr(value)
 				break;
 				default:
-					console.info('Не применено', prop, value, type)
+					// console.info('Не применено', prop, value, type)
 				break;
 			}
 		} else {
@@ -608,6 +611,7 @@ class WidgetTools{
 		const prop = array_props.slice(-1).join('.')
 
 		return state.check(prop,
+			props.value, 
 			props._true, 
 			props._false
 		)
@@ -641,16 +645,27 @@ class WidgetTools{
 	}
 
 	static state_map(props){
-		return WidgetState.name(props.state).watch(props.prop, function(array){
+		const state_map = WidgetState.name(props.state).watch(props.prop, function(array){
 			return array.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
 				})
 				const myProps = JSON.parse(reference)
-				return c.div(myProps)
+				if ('_name' in myProps) delete myProps['_name']
+				const newElement = c.div(myProps)
+
+				return newElement
 			})
 		})
+
+		return c.div({child: state_map})
+	}
+
+	static state_update(props){
+		return () => {
+			WidgetState.name(props.state)[props.prop] = props.value
+		}
 	}
 
 }
@@ -791,9 +806,9 @@ class WidgetState {
 
 	static check(self){
 		const state = this;
-		return (prop, _true, _false = false) => {
+		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop
+				return prop==val
 						?_true
 						:_false
 			})
