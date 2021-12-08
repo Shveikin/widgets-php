@@ -140,16 +140,18 @@ class WidgetConvertor {
 
 
 	static applyState(name, prop, value){
-		let result = false;
+		let change = false;
 		if (WidgetConvertor.getType(value)=='WidgetTools'){
-			result = WidgetTools.create(value)
+			value = WidgetTools.create(value)
+			change = true
 		}
 
 		if (WidgetConvertor.getType(value)=='State'){
-			result = WidgetState.inspector(value, [name, prop])
+			value = WidgetState.inspector(value, [name, prop])
+			change = true
 		}
 
-		return result
+		return change?value:false
 	}
 
 
