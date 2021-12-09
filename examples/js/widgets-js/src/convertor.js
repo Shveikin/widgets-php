@@ -93,6 +93,10 @@ class WidgetConvertor {
 		return c.div({innerHTML: state})
 	}
 
+	static StateToWidget(state){
+		return new widget('div', {}, state)
+	}
+
 	static ArrayToHTML(array){
 		const wrapper = WidgetTools.createElement('div')
 		array.map(element => {
@@ -117,6 +121,12 @@ class WidgetConvertor {
 		const element2 = WidgetTools.create(element)
 		return WidgetConvertor.toHTML(element2);
 	}
+
+	static WidgetToolsToWidget(widgetTool){
+		return WidgetTools.create(widgetTool)
+	}
+
+
 
 	static singleElement = {
 		area: false,
@@ -171,6 +181,7 @@ class WidgetConvertor {
 						newChilds = props['child']
 						delete props['child']
 					}
+					newProps = props
 				break;
 				case "Element":
 					newChilds = [WidgetConvertor.toWidget(props)]
@@ -257,7 +268,7 @@ class WidgetConvertor {
 			change = true
 		}
 
-		return change?value:false
+		return [change, value]
 	}
 
 

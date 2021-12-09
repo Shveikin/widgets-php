@@ -94,6 +94,10 @@ class WidgetConvertor {
 		return c.div({innerHTML: state})
 	}
 
+	static StateToWidget(state){
+		return new widget('div', {}, state)
+	}
+
 	static ArrayToHTML(array){
 		const wrapper = WidgetTools.createElement('div')
 		array.map(element => {
@@ -118,6 +122,12 @@ class WidgetConvertor {
 		const element2 = WidgetTools.create(element)
 		return WidgetConvertor.toHTML(element2);
 	}
+
+	static WidgetToolsToWidget(widgetTool){
+		return WidgetTools.create(widgetTool)
+	}
+
+
 
 	static singleElement = {
 		area: false,
@@ -172,6 +182,7 @@ class WidgetConvertor {
 						newChilds = props['child']
 						delete props['child']
 					}
+					newProps = props
 				break;
 				case "Element":
 					newChilds = [WidgetConvertor.toWidget(props)]
@@ -258,7 +269,7 @@ class WidgetConvertor {
 			change = true
 		}
 
-		return change?value:false
+		return [change, value]
 	}
 
 
@@ -277,13 +288,14 @@ class widget {
     static proxys = {}
 	static widgets = {}
 	static name(name){
-		if ('widget' in widget.proxys[name]){
+		if (name in widget.proxys){
 			return widget.proxys[name];
 		} else {
-			const props = widget.proxys[name];
-			const element = c[props.element](props)
-			widget.proxys[name] = element;
-			return element;
+			return false;
+			// const props = widget.proxys[name];
+			// const element = c[props.element](props)
+			// widget.proxys[name] = element;
+			// return element;
 		}
     }
 
@@ -292,17 +304,14 @@ class widget {
 
 
 
-	constructor(tag, props = {}, child = []) {
+	constructor(tag, props = {}, child = []){
 		this.type = tag
 		this.name = widget.nextName(props)
-        this.props = props
+		widget.widgets[this.name] = this
+        // this.props = props
         this.childs = child
-
-		// this.element = widgetDom.createElement(this);
-		// widget.names[this.name] = this.element
-		// widget.widgets[this.name] = this
-
-		// this.assignProps(props)
+		this.assignProps(props)
+		// this.setChild(child)
     }
 
 	bindElement(element = false){
@@ -316,9 +325,17 @@ class widget {
 			widget.names[this.name] = element
 		}
 	}
+
+	static getWidget(name){
+		if (name in widget.widgets){
+			return widget.widgets[name]
+		} else {
+			return false
+		}
+	}
 	
 
-	static createElement(tag = false, props = {}) {
+	static createElement(tag = false, props = {}){
 		return c[tag](props)
 	}
 
@@ -442,36 +459,10 @@ class widget {
 	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
-			const neeValue = WidgetConvertor.applyState(this.props._name, prop, value)
-			if (neeValue) value = neeValue
-			
-
-			const type = WidgetConvertor.getType(value)
 
 			const element = this.bindElement()
 			if (element){
-				switch(type){
-					case 'String':
-					case 'Int':
-						element[prop] = value
-					break;
-					case 'Function':
-						if (prop.substr(0,2)=='on'){
-							element[prop] = () => {
-								value(); 
-								console.log('test!111')
-							}
-						} else {
-							element[prop] = value()
-						}
-					break;
-					case 'Element':
-						element[prop] = WidgetConvertor.toStr(value)
-					break;
-					default:
-						// console.info('Не применено', prop, value, type)
-					break;
-				}
+				widgetDom.__linkToElement(this.name, element, prop, value)
 			} else {
 				console.log('Элемент не создан, не обновляю dom')
 			}
@@ -480,7 +471,6 @@ class widget {
 		}
 	}
 
-	static AppyState
 
 
     static pushChilds(array, childs){
@@ -517,11 +507,6 @@ class widget {
         return element;
     }
 
-	// element(self){
-	// 	console.log('self', this)
-	// 	return () => widgetDom.createElement(this)
-	// }
-
 
 
 	widget(){
@@ -542,16 +527,6 @@ class widget {
 
 
 
-
-    toElement(){
-		return this.element
-		// const name = this.props._name;
-		// if (name in widget.names){
-		// 	return widget.names[name]
-		// } else {
-		// 	// return widget.createElement('__', this.toArray())
-		// }
-    }
 
 	name(){
 		return this.props._name;
@@ -624,23 +599,35 @@ class widget {
 
 class widgetDom {
     static createElement(widget) {
-        const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
-        if (!bindElement){
-            const rootElement = document.createElement(widget.type);
-            widget.props && Object.keys(widget.props).forEach((key) => {
-                rootElement[key] = widget.props[key];
-            });
-            if (Array.isArray(widget.childs)){
-                widget.childs.map(widgetDom.createElement).forEach((childElement) => {
-                    rootElement.appendChild(childElement);
+        if (WidgetConvertor.getType(widget)=='Widget'){
+            const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
+            if (!bindElement){
+                const rootElement = document.createElement(widget.type);
+                widget.bindElement(rootElement)
+                widget.props && Object.keys(widget.props).forEach((key) => {
+
+                    widgetDom.__linkToElement(widget.name, rootElement, key, widget.props[key])
+
+                    // rootElement[key] = widget.props[key];
                 });
+                if (Array.isArray(widget.childs)){
+                    widget.childs.map(itm => 
+                        widgetDom.createElement(
+                            WidgetConvertor.toWidget(itm)
+                        )
+                    ).forEach((childElement) => {
+                        rootElement.appendChild(childElement);
+                    });
+                } else {
+                    rootElement.innerHTML = widget.childs
+                }
+                return rootElement
             } else {
-                rootElement.innerHTML = widget.childs
+                return bindElement
             }
-            widget.bindElement(rootElement)
-            return rootElement
         } else {
-            return bindElement
+            console.log(widget)
+            throw new Error('not widget')
         }
     }
 
@@ -659,9 +646,18 @@ class widgetDom {
         if (!nextNode) {
             rootElement.removeChild(rootElement.childNodes[index]);
         } else if (!currNode) {
-            rootElement.appendChild(createElement(nextNode));
+            rootElement.appendChild(
+                createElement(
+                    WidgetConvertor.toWidget(nextNode)
+                )
+            );
         } else if (widgetDom.changed(currNode, nextNode)) {
-            rootElement.replaceChild(widgetDom.createElement(nextNode), rootElement.childNodes[index]);
+            rootElement.replaceChild(
+                widgetDom.createElement(
+                    WidgetConvertor.toWidget(nextNode)
+                ), 
+                rootElement.childNodes[index]
+            );
         } else if (typeof nextNode.childs !== 'string') {
             for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
                 widgetDom.update(rootElement.childNodes[index], currNode.childs[i], nextNode.childs[i], i);
@@ -670,6 +666,36 @@ class widgetDom {
             rootElement.innerHTML = nextNode.childs
         }
     }
+
+
+	static __linkToElement(elementName, element, prop, value){
+        const [change, neeValue] = WidgetConvertor.applyState(elementName, prop, value)
+		if (change) value = neeValue
+
+		const type = WidgetConvertor.getType(value)
+		switch(type){
+			case 'String':
+			case 'Int':
+				element[prop] = value
+			break;
+			case 'Function':
+				if (prop.substr(0,2)=='on'){
+					element[prop] = () => {
+						value(); 
+						console.log('test!111')
+					}
+				} else {
+					element[prop] = value()
+				}
+			break;
+			case 'Element':
+				element[prop] = WidgetConvertor.toStr(value)
+			break;
+			default:
+				// console.info('Не применено', prop, value, type)
+			break;
+		}
+	}
 
     static changed(nodeA, nodeB) {
         return (
@@ -994,7 +1020,7 @@ class WidgetState {
                             update: updateFunction,
                             props: props
                         })
-                        WidgetState.updateAll(self, prop)
+                        return WidgetState.updateAll(self, prop)
                     })
 
 					return false;
@@ -1053,9 +1079,9 @@ class WidgetState {
 
 					let element = mp.shift();
 					if (typeof element == 'string'){
-						element = widget.name(element)
+						element = widget.getWidget(element)
 					}
-
+					
 					let elementPropperty = 'child'
 					while (mp.length!=0){
 						elementPropperty = mp.shift();
@@ -1071,7 +1097,12 @@ class WidgetState {
 					})
 					
 					const value = update.apply(this, properties);
-					element[elementPropperty] = value
+					if (element){	
+						// element[elementPropperty] = value
+						element.assignProp(elementPropperty, value)
+					} else {
+						return value;
+					}
 				})
 			}
 		})

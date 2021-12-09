@@ -1,23 +1,35 @@
 
 class widgetDom {
     static createElement(widget) {
-        const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
-        if (!bindElement){
-            const rootElement = document.createElement(widget.type);
-            widget.props && Object.keys(widget.props).forEach((key) => {
-                rootElement[key] = widget.props[key];
-            });
-            if (Array.isArray(widget.childs)){
-                widget.childs.map(widgetDom.createElement).forEach((childElement) => {
-                    rootElement.appendChild(childElement);
+        if (WidgetConvertor.getType(widget)=='Widget'){
+            const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
+            if (!bindElement){
+                const rootElement = document.createElement(widget.type);
+                widget.bindElement(rootElement)
+                widget.props && Object.keys(widget.props).forEach((key) => {
+
+                    widgetDom.__linkToElement(widget.name, rootElement, key, widget.props[key])
+
+                    // rootElement[key] = widget.props[key];
                 });
+                if (Array.isArray(widget.childs)){
+                    widget.childs.map(itm => 
+                        widgetDom.createElement(
+                            WidgetConvertor.toWidget(itm)
+                        )
+                    ).forEach((childElement) => {
+                        rootElement.appendChild(childElement);
+                    });
+                } else {
+                    rootElement.innerHTML = widget.childs
+                }
+                return rootElement
             } else {
-                rootElement.innerHTML = widget.childs
+                return bindElement
             }
-            widget.bindElement(rootElement)
-            return rootElement
         } else {
-            return bindElement
+            console.log(widget)
+            throw new Error('not widget')
         }
     }
 
@@ -36,9 +48,18 @@ class widgetDom {
         if (!nextNode) {
             rootElement.removeChild(rootElement.childNodes[index]);
         } else if (!currNode) {
-            rootElement.appendChild(createElement(nextNode));
+            rootElement.appendChild(
+                createElement(
+                    WidgetConvertor.toWidget(nextNode)
+                )
+            );
         } else if (widgetDom.changed(currNode, nextNode)) {
-            rootElement.replaceChild(widgetDom.createElement(nextNode), rootElement.childNodes[index]);
+            rootElement.replaceChild(
+                widgetDom.createElement(
+                    WidgetConvertor.toWidget(nextNode)
+                ), 
+                rootElement.childNodes[index]
+            );
         } else if (typeof nextNode.childs !== 'string') {
             for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
                 widgetDom.update(rootElement.childNodes[index], currNode.childs[i], nextNode.childs[i], i);
@@ -47,6 +68,36 @@ class widgetDom {
             rootElement.innerHTML = nextNode.childs
         }
     }
+
+
+	static __linkToElement(elementName, element, prop, value){
+        const [change, neeValue] = WidgetConvertor.applyState(elementName, prop, value)
+		if (change) value = neeValue
+
+		const type = WidgetConvertor.getType(value)
+		switch(type){
+			case 'String':
+			case 'Int':
+				element[prop] = value
+			break;
+			case 'Function':
+				if (prop.substr(0,2)=='on'){
+					element[prop] = () => {
+						value(); 
+						console.log('test!111')
+					}
+				} else {
+					element[prop] = value()
+				}
+			break;
+			case 'Element':
+				element[prop] = WidgetConvertor.toStr(value)
+			break;
+			default:
+				// console.info('Не применено', prop, value, type)
+			break;
+		}
+	}
 
     static changed(nodeA, nodeB) {
         return (

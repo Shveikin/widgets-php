@@ -193,7 +193,7 @@ class WidgetState {
                             update: updateFunction,
                             props: props
                         })
-                        WidgetState.updateAll(self, prop)
+                        return WidgetState.updateAll(self, prop)
                     })
 
 					return false;
@@ -252,9 +252,9 @@ class WidgetState {
 
 					let element = mp.shift();
 					if (typeof element == 'string'){
-						element = widget.name(element)
+						element = widget.getWidget(element)
 					}
-
+					
 					let elementPropperty = 'child'
 					while (mp.length!=0){
 						elementPropperty = mp.shift();
@@ -270,7 +270,12 @@ class WidgetState {
 					})
 					
 					const value = update.apply(this, properties);
-					element[elementPropperty] = value
+					if (element){	
+						// element[elementPropperty] = value
+						element.assignProp(elementPropperty, value)
+					} else {
+						return value;
+					}
 				})
 			}
 		})

@@ -18,37 +18,18 @@
 <body>
     <div id="app"></div>
     <script>
-
         WidgetState.use({
-            isPassword: true,
-            _name: 'prop'
-        })
-
-        const app = c.input({value: 'test'})
-        const nextApp = c.div([
-            111
-        ]);
-
-        c.app(
-            nextApp
-        )
-        const root = document.getElementById('app');
+            "sreda_id": 14,
+            "weight": 1000,
+            "sreda_title": "Воздух",
+            "_name": "sreda"
+        });  
         
-
-        function update(){
-            nextApp.child = 'eee44'
-        }
-
-        // next()
-        // update()
-        // widgetDom.update(root, app, nextApp)
-        // setInterval(() => {
-        //     if (x++ % 2==0){
-        //         widgetDom.update(root, app, nextApp)
-        //     } else {
-        //         widgetDom.update(root, nextApp, app)
-        //     }
-        // }, 2000)
+        c.app(
+            c.div({
+                innerHTML: WidgetState.name('sreda').watch('sreda_title')
+            })
+        )
     </script>
 </body>
 </html>

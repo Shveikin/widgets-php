@@ -11,13 +11,14 @@ class widget {
     static proxys = {}
 	static widgets = {}
 	static name(name){
-		if ('widget' in widget.proxys[name]){
+		if (name in widget.proxys){
 			return widget.proxys[name];
 		} else {
-			const props = widget.proxys[name];
-			const element = c[props.element](props)
-			widget.proxys[name] = element;
-			return element;
+			return false;
+			// const props = widget.proxys[name];
+			// const element = c[props.element](props)
+			// widget.proxys[name] = element;
+			// return element;
 		}
     }
 
@@ -26,17 +27,14 @@ class widget {
 
 
 
-	constructor(tag, props = {}, child = []) {
+	constructor(tag, props = {}, child = []){
 		this.type = tag
 		this.name = widget.nextName(props)
-        this.props = props
+		widget.widgets[this.name] = this
+        // this.props = props
         this.childs = child
-
-		// this.element = widgetDom.createElement(this);
-		// widget.names[this.name] = this.element
-		// widget.widgets[this.name] = this
-
-		// this.assignProps(props)
+		this.assignProps(props)
+		// this.setChild(child)
     }
 
 	bindElement(element = false){
@@ -50,9 +48,17 @@ class widget {
 			widget.names[this.name] = element
 		}
 	}
+
+	static getWidget(name){
+		if (name in widget.widgets){
+			return widget.widgets[name]
+		} else {
+			return false
+		}
+	}
 	
 
-	static createElement(tag = false, props = {}) {
+	static createElement(tag = false, props = {}){
 		return c[tag](props)
 	}
 
@@ -176,36 +182,10 @@ class widget {
 	 */
 	__link(prop, value){
 		if (!Array.isArray(prop)){
-			const neeValue = WidgetConvertor.applyState(this.props._name, prop, value)
-			if (neeValue) value = neeValue
-			
-
-			const type = WidgetConvertor.getType(value)
 
 			const element = this.bindElement()
 			if (element){
-				switch(type){
-					case 'String':
-					case 'Int':
-						element[prop] = value
-					break;
-					case 'Function':
-						if (prop.substr(0,2)=='on'){
-							element[prop] = () => {
-								value(); 
-								console.log('test!111')
-							}
-						} else {
-							element[prop] = value()
-						}
-					break;
-					case 'Element':
-						element[prop] = WidgetConvertor.toStr(value)
-					break;
-					default:
-						// console.info('Не применено', prop, value, type)
-					break;
-				}
+				widgetDom.__linkToElement(this.name, element, prop, value)
 			} else {
 				console.log('Элемент не создан, не обновляю dom')
 			}
@@ -214,7 +194,6 @@ class widget {
 		}
 	}
 
-	static AppyState
 
 
     static pushChilds(array, childs){
@@ -251,11 +230,6 @@ class widget {
         return element;
     }
 
-	// element(self){
-	// 	console.log('self', this)
-	// 	return () => widgetDom.createElement(this)
-	// }
-
 
 
 	widget(){
@@ -276,16 +250,6 @@ class widget {
 
 
 
-
-    toElement(){
-		return this.element
-		// const name = this.props._name;
-		// if (name in widget.names){
-		// 	return widget.names[name]
-		// } else {
-		// 	// return widget.createElement('__', this.toArray())
-		// }
-    }
 
 	name(){
 		return this.props._name;
