@@ -31,7 +31,7 @@ class WidgetConvertor {
     }
 
     static StringToHTML(element){
-        const wrapper = document.createElement('div')
+        const wrapper = WidgetTools.createElement('div')
         wrapper.innerHTML = element
         return wrapper
     }
@@ -52,7 +52,7 @@ class WidgetConvertor {
 	}
 
 	static ArrayToHTML(array){
-		const wrapper = document.createElement('div')
+		const wrapper = WidgetTools.createElement('div')
 		array.map(element => {
 			wrapper.appendChild(WidgetConvertor.toHTML(element))
 		})
@@ -155,72 +155,6 @@ class WidgetConvertor {
 	}
 
 
-    // static convertor({element, state = false,  to}) {
-	// 	// console.log(element, ' >> ', WidgetConvertor.getType(element), '>>>>', to)
-	// 	if (WidgetConvertor.checkType(element, to)) {
-	// 		// console.log('_____exit________')
-	// 		return element
-	// 	}
-
-	// 	switch(WidgetConvertor.getType(element)){
-	// 		case 'Widget':
-	// 			return widget.convertor({
-	// 				element: element.element(),
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'WidgetTools':
-	// 			return widget.convertor({
-	// 				element: WidgetTools[element.element](element),
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'Element':
-	// 			const tag = element.element
-	// 			return widget.convertor({
-	// 				element: c[tag](element),
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'State':
-	// 			const stateWrapper = c.div()
-	// 			WidgetState.inspector(element, [stateWrapper.name, 'child'])
-	// 			return widget.convertor({
-	// 				element: stateWrapper,
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'Function':
-	// 			return widget.convertor({
-	// 				element: element(WidgetState.use(state)),
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'String':
-	// 			return widget.convertor({
-	// 				element: c[widget.defaultTag]({innerHTML: element}),
-	// 				state,
-	// 				to
-	// 			})
-	// 		case 'Array':
-	// 			const wrapper = document.createElement('div')
-	// 			element.map(itm => {
-	// 				wrapper.appendChild(
-	// 					widget.convertor({
-	// 						element: itm,
-	// 						to: ['HTML']
-	// 					})
-	// 				)
-	// 			})
-	// 			return widget.convertor({
-	// 				element: wrapper,
-	// 				to
-	// 			})
-	// 	}
-
-	// 	return false;
-	// }
-
 }
 // widgets.js
 
@@ -305,7 +239,7 @@ class widget {
             _name
         }
 
-		this.element = tag instanceof HTMLElement?tag:document.createElement(tag);
+		this.element = tag instanceof HTMLElement?tag:WidgetTools.createElement(tag, _name);
 		widget.names[_name] = this.element
 
         if (typeof props == 'function' && state){
@@ -350,7 +284,17 @@ class widget {
 			case "Array":
 				_chils.map(chl => {
 					chl = WidgetConvertor.toHTML(chl)
-					this.element.appendChild(chl)
+					if (chl === this.element){
+						console.log(this.props._name)
+					}
+					try {
+						this.element.appendChild(chl)
+					} catch(e){
+						console.log(chl) 
+						console.log(this.element)
+						console.log(this.props._name)
+						console.log(e)
+					}
 				})
 			break;
 			case "Element":
@@ -566,13 +510,89 @@ class widget {
     }
 }
 
-// childController.js
+// widgetDom.js
+/** @jsx h */
 
+function h(type, props, ...children) {
+    return {type, props, children};
+}
+
+function createElement(virtualNode) {
+    if (typeof virtualNode === 'string') {
+        return document.createTextNode(virtualNode);
+    }
+    const rootElement = document.createElement(virtualNode.type);
+    virtualNode.props && Object.keys(virtualNode.props).forEach((key) => {
+        rootElement.setAttribute(key, virtualNode.props[key]);
+    });
+    virtualNode.children.map(createElement).forEach((childElement) => {
+        rootElement.appendChild(childElement);
+    });
+    return rootElement;
+}
+
+function update(rootElement, currNode, nextNode, index = 0) {
+    if (!nextNode) {
+        rootElement.removeChild(rootElement.childNodes[index]);
+    } else if (!currNode) {
+        rootElement.appendChild(createElement(nextNode));
+    } else if (changed(currNode, nextNode)) {
+        rootElement.replaceChild(createElement(nextNode), rootElement.childNodes[index]);
+    } else if (typeof nextNode !== 'string') {
+        for (let i = 0; i < Math.max(currNode.children.length, nextNode.children.length); i++) {
+            update(rootElement.childNodes[index], currNode.children[i], nextNode.children[i], i);
+        }
+    }
+}
+
+function changed(nodeA, nodeB) {
+    return (
+        typeof nodeA !== typeof nodeB ||
+        typeof nodeA === 'string' && nodeA !== nodeB ||
+        nodeA.type !== nodeB.type
+    );
+}
+
+function render(virtualRoot, domRoot) {
+    domRoot.appendChild(createElement(virtualRoot));
+}
+
+const root = document.getElementById('app');
+const app = <div><span>hello, world!</span><div>hello</div></div>;
+const nextApp = <div><span>hello, world!</span><div>hello</div></div>;
+
+render(app, root);
+
+let counter = 0;
+setInterval(() => {
+    if (counter++ % 2 == 0) {
+        update(root, app, nextApp);
+    } else {
+        update(root, nextApp, app);
+    }
+}, 1000);
 // widgetTools.js
 
 class WidgetTools{
 	static create(element){
 		return WidgetTools[element.element](element)
+	}
+
+	static register = {}
+	static createElement(tag, name = false){
+		let element = false;
+		if (!name){
+			name =  'auto_' + Object.keys(WidgetTools.register).length;
+			element = document.createElement(tag);
+		} else {
+			if (name in WidgetTools.register){
+				element = WidgetTools.register[name]
+			} else {
+				element = document.createElement(tag);
+			}
+		}
+		WidgetTools.register[name] = element;
+		return element;
 	}
 
 	static getStateFromPath(state, path){

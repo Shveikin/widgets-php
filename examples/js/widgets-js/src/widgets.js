@@ -80,7 +80,7 @@ class widget {
             _name
         }
 
-		this.element = tag instanceof HTMLElement?tag:document.createElement(tag);
+		this.element = tag instanceof HTMLElement?tag:WidgetTools.createElement(tag, _name);
 		widget.names[_name] = this.element
 
         if (typeof props == 'function' && state){
@@ -125,7 +125,17 @@ class widget {
 			case "Array":
 				_chils.map(chl => {
 					chl = WidgetConvertor.toHTML(chl)
-					this.element.appendChild(chl)
+					if (chl === this.element){
+						console.log(this.props._name)
+					}
+					try {
+						this.element.appendChild(chl)
+					} catch(e){
+						console.log(chl) 
+						console.log(this.element)
+						console.log(this.props._name)
+						console.log(e)
+					}
 				})
 			break;
 			case "Element":

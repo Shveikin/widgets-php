@@ -4,7 +4,7 @@
     "list": [
         "convertor.js",
         "widgets.js",
-        "childController.js",
+        "widgetDom.js",
         "widgetTools.js",
         "widgetState.js",
         "c.js"

@@ -16,9 +16,12 @@ class SredaController extends WidgetsConponent {
             'sreda_title' => 'Вода',
         ]);
 
+        $this->createGlobalState('sredaList', [
+            '_list' => $this->loadList(0, 20),
+        ]);
+
         $this->createState('sredaControllerProps', [
             'isOpen' => false,
-            '_list' => $this->loadList(0, 20),
         ]);
     }
 
@@ -62,11 +65,12 @@ class SredaController extends WidgetsConponent {
             ]
         );
 
-        return $title;
+        // return $title;
+        return $this->state('sreda')->watch('sreda_title');
     }
 
     function drawList(){
-        return $this->state('sredaControllerProps')->map('_list', function($itm){
+        return $this->state('sredaList')->map('_list', function($itm){
                 return c::div(
                     style: state::name('sreda')->check('sreda_id', $itm->id, 'color: #f00', 'color: #222'),
                     innerHTML: $itm->environment,
@@ -78,16 +82,18 @@ class SredaController extends WidgetsConponent {
 
 
     function loadList($offset, $limit, $search = false){
-        global $mysqli_JINO;
-        $sql = "SELECT id,environment,weight,state FROM `sreda5(2)` LIMIT $offset , $limit";
+        return json_decode('[{"id":"1","environment":"\u0410\u0437\u043e\u0442 (N2 Nitrogen)","weight":"1.2506","state":"2"},{"id":"2","environment":"\u0410\u0437\u043e\u0442\u043d\u0430\u044f \u043a\u0438\u0441\u043b\u043e\u0442\u0430 (\u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0430\u044f) (Nitric Acid, (concentrated))","weight":"1370","state":"1"},{"id":"3","environment":"\u0410\u043c\u043c\u0438\u0430\u043a (NH\u2083 Ammonia)","weight":"0.86","state":"1"},{"id":"4","environment":"\u0410\u0440\u0433\u043e\u043d (Ar Argon Gas)","weight":"1.784","state":"2"},{"id":"5","environment":"\u0410\u0446\u0435\u0442\u0438\u043b\u0435\u043d (C\u2082H\u2082 Acetylene)","weight":"0","state":"2"},{"id":"6","environment":"\u0410\u0446\u0435\u0442\u043e\u043d (C3H6O Acetone)","weight":"0","state":"1"},{"id":"7","environment":"\u0411\u0435\u043d\u0437\u0438\u043d (Gasoline)","weight":"0","state":"1"},{"id":"8","environment":"\u0411\u0435\u043d\u0437\u043e\u043b (Benzol)","weight":"0","state":"1"},{"id":"9","environment":"\u0411\u0440\u043e\u043c\u0438\u0441\u0442\u044b\u0439 \u0432\u043e\u0434\u043e\u0440\u043e\u0434 (HBr Hydrogen Bromide)","weight":"3.6452","state":"2"},{"id":"10","environment":"\u0411\u0443\u0442\u0430\u043d (C4H10 Butane)","weight":"2080","state":"2"}]', true);
 
-        $result = [];
-        $envResult = $mysqli_JINO->query($sql);
-        if ($envResult && $envResult->num_rows){
-            $result = $envResult->fetch_all(MYSQLI_ASSOC);
-        }
+        // global $mysqli_JINO;
+        // $sql = "SELECT id,environment,weight,state FROM `sreda5(2)` LIMIT $offset , $limit";
 
-        return $result;
+        // $result = [];
+        // $envResult = $mysqli_JINO->query($sql);
+        // if ($envResult && $envResult->num_rows){
+        //     $result = $envResult->fetch_all(MYSQLI_ASSOC);
+        // }
+
+        // return $result;
     }
 
 
