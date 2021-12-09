@@ -7,15 +7,16 @@ const c = new Proxy({}, {
 		} else {
             // c.div(props) -> return proxi with class
 
-            return (property = {}, state = false) => {
-				property = WidgetConvertor.propsCorrector(property);
-				const lite = {_name: property._name}
-				if ('element' in property){
-					tag = property.element
-				}
+            return (property = {}) => {
+				const _name = widget.nextName(property)
+				const [currProps, child] = WidgetConvertor.propsCorrector(tag, property);
+				// const lite = {_name: property._name}
+				// if ('element' in property){
+				// 	tag = property.element
+				// }
 
 				const _widget = {
-					widget: new widget(tag, lite)
+					widget: new widget(tag, currProps, child)
 				}
                 const proxyProps = new Proxy(
                     _widget, 
@@ -42,8 +43,8 @@ const c = new Proxy({}, {
                     }
                 )
 
-				widget.proxys[property._name] = proxyProps
-				_widget.widget.assignProps(property)
+				// widget.proxys[property._name] = proxyProps
+				// _widget.widget.assignProps(property)
                 return proxyProps
             }
 		}

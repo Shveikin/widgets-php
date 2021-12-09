@@ -2,8 +2,11 @@
 class WidgetConvertor {
 
     static convert(element, from, to, state = false){
+		if (from == to){
+			return element
+		}
         const func = `${from}To${to}`
-		// console.log(func, element)
+		
         if (func in WidgetConvertor){
 			const result = WidgetConvertor[func](element, state)
 			const newType = WidgetConvertor.getType(result)
@@ -17,6 +20,20 @@ class WidgetConvertor {
         }
     }
 
+	static ArrayToWidgetsArray(array){
+		const result = array.map(element => {
+			const result = WidgetConvertor.toWidget(element)
+			return result
+		})
+
+		return result
+	}
+
+	static ArrayToWidget(array){
+		const element = new widget('div', {}, WidgetConvertor.ArrayToWidgetsArray(array))
+		return element
+	}
+
 	static toStr(element){
 		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'String')
 	}
@@ -29,14 +46,40 @@ class WidgetConvertor {
         return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'State')
     }
 
+	static toWidget(element){
+		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'Widget')
+	}
+
+	static IntToString(int){
+		return int + ''
+	}
+
+	static IntToWidget(int){
+		const element = new widget('div', {}, int + '')
+		return element
+	}
+
+	static StringToWidget(str){
+		const element = new widget('div', {}, str)
+		return element
+	}
+
+	static ElementToWidget(element){
+		const tag = element.element
+		delete element.element
+		const [property, childs] = WidgetConvertor.propsCorrector(tag, element)
+		const result = new widget(tag, property, childs)
+		return result
+	}
+
     static StringToHTML(element){
-        const wrapper = WidgetTools.createElement('div')
-        wrapper.innerHTML = element
+        const wrapper = widgetDom.createElement(element)
         return wrapper
     }
 
 	static WidgetToHTML(element){
-        return element.element
+		const result = widgetDom.createElement(element)
+        return result
     }
 
 	static FunctionToHTML(func, state = false){
@@ -75,19 +118,76 @@ class WidgetConvertor {
 		return WidgetConvertor.toHTML(element2);
 	}
 
-	static propsCorrector(props){
-		const type = WidgetConvertor.getType(props)
-		switch (type){
-			case 'State':
-			case 'WidgetTools':
-            case 'String':
-				props = {child: props}
-			break;
+	static singleElement = {
+		area: false,
+		base: false,
+		br: false,
+		col: false,
+		embed: false,
+		hr: false,
+		img: 'src',
+		input: 'value',
+		textarea: 'innerHTML',
+		link: 'href',
+		menuitem: false,
+		meta: false,
+		param: false,
+		source: false,
+		track: false,
+		wbr: false,
+	}
+
+	static childExport(tag, props){
+		let newChilds = [];
+		let newProps = {};
+		if (tag in WidgetConvertor.singleElement){
+			const reChild = WidgetConvertor.singleElement[tag]
+			if (reChild)
+			if (WidgetConvertor.getType(props)=='Object'){
+				if (reChild in props){
+					newProps = props
+				}
+			} else {
+				newProps[reChild] = WidgetConvertor.toStr(props)
+			}
+		} else {
+			const propType = WidgetConvertor.getType(props)
+			switch (propType){
+				case 'Int':
+				case 'String':
+					newChilds = props
+				break;
+				case 'State':
+				case 'Widget':
+				case 'WidgetTools':
+					newChilds = [WidgetConvertor.toWidget(props)]
+				break;
+				case 'Array':
+					newChilds = WidgetConvertor.ArrayToWidgetsArray(props)
+					console.log('childs', newChilds)
+				break;
+				case 'Object':
+					if ('child' in props){
+						newChilds = props['child']
+						delete props['child']
+					}
+				break;
+				case "Element":
+					newChilds = [WidgetConvertor.toWidget(props)]
+				break;
+				default:
+					console.log('Что с этим делать не знаю... ', propType);
+				break;
+			}
 		}
 
-		props._name = widget.nextName(props)
+		return [newProps, newChilds]
+	}
 
-		return props;
+	static propsCorrector(tag, props){
+
+		const [property, childs] = WidgetConvertor.childExport(tag, props)
+		return [property, childs];
 	}
 
     /**
@@ -107,31 +207,38 @@ class WidgetConvertor {
      */
     static getType(element){
 		let type = 'Unknown'
-		if (typeof element=='number')
-			type = 'Int'
 		if (typeof element=='string')
 			type = 'String'
-		if (element instanceof HTMLElement)
-			type = 'HTML'
-		else
-		if (typeof element == 'object' && 'widget' in element)
-			type = 'Widget'
-		else
-		if (typeof element == 'object' && 'link' in element)
-			type = 'State'
-		else
-		if (element && typeof element == 'object' && 'element' in element){
-			type = 'Element'
-			if (typeof WidgetTools[element.element] === 'function'){
-				type = 'WidgetTools'
-			}
-		}
-		else
-		if (typeof element == 'function')
-			type = 'Function'
 		else
 		if (Array.isArray(element))
 			type = 'Array'
+		else
+		if (typeof element=='number')
+			type = 'Int'
+		else
+		if (element instanceof HTMLElement || element instanceof Text)
+			type = 'HTML'
+		else
+		if (typeof element == 'object'){
+			type = 'Object'
+			
+			if ('widget' in element)
+				type = 'Widget'
+			else
+			if ('link' in element)
+				type = 'State'
+			else
+			if ('element' in element)
+				type = 'Element'
+				if (typeof WidgetTools[element.element] === 'function'){
+					type = 'WidgetTools'
+				}
+
+
+		} else
+		if (typeof element == 'function')
+			type = 'Function'
+		
 		
 		return type;
 	}
