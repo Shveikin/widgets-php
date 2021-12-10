@@ -48,25 +48,22 @@ class widgetDom {
         if (!nextNode) {
             rootElement.removeChild(rootElement.childNodes[index]);
         } else if (!currNode) {
-            rootElement.appendChild(
-                createElement(
-                    WidgetConvertor.toWidget(nextNode)
-                )
-            );
+            const newElement = WidgetConvertor.toHTML(nextNode)
+            rootElement.appendChild(newElement);
         } else if (widgetDom.changed(currNode, nextNode)) {
+            const newElement = WidgetConvertor.toHTML(nextNode)
             rootElement.replaceChild(
-                widgetDom.createElement(
-                    WidgetConvertor.toWidget(nextNode)
-                ), 
+                newElement, 
                 rootElement.childNodes[index]
             );
-        } else if (typeof nextNode.childs !== 'string') {
+        } else if (Array.isArray(nextNode.childs)) {
             for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
                 widgetDom.update(rootElement.childNodes[index], currNode.childs[i], nextNode.childs[i], i);
             }
-        } else {
-            rootElement.innerHTML = nextNode.childs
         }
+        // else {
+        //     rootElement.innerHTML = nextNode.childs
+        // }
     }
 
 
@@ -101,8 +98,8 @@ class widgetDom {
 
     static changed(nodeA, nodeB) {
         return (
-            typeof nodeA !== typeof nodeB ||
-            typeof nodeA === 'string' && nodeA !== nodeB || 
+            typeof nodeA.childs !== typeof nodeB.childs ||
+            typeof nodeA.childs === 'string' && nodeA.childs !== nodeB.childs || 
             nodeA.type !== nodeB.type
         );
     }

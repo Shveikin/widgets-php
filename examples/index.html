@@ -25,11 +25,17 @@
             "_name": "sreda"
         });  
         
+        const app = c.div([
+            c.input('test'),
+            [['aaa', 'dd']]
+        ])
+        const app2 = c.div('cc')
         c.app(
-            c.div({
-                innerHTML: WidgetState.name('sreda').watch('sreda_title')
-            })
+            app
         )
+        function update(){
+            c.app(WidgetState.name('sreda').watch('sreda_title'))
+        }
     </script>
 </body>
 </html>
