@@ -1,14 +1,14 @@
 
 class WidgetConvertor {
 
-    static convert(element, from, to, state = false){
+    static convert(path, element, from, to, state = false){
 		if (from == to){
 			return element
 		}
         const func = `${from}To${to}`
 		
         if (func in WidgetConvertor){
-			const result = WidgetConvertor[func](element, state)
+			const result = WidgetConvertor[func](path, element, state)
 			const newType = WidgetConvertor.getType(result)
 			if (newType==to){
 				return result;
@@ -20,67 +20,166 @@ class WidgetConvertor {
         }
     }
 
-	static ArrayToWidgetsArray(array){
-		const result = array.map(element => {
-			const result = WidgetConvertor.toWidget(element)
+
+
+
+
+
+	static ArrayToXElement(path, array){
+		const object = {
+			type: 'div',
+			props: {},
+			childs: array.map((itm, key) => WidgetConvertor.toXElement(widgetDom.pk(path, key), array))
+		}
+		return object
+	}
+
+	static StringToXElement(path, string){
+		const object = {
+			type: 'div',
+			props: {
+				innerHTML: string
+			},
+			childs: []
+		}
+		return object
+	}
+
+	static ArrayToXElementArray(path, array){
+		const result = array.map((element, key) => {
+			const result = WidgetConvertor.toXElement(widgetDom.pk(path, key), element)
 			return result
 		})
 
 		return result
 	}
 
-	static ArrayToWidget(array){
-		const element = new widget('div', {}, WidgetConvertor.ArrayToWidgetsArray(array))
-		return element
+	static StateToXElement(path, state){
+		const object = {
+			type: 'div',
+			props:  {},
+			childs: []
+		}
+		
+		widgetDom.names[path] = object
+		WidgetState.inspector(state, path, ['childs'])
+
+		// throw new Error(`${func} отсутствует!`);
+
+		return object
 	}
 
-	static toStr(element){
-		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'String')
+
+
+
+
+
+
+
+
+
+
+
+
+	// static ArrayToWidgetsArray(array){
+	// 	const result = array.map(element => {
+	// 		const result = WidgetConvertor.toXElement(element)
+	// 		return result
+	// 	})
+
+	// 	return result
+	// }
+
+	// static ArrayToWidget(array){
+	// 	const element = new widget('div', {}, WidgetConvertor.ArrayToWidgetsArray(array))
+	// 	return element
+	// }
+
+	// static ArrayToElement(array){
+	// 	const object = {
+	// 		element: 'div',
+	// 		props: {},
+	// 		childs: array.map(WidgetConvertor.toElement)
+	// 	}
+	// 	return object
+	// }
+
+	// static WidgetToElement(widget){
+	// 	const element = {
+	// 		element: widget.type,
+	// 		props: widget.props,
+	// 		childs: WidgetConvertor.toElement(widget.childs)['childs'],
+	// 	}
+	// 	return element
+	// }
+
+
+
+	// static ObjectToElement(element){
+	// 	const object = {
+	// 		element: 'div',
+	// 		props: {},
+	// 		child: [element]
+	// 	}
+	// 	return object
+	// }
+
+
+	static toXElement(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'XElement')
 	}
 
-	static toHTML(element, state = false){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
+	static toStr(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'String')
+	}
+
+	static toElement(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'Element')
+	}
+
+	static toHTML(path, element, state = false){
+        return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
-	static toState(element){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'State')
+	static toState(path, element){
+        return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'State')
     }
 
-	static toWidget(element){
-		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'Widget')
-	}
+	// static toWidget(element){
+	// 	return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'Widget')
+	// }
 
-	static IntToString(int){
+	static IntToString(path, int){
 		return int + ''
 	}
 
-	static IntToWidget(int){
-		const element = new widget('div', {}, int + '')
-		return element
-	}
+	// static IntToWidget(int){
+	// 	const element = new widget('div', {}, int + '')
+	// 	return element
+	// }
 
-	static StringToWidget(str){
-		const element = new widget('div', {}, str)
-		return element
-	}
+	// static StringToWidget(str){
+	// 	const element = new widget('div', {innerHTML: str})
+	// 	return element
+	// }
 
-	static ElementToWidget(element){
-		const tag = element.element
-		delete element.element
-		const [property, childs] = WidgetConvertor.propsCorrector(tag, element)
-		const result = new widget(tag, property, childs)
-		return result
-	}
-
-    static StringToHTML(element){
+	// static ElementToWidget(element){
+	// 	const tag = element.element
+	// 	delete element.element
+	// 	const [property, childs] = WidgetConvertor.propsCorrector(tag, element)
+	// 	const result = new widget(tag, property, childs)
+	// 	return result
+	// }
+/*
+    static StringToHTML(path, element){
         const wrapper = widgetDom.createElement(element)
         return wrapper
     }
 
-	static WidgetToHTML(element){
-		const result = widgetDom.createElement(element)
-        return result
-    }
+	// static WidgetToHTML(element){
+	// 	const result = widgetDom.createElement(element)
+    //     return result
+    // }
 
 	static FunctionToHTML(func, state = false){
 		if (state && typeof state=='object' && WidgetConvertor.getType(state)!='State'){
@@ -92,11 +191,11 @@ class WidgetConvertor {
 	static StateToHTML(state){
 		return c.div({innerHTML: state})
 	}
-
-	static StateToWidget(state){
-		return new widget('div', {}, state)
-	}
-
+*/
+	// static StateToWidget(state){
+	// 	return new widget('div', {}, state)
+	// }
+/*
 	static ArrayToHTML(array){
 		const wrapper = WidgetTools.createElement('div')
 		array.map(element => {
@@ -121,10 +220,10 @@ class WidgetConvertor {
 		const element2 = WidgetTools.create(element)
 		return WidgetConvertor.toHTML(element2);
 	}
-
-	static WidgetToolsToWidget(widgetTool){
-		return WidgetTools.create(widgetTool)
-	}
+*/
+	// static WidgetToolsToWidget(widgetTool){
+	// 	return WidgetTools.create(widgetTool)
+	// }
 
 
 
@@ -158,23 +257,25 @@ class WidgetConvertor {
 					newProps = props
 				}
 			} else {
-				newProps[reChild] = WidgetConvertor.toStr(props)
+				newProps[reChild] = WidgetConvertor.toStr('', props)
 			}
 		} else {
 			const propType = WidgetConvertor.getType(props)
 			switch (propType){
 				case 'Int':
 				case 'String':
-					newChilds = props
+					// newChilds = props
+					newProps['innerHTML'] = props
 				break;
 				case 'State':
 				case 'Widget':
 				case 'WidgetTools':
-					newChilds = [WidgetConvertor.toWidget(props)]
+					newChilds = [props]
 				break;
 				case 'Array':
-					newChilds = WidgetConvertor.ArrayToWidgetsArray(props)
-					console.log('childs', newChilds)
+					// newChilds = WidgetConvertor.ArrayToXElementArray(props)
+					newChilds = props
+					// console.log('childs', newChilds)
 				break;
 				case 'Object':
 					if ('child' in props){
@@ -184,7 +285,7 @@ class WidgetConvertor {
 					newProps = props
 				break;
 				case "Element":
-					newChilds = [WidgetConvertor.toWidget(props)]
+					newChilds = [WidgetConvertor.toXElement('', props)]
 				break;
 				default:
 					console.log('Что с этим делать не знаю... ', propType);
@@ -233,6 +334,9 @@ class WidgetConvertor {
 		if (typeof element == 'object'){
 			type = 'Object'
 			
+			if ('type' in element && 'props' in element && 'childs' in element)
+				type = 'XElement'
+			else
 			if ('widget' in element)
 				type = 'Widget'
 			else

@@ -31,8 +31,8 @@ class widget {
 		this.type = tag
 		this.name = widget.nextName(props)
 		widget.widgets[this.name] = this
-        // this.props = props
         this.childs = child
+		this.props = {}
 		this.assignProps(props)
 		// this.setChild(child)
     }
@@ -294,26 +294,13 @@ class widget {
     }
 
 
-    static renderTo(querySelector, element){
-		element = WidgetConvertor.toHTML(element)
-		let toElement = window.document.querySelector(querySelector);
-		if (toElement){
-			toElement.innerHTML = '';
-			toElement.appendChild(element)
-		} else {
-			window.addEventListener('load', () => {
-				toElement = window.document.querySelector(querySelector);
-				toElement.innerHTML = '';
-				toElement.appendChild(element)
-			});
-		}
-    }
+
 
     static app(render){
-        c.renderTo('#app', render)
+        widgetDom.renderTo('#app', render)
     }
 
     static body(element){
-        widget.renderTo('body', element)
+        widgetDom.renderTo('body', element)
     }
 }

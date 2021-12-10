@@ -2,14 +2,14 @@
 
 class WidgetConvertor {
 
-    static convert(element, from, to, state = false){
+    static convert(path, element, from, to, state = false){
 		if (from == to){
 			return element
 		}
         const func = `${from}To${to}`
 		
         if (func in WidgetConvertor){
-			const result = WidgetConvertor[func](element, state)
+			const result = WidgetConvertor[func](path, element, state)
 			const newType = WidgetConvertor.getType(result)
 			if (newType==to){
 				return result;
@@ -21,67 +21,166 @@ class WidgetConvertor {
         }
     }
 
-	static ArrayToWidgetsArray(array){
-		const result = array.map(element => {
-			const result = WidgetConvertor.toWidget(element)
+
+
+
+
+
+	static ArrayToXElement(path, array){
+		const object = {
+			type: 'div',
+			props: {},
+			childs: array.map((itm, key) => WidgetConvertor.toXElement(widgetDom.pk(path, key), array))
+		}
+		return object
+	}
+
+	static StringToXElement(path, string){
+		const object = {
+			type: 'div',
+			props: {
+				innerHTML: string
+			},
+			childs: []
+		}
+		return object
+	}
+
+	static ArrayToXElementArray(path, array){
+		const result = array.map((element, key) => {
+			const result = WidgetConvertor.toXElement(widgetDom.pk(path, key), element)
 			return result
 		})
 
 		return result
 	}
 
-	static ArrayToWidget(array){
-		const element = new widget('div', {}, WidgetConvertor.ArrayToWidgetsArray(array))
-		return element
+	static StateToXElement(path, state){
+		const object = {
+			type: 'div',
+			props:  {},
+			childs: []
+		}
+		
+		widgetDom.names[path] = object
+		WidgetState.inspector(state, path, ['childs'])
+
+		// throw new Error(`${func} отсутствует!`);
+
+		return object
 	}
 
-	static toStr(element){
-		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'String')
+
+
+
+
+
+
+
+
+
+
+
+
+	// static ArrayToWidgetsArray(array){
+	// 	const result = array.map(element => {
+	// 		const result = WidgetConvertor.toXElement(element)
+	// 		return result
+	// 	})
+
+	// 	return result
+	// }
+
+	// static ArrayToWidget(array){
+	// 	const element = new widget('div', {}, WidgetConvertor.ArrayToWidgetsArray(array))
+	// 	return element
+	// }
+
+	// static ArrayToElement(array){
+	// 	const object = {
+	// 		element: 'div',
+	// 		props: {},
+	// 		childs: array.map(WidgetConvertor.toElement)
+	// 	}
+	// 	return object
+	// }
+
+	// static WidgetToElement(widget){
+	// 	const element = {
+	// 		element: widget.type,
+	// 		props: widget.props,
+	// 		childs: WidgetConvertor.toElement(widget.childs)['childs'],
+	// 	}
+	// 	return element
+	// }
+
+
+
+	// static ObjectToElement(element){
+	// 	const object = {
+	// 		element: 'div',
+	// 		props: {},
+	// 		child: [element]
+	// 	}
+	// 	return object
+	// }
+
+
+	static toXElement(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'XElement')
 	}
 
-	static toHTML(element, state = false){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'HTML', state)
+	static toStr(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'String')
+	}
+
+	static toElement(path, element){
+		return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'Element')
+	}
+
+	static toHTML(path, element, state = false){
+        return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'HTML', state)
     }
 
-	static toState(element){
-        return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'State')
+	static toState(path, element){
+        return WidgetConvertor.convert(path, element, WidgetConvertor.getType(element), 'State')
     }
 
-	static toWidget(element){
-		return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'Widget')
-	}
+	// static toWidget(element){
+	// 	return WidgetConvertor.convert(element, WidgetConvertor.getType(element), 'Widget')
+	// }
 
-	static IntToString(int){
+	static IntToString(path, int){
 		return int + ''
 	}
 
-	static IntToWidget(int){
-		const element = new widget('div', {}, int + '')
-		return element
-	}
+	// static IntToWidget(int){
+	// 	const element = new widget('div', {}, int + '')
+	// 	return element
+	// }
 
-	static StringToWidget(str){
-		const element = new widget('div', {}, str)
-		return element
-	}
+	// static StringToWidget(str){
+	// 	const element = new widget('div', {innerHTML: str})
+	// 	return element
+	// }
 
-	static ElementToWidget(element){
-		const tag = element.element
-		delete element.element
-		const [property, childs] = WidgetConvertor.propsCorrector(tag, element)
-		const result = new widget(tag, property, childs)
-		return result
-	}
-
-    static StringToHTML(element){
+	// static ElementToWidget(element){
+	// 	const tag = element.element
+	// 	delete element.element
+	// 	const [property, childs] = WidgetConvertor.propsCorrector(tag, element)
+	// 	const result = new widget(tag, property, childs)
+	// 	return result
+	// }
+/*
+    static StringToHTML(path, element){
         const wrapper = widgetDom.createElement(element)
         return wrapper
     }
 
-	static WidgetToHTML(element){
-		const result = widgetDom.createElement(element)
-        return result
-    }
+	// static WidgetToHTML(element){
+	// 	const result = widgetDom.createElement(element)
+    //     return result
+    // }
 
 	static FunctionToHTML(func, state = false){
 		if (state && typeof state=='object' && WidgetConvertor.getType(state)!='State'){
@@ -93,11 +192,11 @@ class WidgetConvertor {
 	static StateToHTML(state){
 		return c.div({innerHTML: state})
 	}
-
-	static StateToWidget(state){
-		return new widget('div', {}, state)
-	}
-
+*/
+	// static StateToWidget(state){
+	// 	return new widget('div', {}, state)
+	// }
+/*
 	static ArrayToHTML(array){
 		const wrapper = WidgetTools.createElement('div')
 		array.map(element => {
@@ -122,10 +221,10 @@ class WidgetConvertor {
 		const element2 = WidgetTools.create(element)
 		return WidgetConvertor.toHTML(element2);
 	}
-
-	static WidgetToolsToWidget(widgetTool){
-		return WidgetTools.create(widgetTool)
-	}
+*/
+	// static WidgetToolsToWidget(widgetTool){
+	// 	return WidgetTools.create(widgetTool)
+	// }
 
 
 
@@ -159,23 +258,25 @@ class WidgetConvertor {
 					newProps = props
 				}
 			} else {
-				newProps[reChild] = WidgetConvertor.toStr(props)
+				newProps[reChild] = WidgetConvertor.toStr('', props)
 			}
 		} else {
 			const propType = WidgetConvertor.getType(props)
 			switch (propType){
 				case 'Int':
 				case 'String':
-					newChilds = props
+					// newChilds = props
+					newProps['innerHTML'] = props
 				break;
 				case 'State':
 				case 'Widget':
 				case 'WidgetTools':
-					newChilds = [WidgetConvertor.toWidget(props)]
+					newChilds = [props]
 				break;
 				case 'Array':
-					newChilds = WidgetConvertor.ArrayToWidgetsArray(props)
-					console.log('childs', newChilds)
+					// newChilds = WidgetConvertor.ArrayToXElementArray(props)
+					newChilds = props
+					// console.log('childs', newChilds)
 				break;
 				case 'Object':
 					if ('child' in props){
@@ -185,7 +286,7 @@ class WidgetConvertor {
 					newProps = props
 				break;
 				case "Element":
-					newChilds = [WidgetConvertor.toWidget(props)]
+					newChilds = [WidgetConvertor.toXElement('', props)]
 				break;
 				default:
 					console.log('Что с этим делать не знаю... ', propType);
@@ -234,6 +335,9 @@ class WidgetConvertor {
 		if (typeof element == 'object'){
 			type = 'Object'
 			
+			if ('type' in element && 'props' in element && 'childs' in element)
+				type = 'XElement'
+			else
 			if ('widget' in element)
 				type = 'Widget'
 			else
@@ -308,8 +412,8 @@ class widget {
 		this.type = tag
 		this.name = widget.nextName(props)
 		widget.widgets[this.name] = this
-        // this.props = props
         this.childs = child
+		this.props = {}
 		this.assignProps(props)
 		// this.setChild(child)
     }
@@ -571,68 +675,79 @@ class widget {
     }
 
 
-    static renderTo(querySelector, element){
-		element = WidgetConvertor.toHTML(element)
-		let toElement = window.document.querySelector(querySelector);
-		if (toElement){
-			toElement.innerHTML = '';
-			toElement.appendChild(element)
-		} else {
-			window.addEventListener('load', () => {
-				toElement = window.document.querySelector(querySelector);
-				toElement.innerHTML = '';
-				toElement.appendChild(element)
-			});
-		}
-    }
+
 
     static app(render){
-        c.renderTo('#app', render)
+        widgetDom.renderTo('#app', render)
     }
 
     static body(element){
-        widget.renderTo('body', element)
+        widgetDom.renderTo('body', element)
     }
 }
 
 // widgetDom.js
 
 class widgetDom {
-    static createElement(widget) {
-        if (WidgetConvertor.getType(widget)=='Widget'){
-            const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
-            if (!bindElement){
-                const rootElement = document.createElement(widget.type);
-                widget.bindElement(rootElement)
-                widget.props && Object.keys(widget.props).forEach((key) => {
+    static names = [];
+    static active = {};
+    static names_length = 0
+    static nextName(){
+        return 'XE' + (widgetDom.names_length++)
+	}
 
-                    widgetDom.__linkToElement(widget.name, rootElement, key, widget.props[key])
+    static pk(path, key){
+        return path + '/' + key
+    }
 
-                    // rootElement[key] = widget.props[key];
-                });
-                if (Array.isArray(widget.childs)){
-                    widget.childs.map(itm => 
-                        widgetDom.createElement(
-                            WidgetConvertor.toWidget(itm)
-                        )
-                    ).forEach((childElement) => {
-                        rootElement.appendChild(childElement);
-                    });
-                } else {
-                    rootElement.innerHTML = widget.childs
-                }
-                return rootElement
-            } else {
-                return bindElement
-            }
+    static name(name){
+        if (name in widgetDom.names){
+            return widgetDom.names[name]
         } else {
-            console.log(widget)
-            throw new Error('not widget')
+            return false;
         }
     }
 
+    static createElement(widget, path, virtualDom = {}){
+        const rootElement = document.createElement(widget.type);
+        virtualDom.type = widget.type
+        if (!('props' in virtualDom)) virtualDom['props'] = {}
+        if (!('childs' in virtualDom)) virtualDom['childs'] = []
+
+
+        const props = widget.props
+        Object.keys(props).forEach(key => {
+            
+            const val = widget.props[key]
+            virtualDom.props[key] = val
+            widgetDom.__linkToElement(path, widget.name, rootElement, key, val)
+
+        });
+        if (Array.isArray(widget.childs)){
+
+            let index = 0
+            widget.childs.map(itm => {
+                
+                virtualDom.childs.push({})
+                return widgetDom.createElement(
+                    WidgetConvertor.toXElement(path, itm),
+                    widgetDom.pk(path, virtualDom.childs.length - 1),
+                    virtualDom.childs[virtualDom.childs.length - 1]
+                )
+
+            }).forEach((childElement) => {
+                rootElement.appendChild(childElement);
+            });
+        }
+
+        document.getElementById('dom').innerHTML = JSON.stringify(virtualDom, null, '   ')
+        console.log('create', virtualDom)
+
+        return rootElement
+    }
+
     static nodeToArray(node){
-        switch (WidgetConvertor.getType(node)) {
+        switch (WidgetConvertor.getType(node)){
             case 'Array':
                 return node
             case 'Widget':
@@ -642,33 +757,92 @@ class widgetDom {
         }
     }
 
-    static update(rootElement, currNode, nextNode, index = 0) {
-        if (!nextNode) {
-            rootElement.removeChild(rootElement.childNodes[index]);
-        } else if (!currNode) {
-            rootElement.appendChild(
-                createElement(
-                    WidgetConvertor.toWidget(nextNode)
-                )
-            );
-        } else if (widgetDom.changed(currNode, nextNode)) {
-            rootElement.replaceChild(
-                widgetDom.createElement(
-                    WidgetConvertor.toWidget(nextNode)
-                ), 
-                rootElement.childNodes[index]
-            );
-        } else if (typeof nextNode.childs !== 'string') {
-            for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
-                widgetDom.update(rootElement.childNodes[index], currNode.childs[i], nextNode.childs[i], i);
-            }
+    static getElementByPath(path){
+        path = path.split('/')
+        let querySelector = path.shift()
+        let element = document.querySelector(querySelector)
+        while (path.length!=0){
+            querySelector = path.shift()
+            element.childNodes(querySelector)
+        }
+        return element
+    }
+
+    static updateVirtual(querySelector, nextNode){
+        if (querySelector in widgetDom.virtualDom){
+            const currNode = widgetDom.virtualDom[querySelector];
+            const newVirtualDom = widgetDom.update(
+                document.querySelector(querySelector),
+                querySelector,
+                currNode,
+                nextNode
+            )
+            widgetDom.virtualDom[querySelector] = newVirtualDom
+            widgetDom.active[querySelector] = nextNode
         } else {
-            rootElement.innerHTML = nextNode.childs
+            widgetDom.renderTo(querySelector, nextNode)
+            widgetDom.active[querySelector] = nextNode
         }
     }
 
+    static update(rootElement, path, currNode, nextNode, index = 0, virtualDom = {}){
+        if (!nextNode) return false
+        virtualDom.type = nextNode && 'type' in nextNode?nextNode.type:'div'
+        virtualDom.childs = []
+        virtualDom.props = {}
+        if (!nextNode) {
+            if (rootElement.childNodes[index])
+                rootElement.removeChild(rootElement.childNodes[index])
+            return false
+        } else if (!currNode) {
+            virtualDom.childs[index] = {}
 
-	static __linkToElement(elementName, element, prop, value){
+            const newElement = widgetDom.createElement(
+                WidgetConvertor.toXElement(path, nextNode),
+                widgetDom.pk(path, virtualDom.childs.length - 1),
+                virtualDom.childs[index]
+            )
+
+            rootElement.appendChild(newElement);
+        } else if (widgetDom.changed(currNode, nextNode)) {
+            virtualDom.childs[index] = {}
+
+            const newElement = widgetDom.createElement(
+                WidgetConvertor.toXElement(path, nextNode),
+                widgetDom.pk(path, virtualDom.childs.length - 1),
+                virtualDom.childs[index]
+            )
+
+            rootElement.replaceChild(
+                newElement, 
+                rootElement.childNodes[index]
+            );
+        } else if (Array.isArray(nextNode.childs) && nextNode.childs.length!=0) {
+            for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
+
+                virtualDom.childs.push(
+                    widgetDom.update(
+                        rootElement.childNodes[index],
+                        widgetDom.pk(path, i),
+                        currNode.childs[i], 
+                        nextNode.childs[i], 
+                        i
+                    )
+                )
+                
+            }
+        } else {
+            console.log('Ничего не изменилось');
+            virtualDom = nextNode
+        }
+        
+        document.getElementById('dom').innerHTML = JSON.stringify(virtualDom, null, '   ')
+        console.log('ee', virtualDom)
+        return virtualDom
+    }
+
+
+	static __linkToElement(path, elementName, element, prop, value){
         const [change, neeValue] = WidgetConvertor.applyState(elementName, prop, value)
 		if (change) value = neeValue
 
@@ -689,7 +863,7 @@ class widgetDom {
 				}
 			break;
 			case 'Element':
-				element[prop] = WidgetConvertor.toStr(value)
+				element[prop] = WidgetConvertor.toStr(path, value)
 			break;
 			default:
 				// console.info('Не применено', prop, value, type)
@@ -697,12 +871,42 @@ class widgetDom {
 		}
 	}
 
-    static changed(nodeA, nodeB) {
-        return (
-            typeof nodeA !== typeof nodeB ||
-            typeof nodeA === 'string' && nodeA !== nodeB || 
-            nodeA.type !== nodeB.type
+    static changed(currNode, nextNode){
+        const result = (
+            currNode.type !== nextNode.type || 
+            // !WidgetComparator.compare(currNode.childs, nextNode.childs)
+            currNode !== nextNode
         );
+        return result
+    }
+
+    static virtualDom = {}
+
+    static linkElements(querySelector, element){
+        if (!(querySelector in widgetDom.virtualDom)) 
+            widgetDom.virtualDom[querySelector] = {}
+
+        const newTree = widgetDom.createElement(element, querySelector, widgetDom.virtualDom[querySelector])
+        return newTree
+    }
+
+    static renderTo(querySelector, element){
+		
+		let toElement = window.document.querySelector(querySelector);
+		if (toElement){
+            const newTree = widgetDom.linkElements(querySelector, element)
+			toElement.innerHTML = '';
+			toElement.appendChild(newTree)
+		} else {
+			window.addEventListener('load', () => {
+				toElement = window.document.querySelector(querySelector);
+                if (toElement){
+                    const newTree = widgetDom.linkElements(querySelector, element)
+                    toElement.innerHTML = '';
+                    toElement.appendChild(newTree)
+                }
+			});
+		}
     }
 }
 
@@ -1010,16 +1214,24 @@ class WidgetState {
             }
 
             return {
-                link(){
+                link(path, property){
                     if (!('___updates' in self)) self['___updates'] = {}
                     
                     props.map(prop => {
-                        if (!(prop in self['___updates'])) self['___updates'][prop] = []
-                        self['___updates'][prop].push({
-                            path: Array.isArray(arguments[0])?arguments[0]:arguments,
+                        // if (!(prop in self['___updates'])) self['___updates'][prop] = []
+                        // self['___updates'][prop].push({
+                        //     path: Array.isArray(arguments[0])?arguments[0]:arguments,
+                        //     update: updateFunction,
+                        //     props: props
+                        // })
+
+						if (!(prop in self['___updates'])) self['___updates'][prop] = {}
+                        self['___updates'][prop][path] = {
+                            // path: Array.isArray(arguments[0])?arguments[0]:arguments,
                             update: updateFunction,
-                            props: props
-                        })
+                            props: property//props
+                        }
+
                         return WidgetState.updateAll(self, prop)
                     })
 
@@ -1030,9 +1242,9 @@ class WidgetState {
     }
 
 
-	static inspector(func, to) {
+	static inspector(func, path, property) {
 		if ('link' in func)
-			return func.link(to)
+			return func.link(path, property)
 	}
 
 
@@ -1072,17 +1284,18 @@ class WidgetState {
 		props.map(prop => {
 
 			if ('___updates' in self && prop in self['___updates']){
-				self['___updates'][prop].map(updateList => {
-					const props = updateList.props
-					const update = updateList.update
-					const mp = [...updateList.path]
-
-					let element = mp.shift();
-					if (typeof element == 'string'){
-						element = widget.getWidget(element)
-					}
+				// self['___updates'][prop].map(updateList => {
+				Object.keys(self['___updates'][prop]).map(path => {
+					const updateList = self['___updates'][prop][path];
 					
-					let elementPropperty = 'child'
+					const update = updateList.update
+					const mp = updateList.props
+
+					// let element = widgetDom.name(path)
+					
+					
+					
+					let elementPropperty = 'childs'
 					while (mp.length!=0){
 						elementPropperty = mp.shift();
 						if (mp.length==0)
@@ -1091,18 +1304,36 @@ class WidgetState {
 						element = element[elementPropperty]
 					}
 
+
 					const properties = []
 					props.map(i => {
 						properties.push(self[i])
 					})
 					
-					const value = update.apply(this, properties);
-					if (element){	
-						// element[elementPropperty] = value
-						element.assignProp(elementPropperty, value)
-					} else {
-						return value;
-					}
+					const value = update.apply(this, properties)
+					WidgetState.apply(path, elementPropperty, value)
+					// if (element){
+					// 	if (elementPropperty=='childs'){
+					// 		element[elementPropperty] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
+					// 	} else {
+					// 		element[elementPropperty] = value
+					// 	}
+					// 	// element.assignProp(elementPropperty, value)
+
+
+
+					// 	if (querySelector in widgetDom.virtualDom){
+					// 		const DOM = widgetDom.virtualDom[querySelector]
+					// 		document.getElementById('dom').innerHTML = JSON.stringify(DOM, null, '   ')
+					// 		console.log('DOM', DOM)
+					// 	}
+
+
+					// } else {
+					// 	return value;
+					// }
+
+
 				})
 			}
 		})
@@ -1110,6 +1341,28 @@ class WidgetState {
 		if (self.___parent) 
 			WidgetState.updateAll(self.___parent)
     }
+
+
+
+
+
+	static apply(path, prop, value){
+		const element = widgetDom.name(path)
+		const querySelector = path.split('/')[0]
+
+		// widgetDom.name(path)
+		if (element){
+			if (prop=='childs'){
+				element[prop] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
+			} else {
+				element[prop] = value
+			}
+		}
+	}
+
+	
+
+
 
     static props(self) {
 		const props = {}
@@ -1133,43 +1386,46 @@ const c = new Proxy({}, {
 
             return (property = {}) => {
 				const _name = widget.nextName(property)
-				const [currProps, child] = WidgetConvertor.propsCorrector(tag, property);
-				// const lite = {_name: property._name}
-				// if ('element' in property){
-				// 	tag = property.element
-				// }
+				const [props, childs] = WidgetConvertor.propsCorrector(tag, property);
 
-				const _widget = {
-					widget: new widget(tag, currProps, child)
+				return {
+					type: tag,
+					props,
+					childs,
 				}
-                const proxyProps = new Proxy(
-                    _widget, 
-					{
-                        get: (el, prop) => {
-							if (typeof _widget.widget[prop] != 'undefined'){
-								return _widget.widget[prop]
-							} else
-							if (prop!='setName' && prop.substr(0,3)=='set'){
-								return function(value){
-									el.widget.assignProp(prop.substr(3).toLowerCase(), value)
-									return proxyProps;
-								}
-							} else {
-								return (value, dopvalue = false) => {
-									return el.widget.setProp(proxyProps, prop, value, dopvalue)
-								}
-							} 
-                        },
-                        set: (el, prop, value) => {
-							el.widget.assignProp(prop, value)
-                            return true;
-                        }
-                    }
-                )
 
-				// widget.proxys[property._name] = proxyProps
-				// _widget.widget.assignProps(property)
-                return proxyProps
+				// const _widget = {
+				// 	widget: new widget(tag, currProps, child)
+				// }
+                // const proxyProps = new Proxy(
+                //     _widget, 
+				// 	{
+                //         get: (el, prop) => {
+				// 			// if (['props', 'type', 'name', 'childs'].includes(prop)){
+				// 			// 	return _widget.widget[prop]
+				// 			// }
+				// 			if (typeof _widget.widget[prop] != 'undefined'){
+				// 				return _widget.widget[prop]
+				// 			} else
+				// 			if (prop!='setName' && prop.substr(0,3)=='set'){
+				// 				return function(value){
+				// 					el.widget.assignProp(prop.substr(3).toLowerCase(), value)
+				// 					return proxyProps;
+				// 				}
+				// 			} else {
+				// 				return (value, dopvalue = false) => {
+				// 					return el.widget.setProp(proxyProps, prop, value, dopvalue)
+				// 				}
+				// 			} 
+                //         },
+                //         set: (el, prop, value) => {
+				// 			el.widget.assignProp(prop, value)
+                //             return true;
+                //         }
+                //     }
+                // )
+
+                // return proxyProps
             }
 		}
 	},

@@ -9,43 +9,46 @@ const c = new Proxy({}, {
 
             return (property = {}) => {
 				const _name = widget.nextName(property)
-				const [currProps, child] = WidgetConvertor.propsCorrector(tag, property);
-				// const lite = {_name: property._name}
-				// if ('element' in property){
-				// 	tag = property.element
-				// }
+				const [props, childs] = WidgetConvertor.propsCorrector(tag, property);
 
-				const _widget = {
-					widget: new widget(tag, currProps, child)
+				return {
+					type: tag,
+					props,
+					childs,
 				}
-                const proxyProps = new Proxy(
-                    _widget, 
-					{
-                        get: (el, prop) => {
-							if (typeof _widget.widget[prop] != 'undefined'){
-								return _widget.widget[prop]
-							} else
-							if (prop!='setName' && prop.substr(0,3)=='set'){
-								return function(value){
-									el.widget.assignProp(prop.substr(3).toLowerCase(), value)
-									return proxyProps;
-								}
-							} else {
-								return (value, dopvalue = false) => {
-									return el.widget.setProp(proxyProps, prop, value, dopvalue)
-								}
-							} 
-                        },
-                        set: (el, prop, value) => {
-							el.widget.assignProp(prop, value)
-                            return true;
-                        }
-                    }
-                )
 
-				// widget.proxys[property._name] = proxyProps
-				// _widget.widget.assignProps(property)
-                return proxyProps
+				// const _widget = {
+				// 	widget: new widget(tag, currProps, child)
+				// }
+                // const proxyProps = new Proxy(
+                //     _widget, 
+				// 	{
+                //         get: (el, prop) => {
+				// 			// if (['props', 'type', 'name', 'childs'].includes(prop)){
+				// 			// 	return _widget.widget[prop]
+				// 			// }
+				// 			if (typeof _widget.widget[prop] != 'undefined'){
+				// 				return _widget.widget[prop]
+				// 			} else
+				// 			if (prop!='setName' && prop.substr(0,3)=='set'){
+				// 				return function(value){
+				// 					el.widget.assignProp(prop.substr(3).toLowerCase(), value)
+				// 					return proxyProps;
+				// 				}
+				// 			} else {
+				// 				return (value, dopvalue = false) => {
+				// 					return el.widget.setProp(proxyProps, prop, value, dopvalue)
+				// 				}
+				// 			} 
+                //         },
+                //         set: (el, prop, value) => {
+				// 			el.widget.assignProp(prop, value)
+                //             return true;
+                //         }
+                //     }
+                // )
+
+                // return proxyProps
             }
 		}
 	},

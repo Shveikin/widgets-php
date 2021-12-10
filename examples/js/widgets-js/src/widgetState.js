@@ -183,16 +183,24 @@ class WidgetState {
             }
 
             return {
-                link(){
+                link(path, property){
                     if (!('___updates' in self)) self['___updates'] = {}
                     
                     props.map(prop => {
-                        if (!(prop in self['___updates'])) self['___updates'][prop] = []
-                        self['___updates'][prop].push({
-                            path: Array.isArray(arguments[0])?arguments[0]:arguments,
+                        // if (!(prop in self['___updates'])) self['___updates'][prop] = []
+                        // self['___updates'][prop].push({
+                        //     path: Array.isArray(arguments[0])?arguments[0]:arguments,
+                        //     update: updateFunction,
+                        //     props: props
+                        // })
+
+						if (!(prop in self['___updates'])) self['___updates'][prop] = {}
+                        self['___updates'][prop][path] = {
+                            // path: Array.isArray(arguments[0])?arguments[0]:arguments,
                             update: updateFunction,
-                            props: props
-                        })
+                            props: property//props
+                        }
+
                         return WidgetState.updateAll(self, prop)
                     })
 
@@ -203,9 +211,9 @@ class WidgetState {
     }
 
 
-	static inspector(func, to) {
+	static inspector(func, path, property) {
 		if ('link' in func)
-			return func.link(to)
+			return func.link(path, property)
 	}
 
 
@@ -245,17 +253,18 @@ class WidgetState {
 		props.map(prop => {
 
 			if ('___updates' in self && prop in self['___updates']){
-				self['___updates'][prop].map(updateList => {
-					const props = updateList.props
-					const update = updateList.update
-					const mp = [...updateList.path]
-
-					let element = mp.shift();
-					if (typeof element == 'string'){
-						element = widget.getWidget(element)
-					}
+				// self['___updates'][prop].map(updateList => {
+				Object.keys(self['___updates'][prop]).map(path => {
+					const updateList = self['___updates'][prop][path];
 					
-					let elementPropperty = 'child'
+					const update = updateList.update
+					const mp = updateList.props
+
+					// let element = widgetDom.name(path)
+					
+					
+					
+					let elementPropperty = 'childs'
 					while (mp.length!=0){
 						elementPropperty = mp.shift();
 						if (mp.length==0)
@@ -264,18 +273,36 @@ class WidgetState {
 						element = element[elementPropperty]
 					}
 
+
 					const properties = []
 					props.map(i => {
 						properties.push(self[i])
 					})
 					
-					const value = update.apply(this, properties);
-					if (element){	
-						// element[elementPropperty] = value
-						element.assignProp(elementPropperty, value)
-					} else {
-						return value;
-					}
+					const value = update.apply(this, properties)
+					WidgetState.apply(path, elementPropperty, value)
+					// if (element){
+					// 	if (elementPropperty=='childs'){
+					// 		element[elementPropperty] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
+					// 	} else {
+					// 		element[elementPropperty] = value
+					// 	}
+					// 	// element.assignProp(elementPropperty, value)
+
+
+
+					// 	if (querySelector in widgetDom.virtualDom){
+					// 		const DOM = widgetDom.virtualDom[querySelector]
+					// 		document.getElementById('dom').innerHTML = JSON.stringify(DOM, null, '   ')
+					// 		console.log('DOM', DOM)
+					// 	}
+
+
+					// } else {
+					// 	return value;
+					// }
+
+
 				})
 			}
 		})
@@ -283,6 +310,28 @@ class WidgetState {
 		if (self.___parent) 
 			WidgetState.updateAll(self.___parent)
     }
+
+
+
+
+
+	static apply(path, prop, value){
+		const element = widgetDom.name(path)
+		const querySelector = path.split('/')[0]
+
+		// widgetDom.name(path)
+		if (element){
+			if (prop=='childs'){
+				element[prop] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
+			} else {
+				element[prop] = value
+			}
+		}
+	}
+
+	
+
+
 
     static props(self) {
 		const props = {}

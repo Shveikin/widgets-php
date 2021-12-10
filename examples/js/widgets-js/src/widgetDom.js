@@ -1,40 +1,64 @@
 
 class widgetDom {
-    static createElement(widget) {
-        if (WidgetConvertor.getType(widget)=='Widget'){
-            const bindElement = WidgetConvertor.getType(widget)=='Widget'?widget.bindElement():false
-            if (!bindElement){
-                const rootElement = document.createElement(widget.type);
-                widget.bindElement(rootElement)
-                widget.props && Object.keys(widget.props).forEach((key) => {
+    static names = [];
+    static active = {};
+    static names_length = 0
+    static nextName(){
+        return 'XE' + (widgetDom.names_length++)
+	}
 
-                    widgetDom.__linkToElement(widget.name, rootElement, key, widget.props[key])
+    static pk(path, key){
+        return path + '/' + key
+    }
 
-                    // rootElement[key] = widget.props[key];
-                });
-                if (Array.isArray(widget.childs)){
-                    widget.childs.map(itm => 
-                        widgetDom.createElement(
-                            WidgetConvertor.toWidget(itm)
-                        )
-                    ).forEach((childElement) => {
-                        rootElement.appendChild(childElement);
-                    });
-                } else {
-                    rootElement.innerHTML = widget.childs
-                }
-                return rootElement
-            } else {
-                return bindElement
-            }
+    static name(name){
+        if (name in widgetDom.names){
+            return widgetDom.names[name]
         } else {
-            console.log(widget)
-            throw new Error('not widget')
+            return false;
         }
     }
 
+    static createElement(widget, path, virtualDom = {}){
+        const rootElement = document.createElement(widget.type);
+        virtualDom.type = widget.type
+        if (!('props' in virtualDom)) virtualDom['props'] = {}
+        if (!('childs' in virtualDom)) virtualDom['childs'] = []
+
+
+        const props = widget.props
+        Object.keys(props).forEach(key => {
+            
+            const val = widget.props[key]
+            virtualDom.props[key] = val
+            widgetDom.__linkToElement(path, widget.name, rootElement, key, val)
+
+        });
+        if (Array.isArray(widget.childs)){
+
+            let index = 0
+            widget.childs.map(itm => {
+                
+                virtualDom.childs.push({})
+                return widgetDom.createElement(
+                    WidgetConvertor.toXElement(path, itm),
+                    widgetDom.pk(path, virtualDom.childs.length - 1),
+                    virtualDom.childs[virtualDom.childs.length - 1]
+                )
+
+            }).forEach((childElement) => {
+                rootElement.appendChild(childElement);
+            });
+        }
+
+        document.getElementById('dom').innerHTML = JSON.stringify(virtualDom, null, '   ')
+        console.log('create', virtualDom)
+
+        return rootElement
+    }
+
     static nodeToArray(node){
-        switch (WidgetConvertor.getType(node)) {
+        switch (WidgetConvertor.getType(node)){
             case 'Array':
                 return node
             case 'Widget':
@@ -44,30 +68,92 @@ class widgetDom {
         }
     }
 
-    static update(rootElement, currNode, nextNode, index = 0) {
+    static getElementByPath(path){
+        path = path.split('/')
+        let querySelector = path.shift()
+        let element = document.querySelector(querySelector)
+        while (path.length!=0){
+            querySelector = path.shift()
+            element.childNodes(querySelector)
+        }
+        return element
+    }
+
+    static updateVirtual(querySelector, nextNode){
+        if (querySelector in widgetDom.virtualDom){
+            const currNode = widgetDom.virtualDom[querySelector];
+            const newVirtualDom = widgetDom.update(
+                document.querySelector(querySelector),
+                querySelector,
+                currNode,
+                nextNode
+            )
+            widgetDom.virtualDom[querySelector] = newVirtualDom
+            widgetDom.active[querySelector] = nextNode
+        } else {
+            widgetDom.renderTo(querySelector, nextNode)
+            widgetDom.active[querySelector] = nextNode
+        }
+    }
+
+    static update(rootElement, path, currNode, nextNode, index = 0, virtualDom = {}){
+        if (!nextNode) return false
+        virtualDom.type = nextNode && 'type' in nextNode?nextNode.type:'div'
+        virtualDom.childs = []
+        virtualDom.props = {}
         if (!nextNode) {
-            rootElement.removeChild(rootElement.childNodes[index]);
+            if (rootElement.childNodes[index])
+                rootElement.removeChild(rootElement.childNodes[index])
+            return false
         } else if (!currNode) {
-            const newElement = WidgetConvertor.toHTML(nextNode)
+            virtualDom.childs[index] = {}
+
+            const newElement = widgetDom.createElement(
+                WidgetConvertor.toXElement(path, nextNode),
+                widgetDom.pk(path, virtualDom.childs.length - 1),
+                virtualDom.childs[index]
+            )
+
             rootElement.appendChild(newElement);
         } else if (widgetDom.changed(currNode, nextNode)) {
-            const newElement = WidgetConvertor.toHTML(nextNode)
+            virtualDom.childs[index] = {}
+
+            const newElement = widgetDom.createElement(
+                WidgetConvertor.toXElement(path, nextNode),
+                widgetDom.pk(path, virtualDom.childs.length - 1),
+                virtualDom.childs[index]
+            )
+
             rootElement.replaceChild(
                 newElement, 
                 rootElement.childNodes[index]
             );
-        } else if (Array.isArray(nextNode.childs)) {
+        } else if (Array.isArray(nextNode.childs) && nextNode.childs.length!=0) {
             for (let i = 0; i < Math.max(currNode.childs.length, nextNode.childs.length); i++) {
-                widgetDom.update(rootElement.childNodes[index], currNode.childs[i], nextNode.childs[i], i);
+
+                virtualDom.childs.push(
+                    widgetDom.update(
+                        rootElement.childNodes[index],
+                        widgetDom.pk(path, i),
+                        currNode.childs[i], 
+                        nextNode.childs[i], 
+                        i
+                    )
+                )
+                
             }
+        } else {
+            console.log('Ничего не изменилось');
+            virtualDom = nextNode
         }
-        // else {
-        //     rootElement.innerHTML = nextNode.childs
-        // }
+        
+        document.getElementById('dom').innerHTML = JSON.stringify(virtualDom, null, '   ')
+        console.log('ee', virtualDom)
+        return virtualDom
     }
 
 
-	static __linkToElement(elementName, element, prop, value){
+	static __linkToElement(path, elementName, element, prop, value){
         const [change, neeValue] = WidgetConvertor.applyState(elementName, prop, value)
 		if (change) value = neeValue
 
@@ -88,7 +174,7 @@ class widgetDom {
 				}
 			break;
 			case 'Element':
-				element[prop] = WidgetConvertor.toStr(value)
+				element[prop] = WidgetConvertor.toStr(path, value)
 			break;
 			default:
 				// console.info('Не применено', prop, value, type)
@@ -96,11 +182,41 @@ class widgetDom {
 		}
 	}
 
-    static changed(nodeA, nodeB) {
-        return (
-            typeof nodeA.childs !== typeof nodeB.childs ||
-            typeof nodeA.childs === 'string' && nodeA.childs !== nodeB.childs || 
-            nodeA.type !== nodeB.type
+    static changed(currNode, nextNode){
+        const result = (
+            currNode.type !== nextNode.type || 
+            // !WidgetComparator.compare(currNode.childs, nextNode.childs)
+            currNode !== nextNode
         );
+        return result
+    }
+
+    static virtualDom = {}
+
+    static linkElements(querySelector, element){
+        if (!(querySelector in widgetDom.virtualDom)) 
+            widgetDom.virtualDom[querySelector] = {}
+
+        const newTree = widgetDom.createElement(element, querySelector, widgetDom.virtualDom[querySelector])
+        return newTree
+    }
+
+    static renderTo(querySelector, element){
+		
+		let toElement = window.document.querySelector(querySelector);
+		if (toElement){
+            const newTree = widgetDom.linkElements(querySelector, element)
+			toElement.innerHTML = '';
+			toElement.appendChild(newTree)
+		} else {
+			window.addEventListener('load', () => {
+				toElement = window.document.querySelector(querySelector);
+                if (toElement){
+                    const newTree = widgetDom.linkElements(querySelector, element)
+                    toElement.innerHTML = '';
+                    toElement.appendChild(newTree)
+                }
+			});
+		}
     }
 }

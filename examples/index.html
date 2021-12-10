@@ -7,6 +7,7 @@
     <title>Document</title>
     <!-- <script src="/js/widgets-js/build/widgets.js"></script> -->
 
+    <script src="/js/widgets-js/src/comparator.js"></script>
     <script src="/js/widgets-js/src/convertor.js"></script>
     <script src="/js/widgets-js/src/widgets.js"></script>
     <script src="/js/widgets-js/src/widgetTools.js"></script>
@@ -16,7 +17,15 @@
 
 </head>
 <body>
+    <button onclick="update()">update</button>
+    <button onclick="updateState()">updateState</button>
     <div id="app"></div>
+    <hr>
+    текущий
+    <pre id="dom"></pre>
+    <hr>
+    старый
+    <pre id="update"></pre>
     <script>
         WidgetState.use({
             "sreda_id": 14,
@@ -26,15 +35,30 @@
         });  
         
         const app = c.div([
+            ['Hello'],
             c.input('test'),
-            [['aaa', 'dd']]
         ])
-        const app2 = c.div('cc')
-        c.app(
-            app
-        )
+
+
+        const app2 = c.div({
+            style: 'border: 1px solid #ccc; padding: 10px;',
+            child: [
+                WidgetState.name('sreda').watch('sreda_title')
+            ],
+            onclick(){
+                alert(11);
+            }
+        })
+
+
+        widgetDom.updateVirtual('#app', app2)
         function update(){
-            c.app(WidgetState.name('sreda').watch('sreda_title'))
+            widgetDom.updateVirtual('#app', app2)
+            // c.app(WidgetState.name('sreda').watch('sreda_title'))
+        }
+
+        function updateState(){
+            WidgetState.names.sreda.sreda_title = 'sd'
         }
     </script>
 </body>
