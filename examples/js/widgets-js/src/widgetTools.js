@@ -1,7 +1,11 @@
 
 class widgettools {
     static create(element){
-		return WidgetTools[element.element](element)
+		return widgettools[element.element](element)
+	}
+
+	static app(props){
+		widgetdom.render('#app', c.div(props))
 	}
 
 	static getStateFromPath(state, path){
@@ -11,9 +15,9 @@ class widgettools {
 		}
         if (path.length!=0){
             if (!(key in state)){
-                state[key] = WidgetState.use({});
+                state[key] = widgetstate.use({});
             }
-			return WidgetTools.getStateFromPath(state[key], path)
+			return widgettools.getStateFromPath(state[key], path)
         } else {
 			return state;
         }
@@ -28,13 +32,13 @@ class widgettools {
 				}
 			`)
 		}
-		return WidgetState.name(props.state).watch(callback);
+		return widgetstate.name(props.state).watch(callback);
 	}
 
 	static state_check(props){
 		const array_props = props.prop.split('.')
-		const state = WidgetTools.getStateFromPath(
-			WidgetState.name(props.state),
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
 			[...array_props]
 		)
 		const prop = array_props.slice(-1).join('.')
@@ -52,16 +56,16 @@ class widgettools {
 
 	static widget_request(props){
 		return {
-			link: function([element, prop]){
+			link: function(widget, prop){
+
 				return function(){
 					fetch(props.url, {
 						method: 'POST',
 						body: JSON.stringify({
 							state: props.useState.map(stateName => {
-								return WidgetState.name(stateName).data()
+								return widgetstate.name(stateName).data()
 							}),
-							this: widget.name(element).toArray,
-							props
+							this: widget.props
 						})
 					})
 					.then(res => res.json())
@@ -74,7 +78,7 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = WidgetState.name(props.state).watch(props.prop, function(array){
+		const state_map = widgetstate.name(props.state).watch(props.prop, function(array){
 			return array.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
@@ -93,7 +97,7 @@ class widgettools {
 
 	static state_update(props){
 		return () => {
-			WidgetState.name(props.state)[props.prop] = props.value
+			widgetstate.name(props.state)[props.prop] = props.value
 		}
 	}
 }

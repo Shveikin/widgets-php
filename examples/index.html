@@ -15,34 +15,16 @@
 
 </head>
 <body>
-    <button onclick="update()">update</button>
-    <button onclick="updateState()">updateState</button>
     <div id="app"></div>
-    <hr>
-    текущий
-    <pre id="dom"></pre>
-    <hr>
-    старый
-    <pre id="update"></pre>
+    
+    
     <script>
-        widgetstate.use({
-            "sreda_id": 14,
-            "weight": 1000,
-            "sreda_title": "Воздух",
-            "_name": "sreda"
-        });  
-        
-        const app = c.div([
-            'Hello',
-            c.input({
-                child: 'test',
-                oninput(){
-                    console.log(this.value)
-                }
-            }),
-        ])
 
-        widgetdom.render('#app', app)
+    widgetstate.use({"sreda_id":14,"weight":1000,"sreda_title":"\u0412\u043e\u0437\u0434\u0443\u0445","_name":"sreda"});  widgetstate.use({"_list":[{"id":"1","environment":"\u0410\u0437\u043e\u0442 (N2 Nitrogen)","weight":"1.2506","state":"2"},{"id":"2","environment":"\u0410\u0437\u043e\u0442\u043d\u0430\u044f \u043a\u0438\u0441\u043b\u043e\u0442\u0430 (\u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0430\u044f) (Nitric Acid, (concentrated))","weight":"1370","state":"1"},{"id":"3","environment":"\u0410\u043c\u043c\u0438\u0430\u043a (NH\u2083 Ammonia)","weight":"0.86","state":"1"},{"id":"4","environment":"\u0410\u0440\u0433\u043e\u043d (Ar Argon Gas)","weight":"1.784","state":"2"},{"id":"5","environment":"\u0410\u0446\u0435\u0442\u0438\u043b\u0435\u043d (C\u2082H\u2082 Acetylene)","weight":"0","state":"2"},{"id":"6","environment":"\u0410\u0446\u0435\u0442\u043e\u043d (C3H6O Acetone)","weight":"0","state":"1"},{"id":"7","environment":"\u0411\u0435\u043d\u0437\u0438\u043d (Gasoline)","weight":"0","state":"1"},{"id":"8","environment":"\u0411\u0435\u043d\u0437\u043e\u043b (Benzol)","weight":"0","state":"1"},{"id":"9","environment":"\u0411\u0440\u043e\u043c\u0438\u0441\u0442\u044b\u0439 \u0432\u043e\u0434\u043e\u0440\u043e\u0434 (HBr Hydrogen Bromide)","weight":"3.6452","state":"2"},{"id":"10","environment":"\u0411\u0443\u0442\u0430\u043d (C4H10 Butane)","weight":"2080","state":"2"}],"_name":"sredaList"});  widgetstate.use({"isOpen":false,"_name":"sredaControllerProps_1"}); 
+    c.app(
+        {"element":"div","_name":"element_1","child":[{"element":"div","_name":"element_11","style":"font-family: \"Trebuchet MS\"; font-size: 14px;","child":[{"element":"div","_name":"element_6","style":"border: 1px solid #ccc; padding: 5px; cursor: pointer;","onclick":{"element":"func","function":"widgetstate.name('sredaControllerProps_1').checkTurn('isOpen')","view":"widgetstate.name(`sredaControllerProps_1`).checkTurn(`isOpen`)"},"child":[{"element":"state_watcher","_name":"element_5","state":"sreda","watch":"sreda_title","callback":false,"view":"\u0412\u043e\u0437\u0434\u0443\u0445"}]},{"element":"div","_name":"element_10","child":[{"element":"state_check","_name":"element_9","state":"sredaControllerProps_1","prop":"isOpen","value":true,"_true":{"element":"div","_name":"element_8","style":"border: 1px solid #ccc; \r\n                                    padding: 5px; \r\n                                    height: 200px; \r\n                                    margin-top: -1px;\r\n                                    overflow: auto;\r\n                            ","child":[{"element":"div","_name":"element_7","child":["test"]}]},"_false":"","view":""}]}]}]}
+    )
+
     </script>
 </body>
 </html>

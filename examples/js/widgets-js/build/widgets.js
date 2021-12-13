@@ -2,17 +2,20 @@
 
 const c = new Proxy({}, {
 	get:(_, _type) => {
-        return (source) => {
-            const id = widgetdom.getId()
+        if (typeof widgettools[_type] == 'function')
+            return widgettools[_type]
+        else
+            return (source) => {
+                const id = widgetdom.getId()
 
-            const [type, props, childs] = widgetconvertor.distribution(_type, source)
-            return {
-                id,
-                type,
-                props,
-                childs,
+                const [type, props, childs] = widgetconvertor.distribution(_type, source)
+                return {
+                    id,
+                    type,
+                    props,
+                    childs,
+                }
             }
-        }
     }
 })
 // widgetconvertor.js
@@ -40,7 +43,7 @@ class widgetconvertor {
 	static distribution(type, source = {}){
 		let props = {}
 		let childs = []
-
+		
 		const childElements = ['child', 'childs', 'type']
 
 		const sourceType = widgetconvertor.getType(source)
@@ -52,6 +55,9 @@ class widgetconvertor {
 					property = widgetconvertor.singleElement[type]
 				}
 				props[property] = source
+			break;
+			case 'WidgetTools':
+				childs = source
 			break;
 			case 'Array':
 				childs = widgetconvertor.toArrayOfWidgets(source)
@@ -169,7 +175,11 @@ class widgetconvertor {
 
 
     static checkState(widget, prop){
-        const value = widget.props[prop]
+
+        let value = prop!='childs'?widget.props[prop]:widget.childs
+		if (prop=='childs' && (!('rootElement' in widget))){
+			widget.rootElement = document.createElement(widget.type)
+		}
 
 		let change = false;
 		if (widgetconvertor.getType(value)=='WidgetTools'){
@@ -178,8 +188,9 @@ class widgetconvertor {
 		}
 
 		if (widgetconvertor.getType(value)=='State'){
-			widgetstate.inspector(value, widget, prop)
-			return [true, false]
+			value = widgetstate.inspector(value, widget, prop)
+			change = true
+			// return [true, false]
 		}
 
 		return [change, value]
@@ -207,10 +218,23 @@ class widgetdom {
             widgetdom.assignProp(widget, prop)
         });
 
-        widget.childs.forEach(childWidget => {
-            const childElement = widgetdom.createElement(childWidget)
-            rootElement.appendChild(childElement)
-        })
+        if (Array.isArray(widget.childs)){
+            widget.childs.forEach(childWidget => {
+                const childElement = widgetdom.createElement(childWidget)
+                rootElement.appendChild(childElement)
+            })
+        } else {
+            const childType = widgetconvertor.getType(widget.childs)
+            let value = ''
+            const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
+
+
+            widget.childs.view = [c.div(value)]
+            rootElement.appendChild(
+                widgetdom.createElement(widget.childs.view[0])
+            )
+
+        }
 
         return rootElement
     }
@@ -271,11 +295,28 @@ class widgetdom {
      */
     static compareChilds(currNode, nextNode){
         const deleteIndexs = []
-        const max = Math.max(currNode.childs.length, nextNode.childs.length)
+
+        let useView = false
+        let currChild = []
+        if (Array.isArray(currNode.childs)){
+            currChild = currNode.childs
+        } else {
+            if ('view' in currNode.childs){
+
+                const child = currNode.childs.view
+                currChild = Array.isArray(child)
+                    ?child
+                    :[]
+                useView = true
+
+            }
+        }
+
+        const max = Math.max(currChild.length, nextNode.childs.length)
         for (let i = 0; i < max; i++) {
-            if (currNode.childs[i]) {
+            if (currChild[i]) {
                 if (!widgetdom.update(
-                    currNode.childs[i],
+                    currChild[i],
                     nextNode.childs[i],
                     i
                 )) {
@@ -285,19 +326,28 @@ class widgetdom {
                 currNode.rootElement.appendChild(
                     widgetdom.createElement(nextNode.childs[i])
                 )
-                currNode.childs.push(nextNode.childs[i])
+                currChild.push(nextNode.childs[i])
             }
         }
+
+
         if (deleteIndexs.length!=0){
             console.log('deleteIndexs', deleteIndexs)
             const nw = []
-            currNode.childs.forEach((child, key) => {
+            currChild.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
                 }
             })
-            currNode.childs = nw
+
+            if (useView){
+                currNode.childs.view = nw
+            } else {
+                currNode.childs = nw
+            }
         }
+
+
     }
 
 
@@ -337,6 +387,14 @@ class widgetdom {
                 if (prop.substr(0,2)=='on'){
                     widget.rootElement[prop] = function(){
                         value.apply(this)
+
+                        if (widget.type in widgetconvertor.singleElement){
+                            const defaultProp = widgetconvertor.singleElement[widget.type]
+                            if (defaultProp){
+                                widget.props[defaultProp] = this[defaultProp]
+                            }
+                        }
+
                     }
                 } else {
                     widget.rootElement[prop] = value()
@@ -523,7 +581,7 @@ class widgetstate {
 
 	static inspector(state, widget, changeWidgetProp) {
 		if ('link' in state)
-			state.link(widget, changeWidgetProp)
+			return state.link(widget, changeWidgetProp)
 	}
 
     static watch(self){
@@ -594,7 +652,7 @@ class widgetstate {
                     const value = stateData.updateStateFunction.apply(this, properties)
                     
                     if (stateData.changeWidgetProp == 'childs'){
-
+						widgetdom.update(stateData.widget, c.div(value))
                     } else {
                         stateData.widget.props[stateData.changeWidgetProp] = value
                         widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
@@ -660,7 +718,11 @@ class widgetstate {
 
 class widgettools {
     static create(element){
-		return WidgetTools[element.element](element)
+		return widgettools[element.element](element)
+	}
+
+	static app(props){
+		widgetdom.render('#app', c.div(props))
 	}
 
 	static getStateFromPath(state, path){
@@ -670,9 +732,9 @@ class widgettools {
 		}
         if (path.length!=0){
             if (!(key in state)){
-                state[key] = WidgetState.use({});
+                state[key] = widgetstate.use({});
             }
-			return WidgetTools.getStateFromPath(state[key], path)
+			return widgettools.getStateFromPath(state[key], path)
         } else {
 			return state;
         }
@@ -687,13 +749,13 @@ class widgettools {
 				}
 			`)
 		}
-		return WidgetState.name(props.state).watch(callback);
+		return widgetstate.name(props.state).watch(callback);
 	}
 
 	static state_check(props){
 		const array_props = props.prop.split('.')
-		const state = WidgetTools.getStateFromPath(
-			WidgetState.name(props.state),
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
 			[...array_props]
 		)
 		const prop = array_props.slice(-1).join('.')
@@ -711,16 +773,16 @@ class widgettools {
 
 	static widget_request(props){
 		return {
-			link: function([element, prop]){
+			link: function(widget, prop){
+
 				return function(){
 					fetch(props.url, {
 						method: 'POST',
 						body: JSON.stringify({
 							state: props.useState.map(stateName => {
-								return WidgetState.name(stateName).data()
+								return widgetstate.name(stateName).data()
 							}),
-							this: widget.name(element).toArray,
-							props
+							this: widget.props
 						})
 					})
 					.then(res => res.json())
@@ -733,7 +795,7 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = WidgetState.name(props.state).watch(props.prop, function(array){
+		const state_map = widgetstate.name(props.state).watch(props.prop, function(array){
 			return array.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
@@ -752,7 +814,7 @@ class widgettools {
 
 	static state_update(props){
 		return () => {
-			WidgetState.name(props.state)[props.prop] = props.value
+			widgetstate.name(props.state)[props.prop] = props.value
 		}
 	}
 }

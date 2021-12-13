@@ -137,7 +137,7 @@ class widgetstate {
 
 	static inspector(state, widget, changeWidgetProp) {
 		if ('link' in state)
-			state.link(widget, changeWidgetProp)
+			return state.link(widget, changeWidgetProp)
 	}
 
     static watch(self){
@@ -208,7 +208,7 @@ class widgetstate {
                     const value = stateData.updateStateFunction.apply(this, properties)
                     
                     if (stateData.changeWidgetProp == 'childs'){
-
+						widgetdom.update(stateData.widget, c.div(value))
                     } else {
                         stateData.widget.props[stateData.changeWidgetProp] = value
                         widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)

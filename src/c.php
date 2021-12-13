@@ -230,7 +230,7 @@ class widget {
         if ($activate) {
             $state = state::toJs();
             $result = "
-<div id='app'>{$result}</div>
+<div id='app'>***{$result}***</div>
 <script>
     $state
     c.app(
@@ -277,7 +277,7 @@ class c {
         $jsonData = json_encode($childs);
         $useState = '';
         if ($state) {
-            $useState = "WidgetState.use(" . json_encode($state) . ')';
+            $useState = "widgetstate.use(" . json_encode($state) . ')';
         }
         echo <<<HTML
 

@@ -22,7 +22,7 @@ class widgetconvertor {
 	static distribution(type, source = {}){
 		let props = {}
 		let childs = []
-
+		
 		const childElements = ['child', 'childs', 'type']
 
 		const sourceType = widgetconvertor.getType(source)
@@ -34,6 +34,9 @@ class widgetconvertor {
 					property = widgetconvertor.singleElement[type]
 				}
 				props[property] = source
+			break;
+			case 'WidgetTools':
+				childs = source
 			break;
 			case 'Array':
 				childs = widgetconvertor.toArrayOfWidgets(source)
@@ -151,7 +154,11 @@ class widgetconvertor {
 
 
     static checkState(widget, prop){
-        const value = widget.props[prop]
+
+        let value = prop!='childs'?widget.props[prop]:widget.childs
+		if (prop=='childs' && (!('rootElement' in widget))){
+			widget.rootElement = document.createElement(widget.type)
+		}
 
 		let change = false;
 		if (widgetconvertor.getType(value)=='WidgetTools'){
@@ -160,8 +167,9 @@ class widgetconvertor {
 		}
 
 		if (widgetconvertor.getType(value)=='State'){
-			widgetstate.inspector(value, widget, prop)
-			return [true, false]
+			value = widgetstate.inspector(value, widget, prop)
+			change = true
+			// return [true, false]
 		}
 
 		return [change, value]

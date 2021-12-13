@@ -96,7 +96,7 @@ class state {
         $stateArray = state::toArray();
         $js = '';
         foreach ($stateArray as $state) {
-            $js .= " WidgetState.use(". json_encode($state) ."); ";
+            $js .= " widgetstate.use(". json_encode($state) ."); ";
         }
 
         return $js;
@@ -112,7 +112,7 @@ class state {
     }
 
     public function __toString() {
-        return "WidgetState.name('{$this->name}')";
+        return "widgetstate.name('{$this->name}')";
     }
 
     public function checkTurn($props) {

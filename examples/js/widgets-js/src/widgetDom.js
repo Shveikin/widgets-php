@@ -19,10 +19,23 @@ class widgetdom {
             widgetdom.assignProp(widget, prop)
         });
 
-        widget.childs.forEach(childWidget => {
-            const childElement = widgetdom.createElement(childWidget)
-            rootElement.appendChild(childElement)
-        })
+        if (Array.isArray(widget.childs)){
+            widget.childs.forEach(childWidget => {
+                const childElement = widgetdom.createElement(childWidget)
+                rootElement.appendChild(childElement)
+            })
+        } else {
+            const childType = widgetconvertor.getType(widget.childs)
+            let value = ''
+            const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
+
+
+            widget.childs.view = [c.div(value)]
+            rootElement.appendChild(
+                widgetdom.createElement(widget.childs.view[0])
+            )
+
+        }
 
         return rootElement
     }
@@ -83,11 +96,28 @@ class widgetdom {
      */
     static compareChilds(currNode, nextNode){
         const deleteIndexs = []
-        const max = Math.max(currNode.childs.length, nextNode.childs.length)
+
+        let useView = false
+        let currChild = []
+        if (Array.isArray(currNode.childs)){
+            currChild = currNode.childs
+        } else {
+            if ('view' in currNode.childs){
+
+                const child = currNode.childs.view
+                currChild = Array.isArray(child)
+                    ?child
+                    :[]
+                useView = true
+
+            }
+        }
+
+        const max = Math.max(currChild.length, nextNode.childs.length)
         for (let i = 0; i < max; i++) {
-            if (currNode.childs[i]) {
+            if (currChild[i]) {
                 if (!widgetdom.update(
-                    currNode.childs[i],
+                    currChild[i],
                     nextNode.childs[i],
                     i
                 )) {
@@ -97,19 +127,28 @@ class widgetdom {
                 currNode.rootElement.appendChild(
                     widgetdom.createElement(nextNode.childs[i])
                 )
-                currNode.childs.push(nextNode.childs[i])
+                currChild.push(nextNode.childs[i])
             }
         }
+
+
         if (deleteIndexs.length!=0){
             console.log('deleteIndexs', deleteIndexs)
             const nw = []
-            currNode.childs.forEach((child, key) => {
+            currChild.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
                 }
             })
-            currNode.childs = nw
+
+            if (useView){
+                currNode.childs.view = nw
+            } else {
+                currNode.childs = nw
+            }
         }
+
+
     }
 
 
@@ -149,6 +188,14 @@ class widgetdom {
                 if (prop.substr(0,2)=='on'){
                     widget.rootElement[prop] = function(){
                         value.apply(this)
+
+                        if (widget.type in widgetconvertor.singleElement){
+                            const defaultProp = widgetconvertor.singleElement[widget.type]
+                            if (defaultProp){
+                                widget.props[defaultProp] = this[defaultProp]
+                            }
+                        }
+
                     }
                 } else {
                     widget.rootElement[prop] = value()

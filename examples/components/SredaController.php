@@ -44,7 +44,8 @@ class SredaController extends WidgetsConponent {
                                     margin-top: -1px;
                                     overflow: auto;
                             ',
-                            child: $this->drawList()
+                            child: c::div('test')
+                            // child: $this->drawList()
                         ),
                         ''
                     )
