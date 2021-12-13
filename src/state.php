@@ -82,13 +82,23 @@ class state {
         return $state_map;
     }
 
-    public function update($prop, $value){
+
+    static function updateGroup($list){
+        $group = [
+            'element' => 'state_update_group',
+            'list' => $list,
+        ];
+        return $group;
+    }
+
+
+    public function update(...$prop){
+
         $state_update = c::state_update(
             state: $this->name,
-            prop: $prop,
-            value: $value
+            stateProps: $prop,
         );
-
+        
         return $state_update;
     }
 

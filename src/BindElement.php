@@ -13,15 +13,6 @@ class BindElement {
     }
 
     function appy(...$props) {
-        // return c::widget_request(
-        //     function: $this->get('function'),
-        //     props: [$props],
-        //     url: $this->get('url'),
-        //     class: $this->get('class'),
-        //     useState: $this->get('useState'),
-        //     view: '',
-        // );
-
         return [
             'element' => 'widget_request',
             'function' => $this->get('function'),

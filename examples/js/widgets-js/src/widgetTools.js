@@ -78,8 +78,11 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = widgetstate.name(props.state).watch(props.prop, function(array){
-			return array.map(itm => {
+		const state_map = //widgetstate.name(props.state).watch(props.prop, function(array){
+			//return 
+			// array
+			widgetstate.name(props.state)._list
+			.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
@@ -90,14 +93,32 @@ class widgettools {
 
 				return newElement
 			})
-		})
+		//})
 
-		return c.div({child: state_map})
+		const element = c.div(state_map)
+		return element
 	}
 
 	static state_update(props){
 		return () => {
-			widgetstate.name(props.state)[props.prop] = props.value
+
+			Object.keys(props.stateProps).forEach(prop => {
+				widgetstate.name(props.state)[prop] = props.stateProps[prop]
+			})
+		}
+	}
+
+	static state_update_group(props){
+		return () => {
+
+			Object.values(props.list).forEach(prop => {
+				
+				const func = widgetconvertor.toFunction(prop)
+				func()
+				
+				
+			})
+
 		}
 	}
 }

@@ -97,14 +97,14 @@ class widgetconvertor {
 
 
 
-    static convert(path, element, from, to, state = false){
+    static convert(element, from, to, state = false){
 		if (from == to){
 			return element
 		}
         const func = `${from}To${to}`
 		
         if (func in widgetconvertor){
-			const result = widgetconvertor[func](path, element, state)
+			const result = widgetconvertor[func](element, state)
 			const newType = widgetconvertor.getType(result)
 			if (newType==to){
 				return result;
@@ -195,6 +195,23 @@ class widgetconvertor {
 
 		return [change, value]
 	}
+
+
+
+
+
+
+	static toFunction(element){
+		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Function')
+	}
+
+	static WidgetToolsToFunction(WidgetTool){
+		return widgettools.create(WidgetTool)
+	}
+
+	static StateToFunction(State){
+		return State.link
+	}
 }
 // widgetdom.js
 
@@ -227,7 +244,7 @@ class widgetdom {
             const childType = widgetconvertor.getType(widget.childs)
             let value = ''
             const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
-
+            if (change) value = newValue
 
             widget.childs.view = [c.div(value)]
             rootElement.appendChild(
@@ -795,8 +812,11 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = widgetstate.name(props.state).watch(props.prop, function(array){
-			return array.map(itm => {
+		const state_map = //widgetstate.name(props.state).watch(props.prop, function(array){
+			//return 
+			// array
+			widgetstate.name(props.state)._list
+			.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
@@ -807,14 +827,32 @@ class widgettools {
 
 				return newElement
 			})
-		})
+		//})
 
-		return c.div({child: state_map})
+		const element = c.div(state_map)
+		return element
 	}
 
 	static state_update(props){
 		return () => {
-			widgetstate.name(props.state)[props.prop] = props.value
+
+			Object.keys(props.stateProps).forEach(prop => {
+				widgetstate.name(props.state)[prop] = props.stateProps[prop]
+			})
+		}
+	}
+
+	static state_update_group(props){
+		return () => {
+
+			Object.values(props.list).forEach(prop => {
+				
+				const func = widgetconvertor.toFunction(prop)
+				func()
+				
+				
+			})
+
 		}
 	}
 }

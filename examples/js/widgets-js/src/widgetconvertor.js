@@ -76,14 +76,14 @@ class widgetconvertor {
 
 
 
-    static convert(path, element, from, to, state = false){
+    static convert(element, from, to, state = false){
 		if (from == to){
 			return element
 		}
         const func = `${from}To${to}`
 		
         if (func in widgetconvertor){
-			const result = widgetconvertor[func](path, element, state)
+			const result = widgetconvertor[func](element, state)
 			const newType = widgetconvertor.getType(result)
 			if (newType==to){
 				return result;
@@ -173,5 +173,22 @@ class widgetconvertor {
 		}
 
 		return [change, value]
+	}
+
+
+
+
+
+
+	static toFunction(element){
+		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Function')
+	}
+
+	static WidgetToolsToFunction(WidgetTool){
+		return widgettools.create(WidgetTool)
+	}
+
+	static StateToFunction(State){
+		return State.link
 	}
 }

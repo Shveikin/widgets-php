@@ -7,48 +7,50 @@ require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-//     $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
 
-// require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 
-// imprt([
-//     'function_list',
-//     'sqli_connect',
-//     // 'rashod',
-//     // 'config',
-//     // // 'ModxClearMashine',
-//     // // 'FilterViewController',
-//     // 'switch',
-//     // 'ParserSettingController',
-//     // // 'console',
-//     // 'HashMaster',
-//     // 'FilterController',
-//     // // 'timer',
-//     // 'DataGet',
-//     // 'SiteController',
-//     // 'types',
-//     // 'datahub',
-//     // 'RequestController',
-//     // 'SliderController',
-//     // 'RequestExecutor',
-//     // 'ModxController',
-// ]);
+imprt([
+    'function_list',
+    'sqli_connect',
+    // 'rashod',
+    // 'config',
+    // // 'ModxClearMashine',
+    // // 'FilterViewController',
+    // 'switch',
+    // 'ParserSettingController',
+    // // 'console',
+    // 'HashMaster',
+    // 'FilterController',
+    // // 'timer',
+    // 'DataGet',
+    // 'SiteController',
+    // 'types',
+    // 'datahub',
+    // 'RequestController',
+    // 'SliderController',
+    // 'RequestExecutor',
+    // 'ModxController',
+]);
 
 
-// $mysqli = getConnect();
-// $mysqli_JINO = getConnect(JINO);
+$mysqli = getConnect();
+$mysqli_JINO = getConnect(JINO);
 
 
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
 $first = SredaController::element();
-// echo c::div([
-//     $first,
-//     // SredaController::element(),
-// ])->html(true);
 
-echo $first->html(true);
-echo $first->print_r();
+echo c::div([
+    $first,
+    SredaController::element(),
+])->html(true);
+
+// echo $first->html(true);
+
+// echo $first->print_r();
 
 ?>

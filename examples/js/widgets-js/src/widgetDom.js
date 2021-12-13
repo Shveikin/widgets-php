@@ -28,7 +28,7 @@ class widgetdom {
             const childType = widgetconvertor.getType(widget.childs)
             let value = ''
             const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
-
+            if (change) value = newValue
 
             widget.childs.view = [c.div(value)]
             rootElement.appendChild(
