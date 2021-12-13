@@ -2,11 +2,10 @@
     "from": "src/",
     "to": "build/widgets.js",
     "list": [
-        "convertor.js",
-        "widgets.js",
-        "widgetDom.js",
-        "widgetTools.js",
-        "widgetState.js",
-        "c.js"
+        "c.js",
+        "widgetconvertor.js",
+        "widgetdom.js",
+        "widgetstate.js",
+        "widgettools.js"
     ]
 }

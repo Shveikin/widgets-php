@@ -1,27 +1,27 @@
 
-class WidgetState {
-	// static names = {}; 
-	static state_length = 0;
+
+class widgetstate {
+    static state_length = 0;
 	static names = {};
 
 	static name(name){
-		if (!(name in WidgetState.names)){
+		if (!(name in widgetstate.names)){
 			console.info(`state ${name} отсутствует! Используется пустой state`)
-			WidgetState.names[name] = WidgetState.use({_name: name})
+			widgetstate.names[name] = widgetstate.use({_name: name})
 		}
-		return WidgetState.names[name]
+		return widgetstate.names[name]
 	}
 
 	static update(globalState){
 		const _name = globalState._name;
 		Object.keys(globalState).map(itm => {
 			if (itm!='_name')
-				WidgetState.name(_name)[itm] = globalState[itm]
+				widgetstate.name(_name)[itm] = globalState[itm]
 		})
 	}
 
     static use(obj){
-		WidgetState.state_length++;
+		widgetstate.state_length++;
 		const setParents = []
 
 		if (obj==null | obj==false)
@@ -32,7 +32,7 @@ class WidgetState {
 			stateName = obj['_name'];
 			delete obj['_name'];
 		} else {
-			stateName = 'state_' + WidgetState.state_length;
+			stateName = 'state_' + widgetstate.state_length;
 		}
 
 
@@ -48,7 +48,7 @@ class WidgetState {
 				}
 				
 				if (obj[i]){
-					obj[i] = WidgetState.use(obj[i])
+					obj[i] = widgetstate.use(obj[i])
 					setParents.push(i)
 				}
 			}
@@ -58,9 +58,9 @@ class WidgetState {
 
         const state = new Proxy(obj, {
             get(object, prop){
-                if (WidgetState[prop]){
+                if (widgetstate[prop]){
                     return function(){
-						const result = WidgetState[prop].apply(this, [object, ...arguments])
+						const result = widgetstate[prop].apply(this, [object, ...arguments])
 						if (typeof result == 'function'){
 							return result.apply(this, arguments)
 						} else {
@@ -73,7 +73,7 @@ class WidgetState {
             },
             set(object, prop, value){
                 object[prop] = value
-                WidgetState.updateAll(object, prop)
+                widgetstate.updateAll(object, prop)
 				return true
             }
         })
@@ -82,24 +82,24 @@ class WidgetState {
 			state[i].set('___parent', state)
 		})
 
-		WidgetState.useName(stateName, state)
+		widgetstate.useName(stateName, state)
         return state;
     }
 
 	static useName(name, state){
-		WidgetState.names[name] = state;
+		widgetstate.names[name] = state;
 	}
 
 	static set(self, key, value){
 		self[key] = value
-		WidgetState.updateAll(self)
+		widgetstate.updateAll(self)
 	}
 
 	static push(self, prop){
-		const count = WidgetState.keys(self).length 
+		const count = widgetstate.keys(self).length 
 		self['' + count] = prop
 
-		WidgetState.updateAll(this)
+		widgetstate.updateAll(this)
 	}
 
 	static filterSystemVars(array){
@@ -110,7 +110,7 @@ class WidgetState {
 	}
 
 	static keys(self){
-		return WidgetState.filterSystemVars(Object.keys(self))
+		return widgetstate.filterSystemVars(Object.keys(self))
 	}
 
 	static data(self){
@@ -121,17 +121,121 @@ class WidgetState {
 	}
 
 	static values(self){
-		return WidgetState.keys(self).map(itm => self[itm])
+		return widgetstate.keys(self).map(itm => self[itm])
 	}
 
 	static map(self, func){
-		return WidgetState.values(self).map(func)
+		return widgetstate.values(self).map(func)
 	}
 
 	static length(self){
-		return WidgetState.keys(self).length
+		return widgetstate.keys(self).length
 	}
 
+
+
+
+	static inspector(state, widget, changeWidgetProp) {
+		if ('link' in state)
+			state.link(widget, changeWidgetProp)
+	}
+
+    static watch(self){
+        return ( stateProps, callback = false) => {
+            let updateStateFunction = _vars => _vars;
+            if (typeof stateProps == 'function'){
+                updateStateFunction = stateProps
+                const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(stateProps.toString())
+                stateProps = fprops.split(',').map(i => i.trim())
+            } else if (typeof stateProps == 'string'){
+                stateProps = stateProps.split(',').map(i => i.trim())
+				if (callback){
+					updateStateFunction = callback
+				}
+            }
+
+            return {
+                link(widget, changeWidgetProp){
+                    if (!('___updates' in self)) self.___updates = {}
+
+                    const state = {
+                        widget,
+                        changeWidgetProp,
+                        updateStateFunction,
+                        stateProps
+                    }
+					const key = widget.id + '-' + stateProps.join(',')
+
+					if (!(state in widget)) widget.state = {}
+					if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
+						link: self.___updates,
+						key,
+						stateProps
+					}
+
+                    stateProps.map(stateProp => {
+                        if (!(stateProp in self.___updates)) self.___updates[stateProp] = {}
+                        // self.___updates[stateProp].push(state)
+                        self.___updates[stateProp][key] = state
+
+
+
+                        widgetstate.updateAll(self, stateProp)
+                    })
+
+                }
+            }
+        }
+    }
+
+    static updateAll(self, _stateProp = false) {
+		let stateProps = [] 
+		if (_stateProp==false)
+			stateProps = widgetstate.keys(self)
+		else 
+			stateProps = [_stateProp]
+		
+		stateProps.forEach(stateProp => {
+
+			if ('___updates' in self && stateProp in self.___updates){
+				Object.values(self.___updates[stateProp]).forEach(stateData => {
+
+                    const properties = []
+					stateData.stateProps.forEach(i => {
+						properties.push(self[i])
+					})
+
+                    const value = stateData.updateStateFunction.apply(this, properties)
+                    
+                    if (stateData.changeWidgetProp == 'childs'){
+
+                    } else {
+                        stateData.widget.props[stateData.changeWidgetProp] = value
+                        widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
+                    }
+				})
+			}
+		})
+
+		if (self.___parent) 
+			widgetstate.updateAll(self.___parent)
+    }
+
+
+
+
+    static props(self) {
+		const props = {}
+		Object.entries(self).map(([key, value]) => {
+			if (['___updates', '___parent'].indexOf(key)==-1){
+				props[key] = value;
+			}
+		})
+        return props;
+    }
+
+
+	
 	static check(self){
 		const state = this;
 		return (prop, val, _true, _false = false) => {
@@ -143,12 +247,14 @@ class WidgetState {
 		}
 	}
 
+
 	static checkTurn(self){
 		const state = this;
 		return (prop) => {
 			state[prop] = !state[prop]
 		}
 	}
+
 
 	static model(self){
 		const state = this;
@@ -163,183 +269,4 @@ class WidgetState {
 			}
 		}
 	}
-
-    static watch(self){
-        return (props, callback = false) => {
-            let updateFunction = _vars => _vars;
-            if (typeof props == 'function'){
-                // try {
-                    updateFunction = props
-                    const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(props.toString())
-                    props = fprops.split(',').map(i => i.trim())
-                // } catch (e) {
-                    // props = Object.keys(self.props)
-                // }
-            } else if (typeof props == 'string'){
-                props = props.split(',').map(i => i.trim())
-				if (callback){
-					updateFunction = callback
-				}
-            }
-
-            return {
-                link(path, property){
-                    if (!('___updates' in self)) self['___updates'] = {}
-                    
-                    props.map(prop => {
-                        // if (!(prop in self['___updates'])) self['___updates'][prop] = []
-                        // self['___updates'][prop].push({
-                        //     path: Array.isArray(arguments[0])?arguments[0]:arguments,
-                        //     update: updateFunction,
-                        //     props: props
-                        // })
-
-						if (!(prop in self['___updates'])) self['___updates'][prop] = {}
-                        self['___updates'][prop][path] = {
-                            // path: Array.isArray(arguments[0])?arguments[0]:arguments,
-                            update: updateFunction,
-                            props: property//props
-                        }
-
-                        return WidgetState.updateAll(self, prop)
-                    })
-
-					return false;
-                }
-            }
-        }
-    }
-
-
-	static inspector(func, path, property) {
-		if ('link' in func)
-			return func.link(path, property)
-	}
-
-
-
-
-	/**
-	 * Установить значение по пути до элемента
-	 * 
-	 * @param {array} elementProps 
-	 * @param {*} value 
-	 */
-	static elementPropsArraySetValue(elementProps, value){
-		let element = elementProps.shift();
-		let elementPropperty = 'child'
-		while (elementProps.length!=0){
-			elementPropperty = elementProps.shift();
-			if (elementProps.length==0)
-				break
-			
-			element = element[elementPropperty]
-		}
-
-		if (elementPropperty.substr(0,1)=='on' && typeof value == 'function'){
-			el.addEventListener(elementPropperty, value, false);
-		} else {
-			element[elementPropperty] = value
-		}
-	}
-
-    static updateAll(self, _prop = false) {
-		let props = [] 
-		if (_prop==false)
-			props = WidgetState.keys(self)
-		else 
-			props = [_prop]
-		
-		props.map(prop => {
-
-			if ('___updates' in self && prop in self['___updates']){
-				// self['___updates'][prop].map(updateList => {
-				Object.keys(self['___updates'][prop]).map(path => {
-					const updateList = self['___updates'][prop][path];
-					
-					const update = updateList.update
-					const mp = updateList.props
-
-					// let element = widgetDom.name(path)
-					
-					
-					
-					let elementPropperty = 'childs'
-					while (mp.length!=0){
-						elementPropperty = mp.shift();
-						if (mp.length==0)
-						break
-						
-						element = element[elementPropperty]
-					}
-
-
-					const properties = []
-					props.map(i => {
-						properties.push(self[i])
-					})
-					
-					const value = update.apply(this, properties)
-					WidgetState.apply(path, elementPropperty, value)
-					// if (element){
-					// 	if (elementPropperty=='childs'){
-					// 		element[elementPropperty] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
-					// 	} else {
-					// 		element[elementPropperty] = value
-					// 	}
-					// 	// element.assignProp(elementPropperty, value)
-
-
-
-					// 	if (querySelector in widgetDom.virtualDom){
-					// 		const DOM = widgetDom.virtualDom[querySelector]
-					// 		document.getElementById('dom').innerHTML = JSON.stringify(DOM, null, '   ')
-					// 		console.log('DOM', DOM)
-					// 	}
-
-
-					// } else {
-					// 	return value;
-					// }
-
-
-				})
-			}
-		})
-
-		if (self.___parent) 
-			WidgetState.updateAll(self.___parent)
-    }
-
-
-
-
-
-	static apply(path, prop, value){
-		const element = widgetDom.name(path)
-		const querySelector = path.split('/')[0]
-
-		// widgetDom.name(path)
-		if (element){
-			if (prop=='childs'){
-				element[prop] = [WidgetConvertor.toXElement(widgetDom.pk(path, 0), value)]
-			} else {
-				element[prop] = value
-			}
-		}
-	}
-
-	
-
-
-
-    static props(self) {
-		const props = {}
-		Object.entries(self).map(([key, value]) => {
-			if (['___updates', '___parent'].indexOf(key)==-1){
-				props[key] = value;
-			}
-		})
-        return props;
-    }
 }

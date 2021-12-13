@@ -7,13 +7,11 @@
     <title>Document</title>
     <!-- <script src="/js/widgets-js/build/widgets.js"></script> -->
 
-    <script src="/js/widgets-js/src/comparator.js"></script>
-    <script src="/js/widgets-js/src/convertor.js"></script>
-    <script src="/js/widgets-js/src/widgets.js"></script>
-    <script src="/js/widgets-js/src/widgetTools.js"></script>
-    <script src="/js/widgets-js/src/widgetState.js"></script>
     <script src="/js/widgets-js/src/c.js"></script>
-    <script src="/js/widgets-js/src/widgetDom.js"></script>
+    <script src="/js/widgets-js/src/widgetconvertor.js"></script>
+    <script src="/js/widgets-js/src/widgetdom.js"></script>
+    <script src="/js/widgets-js/src/widgetstate.js"></script>
+    <script src="/js/widgets-js/src/widgettools.js"></script>
 
 </head>
 <body>
@@ -27,7 +25,7 @@
     старый
     <pre id="update"></pre>
     <script>
-        WidgetState.use({
+        widgetstate.use({
             "sreda_id": 14,
             "weight": 1000,
             "sreda_title": "Воздух",
@@ -35,31 +33,16 @@
         });  
         
         const app = c.div([
-            ['Hello'],
-            c.input('test'),
+            'Hello',
+            c.input({
+                child: 'test',
+                oninput(){
+                    console.log(this.value)
+                }
+            }),
         ])
 
-
-        const app2 = c.div({
-            style: 'border: 1px solid #ccc; padding: 10px;',
-            child: [
-                WidgetState.name('sreda').watch('sreda_title')
-            ],
-            onclick(){
-                alert(11);
-            }
-        })
-
-
-        widgetDom.updateVirtual('#app', app2)
-        function update(){
-            widgetDom.updateVirtual('#app', app2)
-            // c.app(WidgetState.name('sreda').watch('sreda_title'))
-        }
-
-        function updateState(){
-            WidgetState.names.sreda.sreda_title = 'sd'
-        }
+        widgetdom.render('#app', app)
     </script>
 </body>
 </html>

@@ -1,25 +1,8 @@
 
-class WidgetTools{
-	static create(element){
+class widgettools {
+    static create(element){
 		return WidgetTools[element.element](element)
 	}
-
-	// static register = {}
-	// static createElement(widget){
-	// 	let element = false;
-	// 	if (!name){
-	// 		name =  'auto_' + Object.keys(WidgetTools.register).length;
-	// 		element = document.createElement(tag);
-	// 	} else {
-	// 		if (name in WidgetTools.register){
-	// 			element = WidgetTools.register[name]
-	// 		} else {
-	// 			element = document.createElement(tag);
-	// 		}
-	// 	}
-	// 	WidgetTools.register[name] = element;
-	// 	return element;
-	// }
 
 	static getStateFromPath(state, path){
 		let key
@@ -113,5 +96,4 @@ class WidgetTools{
 			WidgetState.name(props.state)[props.prop] = props.value
 		}
 	}
-
 }
