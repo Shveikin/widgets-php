@@ -16,8 +16,17 @@
 
 
     <script src="/js/components/slider.js"></script>
+    <style>
+        .dragboard {
+            background: #ccc;
+        }
+        .dragelement {
+            padding: 20px;
+            background: #f00;
+        }
+    </style>
 
-
+<!-- 
     <style>
         .sliderPoint {
             border: 2px solid rgb(0, 150, 187);
@@ -85,7 +94,7 @@
             }
             element.onmouseleave = function(){ mouseDown = false }
         }
-    </script>
+    </script> -->
 
 </head>
 <body>
@@ -94,14 +103,31 @@
     
     <script>
         
-    c.app([
-        c.slider({
-            title: 'Температура',
-            state: 'temp',
-            min: 0,
-            max: 100
-        }),
-    ])
+        c.app(
+            c.div({
+                className: 'dragboard',
+                dragboard: {
+                    drag: {
+                        10: c.div({className: 'dragelement'}),
+                        90: c.div({className: 'dragelement'}),
+                    },
+                    axis: 'x',
+                    unit: '%',
+                    width: 500,
+                    height: 60,
+                    boxsizing: 40,
+                }
+            })
+        )
+
+    // c.app([
+    //     c.slider({
+    //         title: 'Температура',
+    //         state: 'temp',
+    //         min: 0,
+    //         max: 100
+    //     }),
+    // ])
 
     </script>
 </body>

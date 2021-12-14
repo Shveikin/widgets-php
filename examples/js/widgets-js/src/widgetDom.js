@@ -19,7 +19,7 @@ class widgetdom {
 
         Object.keys(widget.props).forEach(prop => {
             if (prop in widgetsmartprops){
-                widgetsmartprops[prop](widget, prop)
+                widgetsmartprops[prop](widget, widget.props[prop])
             } else {
                 widgetdom.assignProp(widget, prop)
             }
