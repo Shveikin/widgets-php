@@ -88,6 +88,11 @@ abstract class WidgetsConponent {
 
     public function __construct($createDefaultState = true) {
         if ($createDefaultState) {
+            foreach (static::$useState as $class) {
+                if (class_exists($class)){
+                    $class::init();
+                }
+            };
             $this->mainState();
         }
     }
@@ -178,7 +183,8 @@ abstract class WidgetsConponent {
      * Подучить стейт по псевдониму
      */
     final public function state(string $stateName) {
-        return state::name($this->stateAlias[$stateName]);
+        $stateAlias = isset($this->stateAlias[$stateName])?$this->stateAlias[$stateName]:$stateName;
+        return state::name($stateAlias);
     }
 }
 

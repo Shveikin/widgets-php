@@ -26,7 +26,7 @@ class SredaController extends WidgetsConponent {
         ]);
     }
 
-    function draw($layout) {
+    function draw($layout, $props) {
         $propertyState = $this->state('sredaControllerProps');
         $layout->div(
             style: 'font-family: "Trebuchet MS"; font-size: 14px;',

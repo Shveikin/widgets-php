@@ -6,6 +6,7 @@
         "widgetconvertor.js",
         "widgetdom.js",
         "widgetstate.js",
-        "widgettools.js"
+        "widgettools.js",
+        "widgetsmartprops.js"
     ]
 }

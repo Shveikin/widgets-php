@@ -887,3 +887,12 @@ class widgettools {
 		}
 	}
 }
+// widgetsmartprops.js
+
+class widgetsmartprops {
+
+
+    static dragElement(widget, props){
+        console.log(widget, props)
+    }
+}
