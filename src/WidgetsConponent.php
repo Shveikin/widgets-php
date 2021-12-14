@@ -37,7 +37,7 @@ abstract class WidgetsConponent {
         return static::main()->{"static__{$name}"}(...$arguments);
     }
 
-    public function draw($layout) {
+    public function draw($layout, $props) {
         $layout->child = 'Метод draw не инициализирован!';
     }
 
@@ -46,11 +46,11 @@ abstract class WidgetsConponent {
     }
 
     private $layout = false;
-    public function layout() {
-        // if ($this->layout == false) {
+    public function layout($props = []) {
+
         $this->layout = c::div();
-        $this->draw($this->layout);
-        // }
+        $this->draw($this->layout, $props);
+
         return $this->layout;
     }
 
@@ -88,11 +88,6 @@ abstract class WidgetsConponent {
 
     public function __construct($createDefaultState = true) {
         if ($createDefaultState) {
-            foreach (static::$useState as $class) {
-                if (class_exists($class)){
-                    $class::init();
-                }
-            };
             $this->mainState();
         }
     }
@@ -183,8 +178,7 @@ abstract class WidgetsConponent {
      * Подучить стейт по псевдониму
      */
     final public function state(string $stateName) {
-        $stateAlias = isset($this->stateAlias[$stateName])?$this->stateAlias[$stateName]:$stateName;
-        return state::name($stateAlias);
+        return state::name($this->stateAlias[$stateName]);
     }
 }
 
