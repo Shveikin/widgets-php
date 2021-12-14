@@ -8,16 +8,17 @@ class SredaController extends WidgetsConponent {
 
     // static $include_script = false;
     static $url = '/index.php';
+    static $useState = ['sreda'];
 
     function mainState() {
-        $this->createGlobalState('sreda', [
-            'sreda_id' => 14,
-            'weight' => 1000,
-            'sreda_title' => 'Вода',
-        ]);
+        // $this->createGlobalState('sreda', [
+        //     'sreda_id' => 14,
+        //     'weight' => 1000,
+        //     'sreda_title' => 'Вода',
+        // ]);
 
         $this->createGlobalState('sredaList', [
-            '_list' => $this->loadList(0, 20),
+            '_list' => $this->loadList(0, 3000),
         ]);
 
         $this->createState('sredaControllerProps', [
@@ -44,14 +45,6 @@ class SredaController extends WidgetsConponent {
                                     margin-top: -1px;
                                     overflow: auto;
                             ',
-                            // child: c::div([
-                            //     'test',
-                            //     'test2',
-                            //     'test3',
-                            //     c::div('Hello',
-                            //         onclick: c::js_function('alert(111)')
-                            //     )
-                            // ])
                             child: $this->drawList()
                         ),
                         ''
@@ -61,7 +54,6 @@ class SredaController extends WidgetsConponent {
         );
 
         $this->state('sreda')->sreda_title = 'Воздух';
-        // $property->isOpen = true;
     }
 
     function drawTitle(){
@@ -73,17 +65,16 @@ class SredaController extends WidgetsConponent {
             ]
         );
 
-        // return $title;
-        // return $this->state('sreda')->watch('sreda_title');
         return $title;
     }
 
     function drawList(){
         return $this->state('sredaList')->map('_list', function($itm){
+                $style = 'cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;';
                 return c::div(
-                    style: state::name('sreda')->check('sreda_id', $itm->id, 'color: #f00', 'color: #222'),
+                    style: state::name('sreda')->check('sreda_id', $itm->id, "color: rgb(0,149,255);font-weight: 600;$style", "color: #222;$style"),
                     innerHTML: $itm->environment,
-                    onclick: state::updateGroup([
+                    onclick: $this->group([
                         state::name('sreda')->update(
                             sreda_id: $itm->id,
                             sreda_title: $itm->environment,

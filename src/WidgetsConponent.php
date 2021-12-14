@@ -115,6 +115,17 @@ abstract class WidgetsConponent {
         }
     }
 
+    /** 
+     * Группировка update
+    */
+    function group(array $group) {
+        $result = [
+            'element' => 'state_update_group',
+            'list' => $group,
+        ];
+        return $result;
+    }
+
     /**
      * Собственный стейт
      */

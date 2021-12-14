@@ -3,11 +3,12 @@
 use Widget\c;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once 'states/SredaState.php';
 require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 
@@ -42,10 +43,9 @@ $mysqli_JINO = getConnect(JINO);
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
-$first = SredaController::element();
+// $first = SredaController::element();
 
 echo c::div([
-    $first,
     SredaController::element(),
 ])->html(true);
 
