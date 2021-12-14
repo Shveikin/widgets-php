@@ -4,6 +4,8 @@ namespace Widget;
 
 class state {
     static $names = [];
+    static $name = 'global';
+    static $default = [];
 
     public static function name(string $stateName) {
         return self::$names[$stateName];
@@ -13,10 +15,11 @@ class state {
         self::$names[$stateName] = new state($stateName, $defaultArray);
     }
 
-    private $name = '';
+
     private $data = [];
+    private $_name = 'global';
     public function __construct($name, $defaultArray = []) {
-        $this->name = $name;
+        $this->_name = $name;
         $this->data = $defaultArray;
     }
 
@@ -34,7 +37,7 @@ class state {
 
     public function watch($watch, $callback = false) {
         return c::state_watcher(
-            state: $this->name,
+            state: $this->_name,
             watch:$watch,
             callback:$callback,
             view:function () use ($watch) {
@@ -54,7 +57,7 @@ class state {
 
     public function check($prop, $value, $true, $false = false) {
         return c::state_check(
-            state: $this->name,
+            state: $this->_name,
             prop: $prop,
             value: $value,
             _true: $true,
@@ -72,7 +75,7 @@ class state {
         $refernce = $callback($imprint);
 
         $state_map = c::state_map(
-            state: $this->name,
+            state: $this->_name,
             prop: $prop,
             refernce: $refernce->toArray(),
             useColls: $imprint->getColls(),
@@ -85,7 +88,7 @@ class state {
     public function update(...$prop){
 
         $state_update = c::state_update(
-            state: $this->name,
+            state: $this->_name,
             stateProps: $prop,
         );
         
@@ -105,18 +108,28 @@ class state {
     public static function toArray() {
         $result = [];
         foreach (self::$names as $state) {
-            array_push($result, array_merge($state->data, ['_name' => $state->name]));
+            array_push($result, array_merge($state->data, ['_name' => $state->_name]));
         }
 
         return $result;
     }
 
     public function __toString() {
-        return "widgetstate.name('{$this->name}')";
+        return "widgetstate.name('{$this->_name}')";
     }
 
     public function checkTurn($props) {
         return c::js_function($this . ".checkTurn('$props')");
+    }
+
+    static function init(){
+        if (!isset(self::$names[static::$name])){
+            state::create(static::$name, static::$default);
+        }
+    }
+
+    static function state(){
+        return self::$names[static::$name];
     }
 
 }

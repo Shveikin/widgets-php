@@ -8,7 +8,7 @@ require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 

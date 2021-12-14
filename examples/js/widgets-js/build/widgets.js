@@ -6,6 +6,9 @@ const c = new Proxy({}, {
             return widgettools[_type]
         else
             return (source) => {
+                if (_type in widgetdom.widgetStore)
+                    return widgetdom.widgetStore[_type](source)
+                
                 const id = widgetdom.getId()
 
                 const [type, props, childs] = widgetconvertor.distribution(_type, source)
@@ -16,7 +19,8 @@ const c = new Proxy({}, {
                     childs,
                 }
             }
-    }
+    },
+    set:(_, _type, element) => widgetdom.widgetRegister(_type, element)
 })
 // widgetconvertor.js
 class widgetconvertor {
@@ -44,7 +48,7 @@ class widgetconvertor {
 		let props = {}
 		let childs = []
 		
-		const childElements = ['child', 'childs', 'type']
+		const childElements = ['child', 'childs', 'element']
 
 		const sourceType = widgetconvertor.getType(source)
 		switch (sourceType) {
@@ -65,12 +69,12 @@ class widgetconvertor {
 			case 'Element':
 				type = source.element
 			case 'Object':
-				if ('type' in source){
-					type = source['type']
-				}
+				// if ('type' in source){
+				// 	type = source['type']
+				// }
 				Object.keys(source).forEach(prop => {
 					if (childElements.includes(prop)){
-						if (prop!='type'){
+						if (prop!='element'){
 
 							if (type in widgetconvertor.singleElement){
 								const property = widgetconvertor.singleElement[type]
@@ -231,8 +235,14 @@ class widgetdom {
         const rootElement = document.createElement(widget.type);
         widget.rootElement = rootElement
 
+
+
         Object.keys(widget.props).forEach(prop => {
-            widgetdom.assignProp(widget, prop)
+            if (prop in widgetsmartprops){
+                widgetsmartprops[prop](widget, prop)
+            } else {
+                widgetdom.assignProp(widget, prop)
+            }
         });
 
         if (Array.isArray(widget.childs)){
@@ -456,6 +466,18 @@ class widgetdom {
     }
 
 
+    static widgetStore = {};
+    static widgetRegister(name, _widget = () => false) {
+		if (name in widgetdom.widgetStore){
+			throw 'Компонент ' + name + ' - уже зарегистрирован!';
+			return false;
+		}
+		widgetdom.widgetStore[name] = _widget
+        // (prps) => {
+		// 	return _widget(prps)
+		// }
+		// return true;
+	}
 
 }
 // widgetstate.js
@@ -719,13 +741,22 @@ class widgetstate {
 
 	static model(self){
 		const state = this;
-		return (prop) => {
+		return (prop, callback = false) => {
 			return {
-				link([element, argument]){
-					element.oninput = function(){
-						state[prop] = element[argument];
+				link(widget, argument){
+					widget.rootElement.onchange = function(){
+						const modelValue = this[argument]
+						let value = modelValue
+						if (callback){
+							value = callback(value)
+							if (modelValue!=value){
+								widget.rootElement[argument] = value
+							}
+						}
+						state[prop] = value;
 					}
-					element[argument] = state[prop]
+
+					widget.rootElement[argument] = state[prop]
 				}
 			}
 		}

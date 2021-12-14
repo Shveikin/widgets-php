@@ -15,8 +15,14 @@ class widgetdom {
         const rootElement = document.createElement(widget.type);
         widget.rootElement = rootElement
 
+
+
         Object.keys(widget.props).forEach(prop => {
-            widgetdom.assignProp(widget, prop)
+            if (prop in widgetsmartprops){
+                widgetsmartprops[prop](widget, prop)
+            } else {
+                widgetdom.assignProp(widget, prop)
+            }
         });
 
         if (Array.isArray(widget.childs)){
@@ -240,5 +246,17 @@ class widgetdom {
     }
 
 
+    static widgetStore = {};
+    static widgetRegister(name, _widget = () => false) {
+		if (name in widgetdom.widgetStore){
+			throw 'Компонент ' + name + ' - уже зарегистрирован!';
+			return false;
+		}
+		widgetdom.widgetStore[name] = _widget
+        // (prps) => {
+		// 	return _widget(prps)
+		// }
+		// return true;
+	}
 
 }

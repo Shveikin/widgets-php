@@ -23,7 +23,7 @@ class widgetconvertor {
 		let props = {}
 		let childs = []
 		
-		const childElements = ['child', 'childs', 'type']
+		const childElements = ['child', 'childs', 'element']
 
 		const sourceType = widgetconvertor.getType(source)
 		switch (sourceType) {
@@ -44,12 +44,12 @@ class widgetconvertor {
 			case 'Element':
 				type = source.element
 			case 'Object':
-				if ('type' in source){
-					type = source['type']
-				}
+				// if ('type' in source){
+				// 	type = source['type']
+				// }
 				Object.keys(source).forEach(prop => {
 					if (childElements.includes(prop)){
-						if (prop!='type'){
+						if (prop!='element'){
 
 							if (type in widgetconvertor.singleElement){
 								const property = widgetconvertor.singleElement[type]

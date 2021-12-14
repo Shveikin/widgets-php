@@ -258,13 +258,22 @@ class widgetstate {
 
 	static model(self){
 		const state = this;
-		return (prop) => {
+		return (prop, callback = false) => {
 			return {
-				link([element, argument]){
-					element.oninput = function(){
-						state[prop] = element[argument];
+				link(widget, argument){
+					widget.rootElement.onchange = function(){
+						const modelValue = this[argument]
+						let value = modelValue
+						if (callback){
+							value = callback(value)
+							if (modelValue!=value){
+								widget.rootElement[argument] = value
+							}
+						}
+						state[prop] = value;
 					}
-					element[argument] = state[prop]
+
+					widget.rootElement[argument] = state[prop]
 				}
 			}
 		}

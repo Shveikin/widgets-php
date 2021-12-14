@@ -5,6 +5,9 @@ const c = new Proxy({}, {
             return widgettools[_type]
         else
             return (source) => {
+                if (_type in widgetdom.widgetStore)
+                    return widgetdom.widgetStore[_type](source)
+                
                 const id = widgetdom.getId()
 
                 const [type, props, childs] = widgetconvertor.distribution(_type, source)
@@ -15,5 +18,6 @@ const c = new Proxy({}, {
                     childs,
                 }
             }
-    }
+    },
+    set:(_, _type, element) => widgetdom.widgetRegister(_type, element)
 })

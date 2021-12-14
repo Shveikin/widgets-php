@@ -8,7 +8,7 @@ class SredaController extends WidgetsConponent {
 
     // static $include_script = false;
     static $url = '/index.php';
-    static $useState = ['sreda'];
+    static $useState = [SredaState::class];
 
     function mainState() {
         // $this->createGlobalState('sreda', [
@@ -18,7 +18,7 @@ class SredaController extends WidgetsConponent {
         // ]);
 
         $this->createGlobalState('sredaList', [
-            '_list' => $this->loadList(0, 3000),
+            '_list' => $this->loadList(0, 40),
         ]);
 
         $this->createState('sredaControllerProps', [
