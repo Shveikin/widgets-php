@@ -55,9 +55,9 @@ abstract class WidgetsConponent {
     }
 
 
-    static function element(){
+    static function element(...$props){
         $element = new static();
-        return $element->layout();
+        return $element->layout($props);
     }
 
 
