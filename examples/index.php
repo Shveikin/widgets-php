@@ -42,6 +42,8 @@ $mysqli_JINO = getConnect(JINO);
 
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
+echo '<script src="/js/components/slider.js"></script>';
+
 
 // $first = SredaController::element();
 
@@ -50,12 +52,14 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 // ])->html(true);
 
 
-echo c::range(
-    state: 'range',
-    title: 'Расход',
-    min: 0,
-    max: 100
-)->html(true);
+echo c::div('Hello');
+
+// echo c::range(
+//     state: 'range',
+//     title: 'Расход',
+//     min: 0,
+//     max: 100
+// )->html(true);
 
 // echo $first->html(true);
 
