@@ -68,38 +68,41 @@
     
     <script>
         
-        // c.app(
-        //     c.div({
-        //         className: 'dragboard',
-        //         dragboard: {
-        //             drag: {
-        //                 10: c.div({className: 'dragelement'}),
-        //                 90: c.div({className: 'dragelement'}),
-        //             },
-        //             axis: 'x',
-        //             unit: '%',
-        //             width: 500,
-        //             height: 60,
-        //             boxsizing: 40,
-        //         }
-        //     })
-        // )
+        c.app(
+            c.div({
+                className: 'dragboard',
+                dragboard: {
+                    drag: {
+                        10: c.div({className: 'dragelement'}),
+                        90: c.div({className: 'dragelement'}),
+                    },
+                    axis: 'x',
+                    unit: '%',
+                    width: 500,
+                    height: 60,
+                    boxsizing: 40,
+                    ondrag(id, x, y){
+                        console.log('>', id, x, y)
+                    }
+                }
+            })
+        )
 
-    c.app([
-        {
-            element: 'slider',
-            title: 'Температура',
-            state: 'temp',
-            min: 0,
-            max: 100
-        }
-        // c.slider({
-        //     title: 'Температура',
-        //     state: 'temp',
-        //     min: 0,
-        //     max: 100
-        // }),
-    ])
+    // c.app([
+    //     {
+    //         element: 'slider',
+    //         title: 'Температура',
+    //         state: 'temp',
+    //         min: 0,
+    //         max: 100
+    //     }
+    //     // c.slider({
+    //     //     title: 'Температура',
+    //     //     state: 'temp',
+    //     //     min: 0,
+    //     //     max: 100
+    //     // }),
+    // ])
 
     </script>
 </body>

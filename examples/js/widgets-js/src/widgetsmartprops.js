@@ -26,10 +26,23 @@ class widgetsmartprops {
         let shift = false;
 
         function mousemove(x, y){
-            if (props?.axis != 'y')
-                elements[mouseDown].style.left = (parseInt(elements[mouseDown].style.left) + x) + 'px'
-            if (props?.axis != 'x')
-                elements[mouseDown].style.top = (parseInt(elements[mouseDown].style.top) + y) + 'px'
+            let posx, posy = 0
+            if (props?.axis != 'y'){
+                posx = (parseInt(elements[mouseDown].style.left) + x)
+                elements[mouseDown].style.left = posx + 'px'
+            }
+            if (props?.axis != 'x'){
+                posy = (parseInt(elements[mouseDown].style.top) + y)
+                elements[mouseDown].style.top = posy + 'px'
+            }
+
+            if (typeof props.ondrag == 'function'){
+                if (props?.unit == '%'){
+                    posx = posx / ((width - boxsizing.x) / 100)
+                    posy = posy / ((height - boxsizing.y) / 100)
+                }
+                props.ondrag(mouseDown, posx, posy)
+            }
         }
 
         const dragType = widgetconvertor.getType(props.drag)
