@@ -13,6 +13,10 @@ class state {
     public static function name(string $stateName) {
         return self::$names[$stateName];
     }
+    
+    public static function getName(){
+        return static::$name;
+    }
 
     public static function create($stateName, $defaultArray = []) {
         self::$names[$stateName] = new state($stateName, $defaultArray);
