@@ -10,6 +10,39 @@ class state {
     static $default = [];
     static $alias = false;
 
+
+
+    
+    private $data = [];
+    private $_name = 'global';
+    public function __construct($name, $defaultArray = []) {
+        $this->_name = $name;
+        $this->data = $defaultArray;
+    }
+
+    /** 
+     * Инициализация стейта
+    */
+    static function init(){
+        if (!isset(self::$names[static::$name])){
+            state::create(static::$name, static::$default);
+            
+            $props = [];
+            if (static::$alias){
+                $props['alias'] = static::$alias;
+            }
+
+            if (!empty($props)){
+                state::$props[static::$name] = $props;
+            }
+        }
+    }
+
+
+
+
+
+
     public static function name(string $stateName) {
         return self::$names[$stateName];
     }
@@ -23,12 +56,6 @@ class state {
     }
 
 
-    private $data = [];
-    private $_name = 'global';
-    public function __construct($name, $defaultArray = []) {
-        $this->_name = $name;
-        $this->data = $defaultArray;
-    }
 
     public function __set($prop, $value) {
         $this->data[$prop] = $value;
@@ -47,10 +74,9 @@ class state {
             state: $this->_name,
             watch:$watch,
             callback:$callback,
-            view:function () use ($watch) {
+            view: function () use ($watch) {
                 return $this->data[$watch];
-            }
-            ,
+            },
         );
     }
 
@@ -106,13 +132,11 @@ class state {
         
         $js = '';
         foreach (self::$names as $stateName => $state) {
-            $props = '';
+            $props = ['name' => $stateName];
             if (isset(state::$props[$stateName])){
-                $props = ','.json_encode(
-                    array_merge(state::$props[$stateName], ['name' => $stateName])
-                );
+                $props = array_merge($props, state::$props[$stateName]);
             }
-            $js .= " widgetstate.use(". json_encode($state->data)."$props); \n";
+            $js .= " widgetstate.use(". json_encode($state->data).','. json_encode($props) . "); \n";
         }
         
 
@@ -127,21 +151,6 @@ class state {
         return c::js_function($this . ".checkTurn('$props')");
     }
 
-    static function init(){
-        if (!isset(self::$names[static::$name])){
-            state::create(static::$name, static::$default);
-            
-            $props = [];
-            if (static::$alias){
-                $props['alias'] = static::$alias;
-            }
-
-
-            if (!empty($props)){
-                state::$props[static::$name] = $props;
-            }
-        }
-    }
 
     static function state(){
         if (!isset(self::$names[static::$name])){
