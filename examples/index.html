@@ -26,7 +26,6 @@
         }
     </style>
 
-<!-- 
     <style>
         .sliderPoint {
             border: 2px solid rgb(0, 150, 187);
@@ -62,40 +61,6 @@
         }
     </style>
 
-    <script>
-        function dragElement(element, callback){
-            let mouseDown = false
-            let mouseDownPosition = []
-            let mousemove = () => {}
-            let mouseup   = () => {}
-
-            let evnt = null
-            element.onmousedown = function(event){ 
-                evnt = event;
-                const tempfuc = callback(evnt);
-                if (tempfuc){
-                    mousemove = 'mousemove' in tempfuc?tempfuc['mousemove']:() => {}
-                    mouseup = 'mouseup' in tempfuc?tempfuc['mouseup']:() => {}
-                }
-                mouseDownPosition = [event.screenX, event.screenY]; 
-                mouseDown = true
-            }
-            element.onmousemove = function(event){ 
-                if (mouseDown){
-                    mousemove(event.screenX - mouseDownPosition[0], event.screenY - mouseDownPosition[1], evnt);
-                    mouseDownPosition = [event.screenX, event.screenY];
-                }
-            }
-            element.onmouseup = function(){
-                mouseup(evnt);  
-                mouseDown = false 
-                mousemove = () => {}
-                mouseup = () => {}
-            }
-            element.onmouseleave = function(){ mouseDown = false }
-        }
-    </script> -->
-
 </head>
 <body>
     <div id="app"></div>
@@ -103,31 +68,38 @@
     
     <script>
         
-        c.app(
-            c.div({
-                className: 'dragboard',
-                dragboard: {
-                    drag: {
-                        10: c.div({className: 'dragelement'}),
-                        90: c.div({className: 'dragelement'}),
-                    },
-                    axis: 'x',
-                    unit: '%',
-                    width: 500,
-                    height: 60,
-                    boxsizing: 40,
-                }
-            })
-        )
+        // c.app(
+        //     c.div({
+        //         className: 'dragboard',
+        //         dragboard: {
+        //             drag: {
+        //                 10: c.div({className: 'dragelement'}),
+        //                 90: c.div({className: 'dragelement'}),
+        //             },
+        //             axis: 'x',
+        //             unit: '%',
+        //             width: 500,
+        //             height: 60,
+        //             boxsizing: 40,
+        //         }
+        //     })
+        // )
 
-    // c.app([
-    //     c.slider({
-    //         title: 'Температура',
-    //         state: 'temp',
-    //         min: 0,
-    //         max: 100
-    //     }),
-    // ])
+    c.app([
+        {
+            element: 'slider',
+            title: 'Температура',
+            state: 'temp',
+            min: 0,
+            max: 100
+        }
+        // c.slider({
+        //     title: 'Температура',
+        //     state: 'temp',
+        //     min: 0,
+        //     max: 100
+        // }),
+    ])
 
     </script>
 </body>

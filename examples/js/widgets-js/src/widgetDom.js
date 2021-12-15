@@ -12,6 +12,9 @@ class widgetdom {
      * CREATE ELEMENT
      */
     static createElement(widget){
+        if (widget.type in widgetdom.widgetStore){
+            widget = widgetdom.widgetStore[widget.type](widget.props)
+        }
         const rootElement = document.createElement(widget.type);
         widget.rootElement = rootElement
 
