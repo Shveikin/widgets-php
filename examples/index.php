@@ -45,9 +45,17 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 
 // $first = SredaController::element();
 
-echo c::div([
-    SredaController::element(),
-])->html(true);
+// echo c::div([
+//     SredaController::element(),
+// ])->html(true);
+
+
+echo c::range(
+    state: 'range',
+    title: 'Расход',
+    min: 0,
+    max: 100
+)->html(true);
 
 // echo $first->html(true);
 
