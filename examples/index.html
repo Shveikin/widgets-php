@@ -34,7 +34,7 @@
             width: 12px;
             cursor: pointer;
             position: absolute;
-            top: 10px;
+            margin-top: 9px;
             background: #fff;
         }
 
@@ -68,41 +68,73 @@
     
     <script>
         
-        c.app(
-            c.div({
-                className: 'dragboard',
-                dragboard: {
-                    drag: {
-                        10: c.div({className: 'dragelement'}),
-                        90: c.div({className: 'dragelement'}),
-                    },
-                    axis: 'x',
-                    unit: '%',
-                    width: 500,
-                    height: 60,
-                    boxsizing: 40,
-                    ondrag(id, x, y){
-                        console.log('>', id, x, y)
-                    }
-                }
-            })
-        )
+        // c.app(
+        //     c.div({
+        //         className: 'dragboard',
+        //         dragboard: {
+        //             drag: {
+        //                 10: c.div({className: 'dragelement'}),
+        //                 90: c.div({className: 'dragelement'}),
+        //             },
+        //             axis: 'x',
+        //             unit: '%',
+        //             width: 500,
+        //             height: 60,
+        //             boxsizing: 40,
+        //             ondrag(id, x, y){
+        //                 console.log('>', id, x, y)
+        //             }
+        //         }
+        //     })
+        // )
 
-    // c.app([
-    //     {
-    //         element: 'slider',
-    //         title: 'Температура',
-    //         state: 'temp',
-    //         min: 0,
-    //         max: 100
-    //     }
-    //     // c.slider({
-    //     //     title: 'Температура',
-    //     //     state: 'temp',
-    //     //     min: 0,
-    //     //     max: 100
-    //     // }),
-    // ])
+        // widgetstate.use(
+        //     {
+        //         min: 0,
+        //         max: 100,
+        //     },{
+        //         name: 'rashod',
+        //         alias: {
+        //             min: 'rashod_min',
+        //             max: 'rashod_max',
+        //         }
+        //     }
+        // )
+
+        // widgetstate.use(
+        //     {
+        //         min: 50,
+        //         max: 90,
+        //     },{
+        //         name: 'temp',
+        //         alias: {
+        //             min: 'temp_min',
+        //             max: 'temp_max',
+        //         }
+        //     }
+        // )
+
+        // c.app([
+        //     c.slider({
+        //         title: 'Расход',
+        //         state: 'rashod',
+        //         range: {min: 0, max: 200},
+        //         sliderWidth: 500,
+        //         type: 'int'
+        //     }),
+        //     // c.slider({
+        //     //     title: 'Температура',
+        //     //     state: 'temp',
+        //     //     range: {min: 0, max: 100},
+        //     //     sliderWidth: 500,
+        //     // }),
+        // ])
+
+        widgetstate.use({"min":0,"max":100},{"alias":{"min":"rashod_min","max":"rashod_max"},"name":"rashod"}); 
+
+        c.app(
+            {"element":"slider","_name":"element_1","state":"rashod","title":"\u0420\u0430\u0441\u0445\u043e\u0434","range":{"min":0,"max":200},"sliderWidth":500,"type":"int"}
+        )
 
     </script>
 </body>

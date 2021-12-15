@@ -3,6 +3,8 @@
 class widgetstate {
     static state_length = 0;
 	static names = {};
+	static props = {};
+
 
 	static name(name){
 		if (!(name in widgetstate.names)){
@@ -20,7 +22,7 @@ class widgetstate {
 		})
 	}
 
-    static use(obj){
+    static use(obj, props = false){
 		widgetstate.state_length++;
 		const setParents = []
 
@@ -35,6 +37,12 @@ class widgetstate {
 			stateName = 'state_' + widgetstate.state_length;
 		}
 
+		if (props && 'name' in props)
+			stateName = props.name
+
+		if (props){
+			widgetstate.props[stateName] = props
+		}
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -272,8 +280,14 @@ class widgetstate {
 						}
 						state[prop] = value;
 					}
-
-					widget.rootElement[argument] = state[prop]
+					
+					state.watch(prop, value => {
+						if (callback){
+							return callback(value)
+						} else {
+							return value
+						}
+					}).link(widget, argument)
 				}
 			}
 		}

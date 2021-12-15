@@ -4,8 +4,11 @@ namespace Widget;
 
 class state {
     static $names = [];
+    static $props = [];
+
     static $name = 'global';
     static $default = [];
+    static $alias = false;
 
     public static function name(string $stateName) {
         return self::$names[$stateName];
@@ -96,23 +99,21 @@ class state {
     }
 
     public static function toJs(){
-        $stateArray = state::toArray();
+        
         $js = '';
-        foreach ($stateArray as $state) {
-            $js .= " widgetstate.use(". json_encode($state) ."); ";
+        foreach (self::$names as $stateName => $state) {
+            $props = '';
+            if (isset(state::$props[$stateName])){
+                $props = ','.json_encode(
+                    array_merge(state::$props[$stateName], ['name' => $stateName])
+                );
+            }
+            $js .= " widgetstate.use(". json_encode($state->data)."$props); \n";
         }
+        
 
         return $js;
     } 
-
-    public static function toArray() {
-        $result = [];
-        foreach (self::$names as $state) {
-            array_push($result, array_merge($state->data, ['_name' => $state->_name]));
-        }
-
-        return $result;
-    }
 
     public function __toString() {
         return "widgetstate.name('{$this->_name}')";
@@ -125,10 +126,23 @@ class state {
     static function init(){
         if (!isset(self::$names[static::$name])){
             state::create(static::$name, static::$default);
+            
+            $props = [];
+            if (static::$alias){
+                $props['alias'] = static::$alias;
+            }
+
+
+            if (!empty($props)){
+                state::$props[static::$name] = $props;
+            }
         }
     }
 
     static function state(){
+        if (!isset(self::$names[static::$name])){
+            static::init();
+        }
         return self::$names[static::$name];
     }
 

@@ -489,6 +489,8 @@ class widgetdom {
 class widgetstate {
     static state_length = 0;
 	static names = {};
+	static props = {};
+
 
 	static name(name){
 		if (!(name in widgetstate.names)){
@@ -506,7 +508,7 @@ class widgetstate {
 		})
 	}
 
-    static use(obj){
+    static use(obj, props = false){
 		widgetstate.state_length++;
 		const setParents = []
 
@@ -521,6 +523,12 @@ class widgetstate {
 			stateName = 'state_' + widgetstate.state_length;
 		}
 
+		if (props && 'name' in props)
+			stateName = props.name
+
+		if (props){
+			widgetstate.props[stateName] = props
+		}
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -758,8 +766,14 @@ class widgetstate {
 						}
 						state[prop] = value;
 					}
-
-					widget.rootElement[argument] = state[prop]
+					
+					state.watch(prop, value => {
+						if (callback){
+							return callback(value)
+						} else {
+							return value
+						}
+					}).link(widget, argument)
 				}
 			}
 		}
@@ -914,6 +928,15 @@ class widgetsmartprops {
         dragboard.rootElement.style.width = width + 'px'
         dragboard.rootElement.style.height = height + 'px'
 
+        if ('childs' in props) {
+            const widgets = widgetconvertor.toArrayOfWidgets(props.childs);
+            widgets.forEach(widget => {
+                dragboard.rootElement.appendChild(
+                    widgetdom.createElement(widget)
+                )
+            })
+        }
+
 
 
         let shift = false;
@@ -930,11 +953,14 @@ class widgetsmartprops {
             }
 
             if (typeof props.ondrag == 'function'){
+                let valposx = posx
+                let valposy = posy
+
                 if (props?.unit == '%'){
-                    posx = posx / ((width - boxsizing.x) / 100)
-                    posy = posy / ((height - boxsizing.y) / 100)
+                    valposx = posx / ((width - boxsizing.x) / 100)
+                    valposy = posy / ((height - boxsizing.y) / 100)
                 }
-                props.ondrag(mouseDown, posx, posy)
+                props.ondrag(mouseDown, valposx, valposy, posx, posy)
             }
         }
 
@@ -988,6 +1014,7 @@ class widgetsmartprops {
             dragboard.rootElement.onmouseup = () => {mouseDown = false}
             dragboard.rootElement.onmouseleave = () => { mouseDown = false }
             
+
             dragboard.rootElement.appendChild(dragElement)
             elements.push(dragElement)
         })

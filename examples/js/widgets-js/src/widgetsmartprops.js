@@ -21,6 +21,15 @@ class widgetsmartprops {
         dragboard.rootElement.style.width = width + 'px'
         dragboard.rootElement.style.height = height + 'px'
 
+        if ('childs' in props) {
+            const widgets = widgetconvertor.toArrayOfWidgets(props.childs);
+            widgets.forEach(widget => {
+                dragboard.rootElement.appendChild(
+                    widgetdom.createElement(widget)
+                )
+            })
+        }
+
 
 
         let shift = false;
@@ -37,11 +46,14 @@ class widgetsmartprops {
             }
 
             if (typeof props.ondrag == 'function'){
+                let valposx = posx
+                let valposy = posy
+
                 if (props?.unit == '%'){
-                    posx = posx / ((width - boxsizing.x) / 100)
-                    posy = posy / ((height - boxsizing.y) / 100)
+                    valposx = posx / ((width - boxsizing.x) / 100)
+                    valposy = posy / ((height - boxsizing.y) / 100)
                 }
-                props.ondrag(mouseDown, posx, posy)
+                props.ondrag(mouseDown, valposx, valposy, posx, posy)
             }
         }
 
@@ -95,6 +107,7 @@ class widgetsmartprops {
             dragboard.rootElement.onmouseup = () => {mouseDown = false}
             dragboard.rootElement.onmouseleave = () => { mouseDown = false }
             
+
             dragboard.rootElement.appendChild(dragElement)
             elements.push(dragElement)
         })
