@@ -40,9 +40,7 @@ class widgetstate {
 		if (props && 'name' in props)
 			stateName = props.name
 
-		if (props){
-			widgetstate.props[stateName] = props
-		}
+
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -82,6 +80,7 @@ class widgetstate {
             set(object, prop, value){
                 object[prop] = value
                 widgetstate.updateAll(object, prop)
+				widgetstate.setAlias(stateName, prop, value)
 				return true
             }
         })
@@ -91,8 +90,67 @@ class widgetstate {
 		})
 
 		widgetstate.useName(stateName, state)
+		if (props){
+			widgetstate.setupProps(stateName, props)
+		}
         return state;
     }
+
+	/** 
+	 * Установка значений в widgetstate.url
+	*/
+	static setupProps(stateName, props){
+		widgetstate.props[stateName] = props
+
+		if ('alias' in props){
+			Object.keys(props.alias).forEach(prop => {
+				if (props.default[prop]!=widgetstate.name(stateName)[prop]){
+					widgetstate.url[props.alias[prop]] = widgetstate.name(stateName)[prop]
+				}
+			})
+		}
+	}
+
+	static url = {}
+	static setAlias(stateName, prop, value){
+		if (stateName in widgetstate.props)
+		if ('alias' in widgetstate.props[stateName])
+		if (prop in widgetstate.props[stateName].alias){
+			const alias = widgetstate.props[stateName].alias[prop]
+
+			if (widgetstate.arrayCompare(widgetstate.props[stateName].default[prop], value)){
+				delete widgetstate.url[alias]
+			} else {
+				if (!(alias in widgetstate.url) || !widgetstate.arrayCompare(widgetstate.url[alias], value)){
+					widgetstate.url[alias] = value
+				}
+			}
+			widgetstate.updateHistory()
+		}
+	}
+
+	static updateHistory(){
+		let url = '';
+		Object.keys(widgetstate.url).forEach(key => {
+			url += '&' + key
+			if (Array.isArray(widgetstate.url[key])){
+				url += `=${widgetstate.url[key].join(',')}`
+			} else {
+				url += `=${widgetstate.url[key]}`
+			}
+		})
+		url = url.substring(1)
+		window.history.pushState({filter: url}, "", location.origin + location.pathname + '?' + url);
+	}
+
+	static arrayCompare(a, b){
+		if (a.length!=b.length) return false
+		const bb = new Set(b)
+		for (const i of new Set(a)) {
+			if (!bb.has(i)) return false;
+		}
+		return true
+	}
 
 	static useName(name, state){
 		widgetstate.names[name] = state;
@@ -272,20 +330,34 @@ class widgetstate {
 					widget.rootElement.onchange = function(){
 						const modelValue = this[argument]
 						let value = modelValue
-						if (callback){
+						if (typeof callback == 'function'){
 							value = callback(value)
 							if (modelValue!=value){
 								widget.rootElement[argument] = value
 							}
+							state[prop] = value;
+						} else if (callback==false){
+							state[prop] = value;
+						} else if (typeof callback == 'object'){
+							if ('htmlelementValue' in callback){
+								callback.htmlelementValue(value)
+								// value = 
+								// if (modelValue!=value){
+								// 	widget.rootElement[argument] = value
+								// }
+							}
 						}
-						state[prop] = value;
 					}
 					
 					state.watch(prop, value => {
-						if (callback){
+						if (typeof callback == 'function'){
 							return callback(value)
-						} else {
+						} else if (callback==false) {
 							return value
+						} else if (typeof callback == 'object'){
+							if ('widgetstateValue' in callback){
+								return callback.widgetstateValue(value)
+							}
 						}
 					}).link(widget, argument)
 				}

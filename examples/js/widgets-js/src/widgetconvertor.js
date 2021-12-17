@@ -148,6 +148,8 @@ class widgetconvertor {
 		else
 		if (typeof element == 'function')
 			type = 'Function'
+		if (typeof element == 'boolean')
+			type = 'Bool'
 		
 		return type;
 	}

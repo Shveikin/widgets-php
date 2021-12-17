@@ -2,6 +2,10 @@
 
 namespace Widget;
 
+use Error;
+use ErrorException;
+use Exception;
+
 abstract class WidgetsConponent {
     /**
      * добавить строку подключения в html
@@ -77,24 +81,53 @@ abstract class WidgetsConponent {
         return $this->layout()->print_r();
     }
 
+    static $hashMethods = [];
     public function __get($function_name) {
+        // Добавить хешироватьние для методов
+        if (isset(self::$hashMethods[$function_name])){
+            return self::$hashMethods[$function_name];
+        }
+
+        $useStates = $this->getUseStateList();
+
+        // Возвращать тулзу!
         return new BindElement(
-            function :$function_name,
+            function: $function_name,
             url:static::$url ? static::$url : realpath(__FILE__),
             class :get_class($this),
-            useState:static::$useState,
+            useState: $useStates,
         );
     }
 
-    public function __construct($createDefaultState = true) {
-        if ($createDefaultState) {
-            foreach (static::$useState as $class) {
-                if (class_exists($class)){
-                    $class::init();
-                }
-            };
-            $this->mainState();
+
+    function getUseStateList(){
+        $result = [];
+        foreach (static::$useState as $stateName) {
+            if (isset(state::$name[$stateName])){
+                array_push($result, $stateName);
+            } else if (class_exists($stateName)){
+                $stateName = $stateName::state()->getName();
+                array_push($result, $stateName);
+            } else {
+                throw new Exception("Не получилось определить стейт $stateName");
+            }
         }
+
+        return $result;
+    }
+
+    /**
+     * Псевдонимы для стейта
+     */
+    private $stateAlias = [];
+
+    public function __construct() {
+        foreach (static::$useState as $class) {
+            $state = $class::state();
+            if ($state)
+                $this->stateAlias[$state->getName()] = $state->getName();
+        };
+        $this->mainState();
     }
 
     public static function runFetchRequest($data) {
@@ -153,10 +186,6 @@ abstract class WidgetsConponent {
         return $stateName;
     }
 
-    /**
-     * Псевдонимы для стейта
-     */
-    private $stateAlias = [];
 
     /**
      * Создать стейт
@@ -165,7 +194,7 @@ abstract class WidgetsConponent {
     final public function createState(string $stateName, array $stateBody) {
         $stateAlias = static::getStateAlias($stateName);
         $this->stateAlias[$stateName] = $stateAlias;
-        state::create($stateAlias, $stateBody);
+        new state($stateAlias, $stateBody);
         return $stateAlias;
     }
 
@@ -175,7 +204,7 @@ abstract class WidgetsConponent {
      */
     final public function createGlobalState(string $stateName, array $stateBody) {
         $this->stateAlias[$stateName] = $stateName;
-        state::create($stateName, $stateBody);
+        new state($stateName, $stateBody);
         return $stateName;
     }
 
@@ -183,6 +212,8 @@ abstract class WidgetsConponent {
      * Подучить стейт по псевдониму
      */
     final public function state(string $stateName) {
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        
         $stateAlias = isset($this->stateAlias[$stateName])?$this->stateAlias[$stateName]:$stateName;
         return state::name($stateAlias);
     }

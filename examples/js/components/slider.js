@@ -31,6 +31,7 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
         style: 'margin-bottom: 20px;',
         child: [
         c.div({
+            className: 'filterTitle',
             innerHTML: globalState.watch((min, max) => {
                 return `<b>${title}:</b> от ${min} до ${max} `
             })

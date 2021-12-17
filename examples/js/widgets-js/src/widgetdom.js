@@ -189,6 +189,7 @@ class widgetdom {
         const type = widgetconvertor.getType(value)
 
         switch(type){
+            case 'Bool':
             case 'String':
             case 'Int':
                 widget.rootElement[prop] = value

@@ -50,6 +50,64 @@ class widgettools {
 		)
 	}
 
+	static state_model(props){
+		return widgetstate.name(props.state).model(props.prop)
+	}
+
+	static state_modelIn(props){
+		return widgetstate.name(props.state).model(props.prop, 
+			{
+				htmlelementValue(value){
+					if (value==false){
+						const newStateValue = widgetstate.name(props.state)[props.prop].filter(val => 
+							val!=props.value
+						)
+						widgetstate.name(props.state)[props.prop] = newStateValue
+					} else {
+						let newStateValue = widgetstate.name(props.state)[props.prop]
+						if (Array.isArray(newStateValue)){
+							newStateValue.push(props.value)
+						} else {
+							newStateValue = [props.value]
+						}
+						widgetstate.name(props.state)[props.prop] = newStateValue
+					}
+					return value;
+				},
+				widgetstateValue(value){
+					if (value.includes(props.value)){
+						return props.result?props.result:true;
+					} else {
+						return false;
+					}
+				}
+			}
+			// function(value){
+			// 	if (Array.isArray(value)){
+			// 		if (value.includes(props.value)){
+			// 			return props.result?props.result:true;
+			// 		} else {
+			// 			return false;
+			// 		}
+			// 	} else {
+			// 		if (value==false){
+			// 			const newStateValue = widgetstate.name(props.state)[props.prop].filter(val => 
+			// 				val!=props.value
+			// 			)
+			// 			widgetstate.name(props.state)[props.prop] = newStateValue
+			// 		} else {
+			// 			const newStateValue = widgetstate.name(props.state)[props.prop]
+			// 			newStateValue.push(props.value)
+			// 			widgetstate.name(props.state)[props.prop] = newStateValue
+			// 		}
+			// 		return value;
+			// 	}
+			// }
+		)
+	}
+
+	
+
 	static func(props){
 		return Function(props.function);
 	}
@@ -58,14 +116,17 @@ class widgettools {
 		return {
 			link: function(widget, prop){
 
+				const state = {}
+				props.useState.map(stateName => (
+					state[stateName] = widgetstate.name(stateName).data()
+				))
+
 				return function(){
 					fetch(props.url, {
 						method: 'POST',
 						body: JSON.stringify({
-							state: props.useState.map(stateName => {
-								return widgetstate.name(stateName).data()
-							}),
-							this: widget.props
+							state
+							// this: widget.props
 						})
 					})
 					.then(res => res.json())
@@ -73,6 +134,7 @@ class widgettools {
 						console.log('>>>>>', res)
 					})
 				}
+
 			}
 		}
 	}
