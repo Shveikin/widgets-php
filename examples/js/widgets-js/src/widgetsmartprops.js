@@ -11,15 +11,15 @@ class widgetsmartprops {
             y: props.boxsizing?(props.boxsizing.y?props.boxsizing.y:props.boxsizing):0,
         }
 
-        const width = props.width?props.width:0
-        const height = props.height?props.height:0
+        const width = props.width?props.width - boxsizing.x:0
+        const height = props.height?props.height - boxsizing.y:0
 
 
 
         dragboard.rootElement.style.position = 'relative'
         dragboard.rootElement.style.userSelect = 'none'
         dragboard.rootElement.style.width = width + 'px'
-        dragboard.rootElement.style.height = height + 'px'
+        dragboard.rootElement.style.height = props.height + 'px'
 
         if ('childs' in props) {
             const widgets = widgetconvertor.toArrayOfWidgets(props.childs);
@@ -31,8 +31,8 @@ class widgetsmartprops {
         }
 
 
-
         let shift = false;
+
 
         function mousemove(x, y){
             let posx, posy = 0
@@ -49,10 +49,8 @@ class widgetsmartprops {
                 let valposx = posx
                 let valposy = posy
 
-                if (props?.unit == '%'){
-                    valposx = posx / ((width - boxsizing.x) / 100)
-                    valposy = posy / ((height - boxsizing.y) / 100)
-                }
+                valposx = widgetconvertor.map(posx, [0, width], [0, 100])
+                valposy = widgetconvertor.map(posy, [0, height], [0, 100])
                 props.ondrag(mouseDown, valposx, valposy, posx, posy)
             }
         }
@@ -78,30 +76,24 @@ class widgetsmartprops {
             if (props?.axis != 'x')
                 top = shiftVal
 
-            if (props?.unit == '%'){
-                left = ((width - boxsizing.x) / 100) * left
-                top = ((height - boxsizing.y) / 100) * top
-            }
+            left = widgetconvertor.map(left, props.range, [0, width])
+            top =  widgetconvertor.map(top, props.range, [0, height])
 
             return [left, top]
         }
 
         widgets = widgetconvertor.toArrayOfWidgets(widgets)
         widgets.forEach((widget, key) => {
-            
             const dragElement = widgetdom.createElement(widget)
+            dragElement.style.position = 'absolute'
             if (shift){
-                if ('state' in props){
-                    console.log('props.state', props.state.state, shift[key])
-                    props.state.state.watch(shift[key]).link(function(newValue){
-                        console.log(newValue)
+                if ('state' in props) {
+                    props.state.watch(shift[key]).link(function(newValue){
+                        if (mouseDown===false){
+                            const left = widgetconvertor.map(newValue, props.range, [0, props.width])
+                            dragElement.style.left = left + 'px';
+                        }
                     })
-                    
-
-                    // const [left, top] = shiftXY(0)
-                    // dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
-
-
                 } else {
                     const [left, top] = shiftXY(shift[key])
                     dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
@@ -110,13 +102,10 @@ class widgetsmartprops {
                 dragElement.style = 'position: absolute; left: 0px; top: 0px';
             }
 
-
             dragElement.onmousedown = (event) => {
                 mouseDownPosition = [event.screenX, event.screenY]; 
                 mouseDown = key
             }
-            
-            
 
             dragboard.rootElement.onmousemove = (event) => {
                 if (mouseDown!==false){
@@ -125,9 +114,8 @@ class widgetsmartprops {
                 }
             }
 
-            dragboard.rootElement.onmouseup = () => {mouseDown = false}
+            dragboard.rootElement.onmouseup = () => { mouseDown = false }
             dragboard.rootElement.onmouseleave = () => { mouseDown = false }
-            
 
             dragboard.rootElement.appendChild(dragElement)
             elements.push(dragElement)

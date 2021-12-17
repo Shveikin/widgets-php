@@ -19,6 +19,19 @@ class widgetconvertor {
 		wbr: false,
 	}
 
+	static map(value, [from, to], [from2, to2]) {
+		return (((to2 - from2) / 100) * ((value - from) / ((to - from) / 100))) + from2
+	}
+
+	static roundValue(value, type){
+        switch (type) {
+            case 'int': return parseInt(value)
+            case 'float': return Math.round(value * 10) / 10
+            case 'float2': return Math.round(value * 100) / 100
+            case 'float3': return Math.round(value * 1000) / 1000
+        }
+    }
+
 	static distribution(type, source = {}){
 		let props = {}
 		let childs = []
