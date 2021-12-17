@@ -608,7 +608,7 @@ class widgetstate {
 		if ('alias' in widgetstate.props[stateName])
 		if (prop in widgetstate.props[stateName].alias){
 			const alias = widgetstate.props[stateName].alias[prop]
-			const defaultValue = widgetstate.props[stateName]?.default
+			let defaultValue = widgetstate.props[stateName]?.default
 			if (defaultValue && prop in defaultValue) defaultValue = defaultValue[prop]
 
 			if (widgetstate.valueCompare(defaultValue, value)){
@@ -735,8 +735,11 @@ class widgetstate {
             }
 
             return {
-                link(widget, changeWidgetProp){
+                link(widget, changeWidgetProp = false){
                     if (!('___updates' in self)) self.___updates = {}
+					const widgetType = widgetconvertor.getType(widget)
+					const id = widgetType=='Widget'?widget.id:Math.floor(Math.random() * 6)
+
 
                     const state = {
                         widget,
@@ -744,21 +747,20 @@ class widgetstate {
                         updateStateFunction,
                         stateProps
                     }
-					const key = widget.id + '-' + stateProps.join(',')
+					const key = id + '-' + stateProps.join(',')
 
-					if (!(state in widget)) widget.state = {}
-					if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
-						link: self.___updates,
-						key,
-						stateProps
+					if (widgetType=='Widget'){
+						if (!(state in widget)) widget.state = {}
+						if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
+							link: self.___updates,
+							key,
+							stateProps
+						}
 					}
 
                     stateProps.map(stateProp => {
                         if (!(stateProp in self.___updates)) self.___updates[stateProp] = {}
-                        // self.___updates[stateProp].push(state)
                         self.___updates[stateProp][key] = state
-
-
 
                         widgetstate.updateAll(self, stateProp)
                     })
@@ -780,19 +782,32 @@ class widgetstate {
 			if ('___updates' in self && stateProp in self.___updates){
 				Object.values(self.___updates[stateProp]).forEach(stateData => {
 
-                    const properties = []
+					const properties = []
 					stateData.stateProps.forEach(i => {
 						properties.push(self[i])
 					})
 
-                    const value = stateData.updateStateFunction.apply(this, properties)
-                    
-                    if (stateData.changeWidgetProp == 'childs'){
-						widgetdom.update(stateData.widget, c.div(value))
-                    } else {
-                        stateData.widget.props[stateData.changeWidgetProp] = value
-                        widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
-                    }
+					const value = stateData.updateStateFunction.apply(this, properties)
+					
+					const widgetType = widgetconvertor.getType(stateData.widget);
+					switch (widgetType) {
+						case 'Widget':
+							if (stateData.changeWidgetProp == 'childs'){
+								widgetdom.update(stateData.widget, c.div(value))
+							} else {
+								stateData.widget.props[stateData.changeWidgetProp] = value
+								widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
+							}
+						break;
+						case 'Function':
+							const func = stateData.widget;
+							func(value);
+						break;
+						default:
+							console.log('Не знаю как применить изменения ', widgetType);
+						break;
+					}
+
 				})
 			}
 		})
@@ -1105,27 +1120,48 @@ class widgetsmartprops {
             break;  
         }
 
+        function shiftXY(shiftVal){
+            let left = 0
+            let top = 0
+            if (props?.axis != 'y')
+                left = shiftVal
+
+            if (props?.axis != 'x')
+                top = shiftVal
+
+            if (props?.unit == '%'){
+                left = ((width - boxsizing.x) / 100) * left
+                top = ((height - boxsizing.y) / 100) * top
+            }
+
+            return [left, top]
+        }
+
         widgets = widgetconvertor.toArrayOfWidgets(widgets)
         widgets.forEach((widget, key) => {
             
             const dragElement = widgetdom.createElement(widget)
             if (shift){
-                let left = 0
-                let top = 0
-                if (props?.axis != 'y')
-                    left = shift[key]
+                if ('state' in props){
+                    console.log('props.state', props.state.state, shift[key])
+                    props.state.state.watch(shift[key]).link(function(newValue){
+                        console.log(newValue)
+                    })
+                    
 
-                if (props?.axis != 'x')
-                    top = shift[key]
+                    // const [left, top] = shiftXY(0)
+                    // dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
 
-                if (props?.unit == '%'){
-                    left = ((width - boxsizing.x) / 100) * left
-                    top = ((height - boxsizing.y) / 100) * top
+
+                } else {
+                    const [left, top] = shiftXY(shift[key])
+                    dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
                 }
-                dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
             } else {
                 dragElement.style = 'position: absolute; left: 0px; top: 0px';
             }
+
+
             dragElement.onmousedown = (event) => {
                 mouseDownPosition = [event.screenX, event.screenY]; 
                 mouseDown = key

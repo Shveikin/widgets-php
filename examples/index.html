@@ -64,9 +64,18 @@
 </head>
 <body>
     <div id="app"></div>
+    <input type="text" id="dd">
     
-    
+
     <script>
+
+        const state = widgetstate.use({
+            text: 'Hello world'
+        })
+
+        state.watch('text').link(function(text){
+            document.querySelector('#dd').value = text
+        })
         
         // c.app(
         //     c.div({
@@ -88,18 +97,18 @@
         //     })
         // )
 
-        widgetstate.use(
-            {
-                min: 0,
-                max: 100,
-            },{
-                name: 'rashod',
-                alias: {
-                    min: 'rashod_min',
-                    max: 'rashod_max',
-                }
-            }
-        )
+        // widgetstate.use(
+        //     {
+        //         min: 0,
+        //         max: 100,
+        //     },{
+        //         name: 'rashod',
+        //         alias: {
+        //             min: 'rashod_min',
+        //             max: 'rashod_max',
+        //         }
+        //     }
+        // )
 
         // widgetstate.use(
         //     {
@@ -114,21 +123,21 @@
         //     }
         // )
 
-        c.app([
-            c.slider({
-                title: 'Расход',
-                state: 'rashod',
-                range: {min: 0, max: 200},
-                sliderWidth: 500,
-                type: 'int'
-            }),
-            // c.slider({
-            //     title: 'Температура',
-            //     state: 'temp',
-            //     range: {min: 0, max: 100},
-            //     sliderWidth: 500,
-            // }),
-        ])
+        // c.app([
+        //     c.slider({
+        //         title: 'Расход',
+        //         state: 'rashod',
+        //         range: {min: 0, max: 200},
+        //         sliderWidth: 500,
+        //         type: 'int'
+        //     }),
+        //     // c.slider({
+        //     //     title: 'Температура',
+        //     //     state: 'temp',
+        //     //     range: {min: 0, max: 100},
+        //     //     sliderWidth: 500,
+        //     // }),
+        // ])
 
 
     </script>

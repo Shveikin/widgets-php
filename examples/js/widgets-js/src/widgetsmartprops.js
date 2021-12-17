@@ -69,27 +69,48 @@ class widgetsmartprops {
             break;  
         }
 
+        function shiftXY(shiftVal){
+            let left = 0
+            let top = 0
+            if (props?.axis != 'y')
+                left = shiftVal
+
+            if (props?.axis != 'x')
+                top = shiftVal
+
+            if (props?.unit == '%'){
+                left = ((width - boxsizing.x) / 100) * left
+                top = ((height - boxsizing.y) / 100) * top
+            }
+
+            return [left, top]
+        }
+
         widgets = widgetconvertor.toArrayOfWidgets(widgets)
         widgets.forEach((widget, key) => {
             
             const dragElement = widgetdom.createElement(widget)
             if (shift){
-                let left = 0
-                let top = 0
-                if (props?.axis != 'y')
-                    left = shift[key]
+                if ('state' in props){
+                    console.log('props.state', props.state.state, shift[key])
+                    props.state.state.watch(shift[key]).link(function(newValue){
+                        console.log(newValue)
+                    })
+                    
 
-                if (props?.axis != 'x')
-                    top = shift[key]
+                    // const [left, top] = shiftXY(0)
+                    // dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
 
-                if (props?.unit == '%'){
-                    left = ((width - boxsizing.x) / 100) * left
-                    top = ((height - boxsizing.y) / 100) * top
+
+                } else {
+                    const [left, top] = shiftXY(shift[key])
+                    dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
                 }
-                dragElement.style = `position: absolute; left: ${left}px; top: ${top}px`;
             } else {
                 dragElement.style = 'position: absolute; left: 0px; top: 0px';
             }
+
+
             dragElement.onmousedown = (event) => {
                 mouseDownPosition = [event.screenX, event.screenY]; 
                 mouseDown = key

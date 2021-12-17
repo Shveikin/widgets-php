@@ -17,23 +17,21 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
 
         min_proc: map(globalState.min, [range.min, range.max], [0, 100]),
         max_proc: map(globalState.max, [range.min, range.max], [0, 100]),
-        min_pos: Math.floor(map(globalState.min, [range.min, range.max], [0, sliderWidth])),// globalState.min,
-        max_pos: Math.floor(map(globalState.max, [range.min, range.max], [0, sliderWidth])),//globalState.max,
+        min_pos: Math.floor(map(globalState.min, [range.min, range.max], [0, sliderWidth])),
+        max_pos: Math.floor(map(globalState.max, [range.min, range.max], [0, sliderWidth])),
 
         moveLeft: false,
         moveRight: false,
     })
 
-    // console.log('min_pos', localState.min_pos)
-    // console.log('max_pos', localState.max_pos)
 
     return c.div({
         style: 'margin-bottom: 20px;',
         child: [
         c.div({
-            className: 'filterTitle',
+            className: 'title_f2',
             innerHTML: globalState.watch((min, max) => {
-                return `<b>${title}:</b> от ${min} до ${max} `
+                return `${title}: <b>от ${min} до ${max}</b> `
             })
         }),
         c.div({
@@ -49,9 +47,16 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
                         })
                     }),
                 ],
+                state: {
+                    state: localState,
+                    values: [
+                        'min_proc', 
+                        'max_proc'
+                    ]
+                },
                 drag: {
-                    [localState.min_proc]: c.div({className: 'sliderPoint'}),
-                    [localState.max_proc]: c.div({className: 'sliderPoint'}),
+                    10: c.div({className: 'sliderPoint'}),
+                    90: c.div({className: 'sliderPoint'}),
                 },
                 axis: 'x',
                 unit: '%',
@@ -79,29 +84,13 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
             child: [
                 c.input({
                     type: 'number',
-                    className: 'sliderInput',
-                    style: localState.check('moveLeft', true, 'border: 1px solid rgb(0, 150, 187)', ''),
-                    value: globalState.model('min')//, function(value){
-                        // value = parseInt(value)<localState.max_proc
-                        //             ?value
-                        //             :localState.max_proc
-
-                    //     return roundValue(map(value,[0, 100], [range.min, range.max]))
-                    // }
-                    
+                    className: 'filterInput_f2',
+                    value: globalState.model('min')
                 }),
                 c.input({
-                    className: 'sliderInput',
+                    className: 'filterInput_f2',
                     type: 'number',
-                    style: localState.check('moveRight', true, 'border: 1px solid rgb(0, 150, 187)', ''),
                     value: globalState.model('max')
-                    // , function(value){
-                        // value = parseInt(value)>localState.min_proc
-                        //         ?value
-                        //         :localState.min_proc
-
-                        // return roundValue(map(value,[0, 100], [range.min, range.max]))
-                    // }
                 }),
             ]
         })
