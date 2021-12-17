@@ -55,58 +55,10 @@ class widgettools {
 	}
 
 	static state_modelIn(props){
-		return widgetstate.name(props.state).model(props.prop, 
-			{
-				htmlelementValue(value){
-					if (value==false){
-						const newStateValue = widgetstate.name(props.state)[props.prop].filter(val => 
-							val!=props.value
-						)
-						widgetstate.name(props.state)[props.prop] = newStateValue
-					} else {
-						let newStateValue = widgetstate.name(props.state)[props.prop]
-						if (Array.isArray(newStateValue)){
-							newStateValue.push(props.value)
-						} else {
-							newStateValue = [props.value]
-						}
-						widgetstate.name(props.state)[props.prop] = newStateValue
-					}
-					return value;
-				},
-				widgetstateValue(value){
-					if (value.includes(props.value)){
-						return props.result?props.result:true;
-					} else {
-						return false;
-					}
-				}
-			}
-			// function(value){
-			// 	if (Array.isArray(value)){
-			// 		if (value.includes(props.value)){
-			// 			return props.result?props.result:true;
-			// 		} else {
-			// 			return false;
-			// 		}
-			// 	} else {
-			// 		if (value==false){
-			// 			const newStateValue = widgetstate.name(props.state)[props.prop].filter(val => 
-			// 				val!=props.value
-			// 			)
-			// 			widgetstate.name(props.state)[props.prop] = newStateValue
-			// 		} else {
-			// 			const newStateValue = widgetstate.name(props.state)[props.prop]
-			// 			newStateValue.push(props.value)
-			// 			widgetstate.name(props.state)[props.prop] = newStateValue
-			// 		}
-			// 		return value;
-			// 	}
-			// }
-		)
+		return widgetstate.name(props.state).modelIn(props.prop, props.value)
 	}
 
-	
+
 
 	static func(props){
 		return Function(props.function);

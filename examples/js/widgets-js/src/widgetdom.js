@@ -19,7 +19,7 @@ class widgetdom {
         widget.rootElement = rootElement
 
 
-
+        if (widget.props)
         Object.keys(widget.props).forEach(prop => {
             if (prop in widgetsmartprops){
                 widgetsmartprops[prop](widget, widget.props[prop])
@@ -39,6 +39,7 @@ class widgetdom {
             const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
             if (change) value = newValue
 
+            if (!('childs' in widget)) widget.childs = {}
             widget.childs.view = [c.div(value)]
             rootElement.appendChild(
                 widgetdom.createElement(widget.childs.view[0])

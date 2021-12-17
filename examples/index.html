@@ -88,18 +88,18 @@
         //     })
         // )
 
-        // widgetstate.use(
-        //     {
-        //         min: 0,
-        //         max: 100,
-        //     },{
-        //         name: 'rashod',
-        //         alias: {
-        //             min: 'rashod_min',
-        //             max: 'rashod_max',
-        //         }
-        //     }
-        // )
+        widgetstate.use(
+            {
+                min: 0,
+                max: 100,
+            },{
+                name: 'rashod',
+                alias: {
+                    min: 'rashod_min',
+                    max: 'rashod_max',
+                }
+            }
+        )
 
         // widgetstate.use(
         //     {
@@ -114,39 +114,22 @@
         //     }
         // )
 
-        // c.app([
-        //     c.slider({
-        //         title: 'Расход',
-        //         state: 'rashod',
-        //         range: {min: 0, max: 200},
-        //         sliderWidth: 500,
-        //         type: 'int'
-        //     }),
-        //     // c.slider({
-        //     //     title: 'Температура',
-        //     //     state: 'temp',
-        //     //     range: {min: 0, max: 100},
-        //     //     sliderWidth: 500,
-        //     // }),
-        // ])
-
-        const state = widgetstate.use({
-            _connect_in: [523]
-        })
-
         c.app([
-            c.div({innerHTML: state.watch(_connect_in => _connect_in.join(','))}),
-            c.label([
-                c.input({
-                    type: 'checkbox',
-                    checked: state.modelIn('_connect_in', 555)
-                }),
-                'Подсоединение'
-            ]),
-            c.button({
-                child: 'Добавить',
-            })
+            c.slider({
+                title: 'Расход',
+                state: 'rashod',
+                range: {min: 0, max: 200},
+                sliderWidth: 500,
+                type: 'int'
+            }),
+            // c.slider({
+            //     title: 'Температура',
+            //     state: 'temp',
+            //     range: {min: 0, max: 100},
+            //     sliderWidth: 500,
+            // }),
         ])
+
 
     </script>
 </body>
