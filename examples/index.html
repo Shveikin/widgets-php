@@ -130,11 +130,23 @@
         //     // }),
         // ])
 
-        widgetstate.use({"min":0,"max":100},{"alias":{"min":"rashod_min","max":"rashod_max"},"name":"rashod"}); 
+        const state = widgetstate.use({
+            _connect_in: [523]
+        })
 
-        c.app(
-            {"element":"slider","_name":"element_1","state":"rashod","title":"\u0420\u0430\u0441\u0445\u043e\u0434","range":{"min":0,"max":200},"sliderWidth":500,"type":"int"}
-        )
+        c.app([
+            c.div({innerHTML: state.watch(_connect_in => _connect_in.join(','))}),
+            c.label([
+                c.input({
+                    type: 'checkbox',
+                    checked: state.modelIn('_connect_in', 555)
+                }),
+                'Подсоединение'
+            ]),
+            c.button({
+                child: 'Добавить',
+            })
+        ])
 
     </script>
 </body>
