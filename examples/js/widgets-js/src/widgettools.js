@@ -92,10 +92,9 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = //widgetstate.name(props.state).watch(props.prop, function(array){
-			//return 
-			// array
-			widgetstate.name(props.state)._list
+		const state_map = 
+			widgetstate.name(props.state)
+			// bn._list
 			.map(itm => {
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
@@ -107,9 +106,8 @@ class widgettools {
 
 				return newElement
 			})
-		//})
 
-		const element = c.div(state_map)
+		// const element = c.div(state_map)
 		return element
 	}
 

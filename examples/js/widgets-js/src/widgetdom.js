@@ -30,20 +30,32 @@ class widgetdom {
 
         if (Array.isArray(widget.childs)){
             widget.childs.forEach(childWidget => {
-                const childElement = widgetdom.createElement(childWidget)
-                rootElement.appendChild(childElement)
+                const widgetType = widgetconvertor.getType(childWidget)
+                switch(widgetType){
+                    case 'Widget':
+                        const childElement = widgetdom.createElement(childWidget)
+                        rootElement.appendChild(childElement)
+                    break;
+                    default: 
+                        console.log('Не знаю что делать с этим child - ', widgetType)
+                    break;
+                }
+
             })
         } else {
             const childType = widgetconvertor.getType(widget.childs)
             let value = ''
             const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
-            if (change) value = newValue
+            // if (change) value = newValue
 
-            if (!('childs' in widget)) widget.childs = {}
-            widget.childs.view = [c.div(value)]
-            rootElement.appendChild(
-                widgetdom.createElement(widget.childs.view[0])
-            )
+            if (!change){
+                if (!('childs' in widget)) widget.childs = {}
+                widget.childs.view = [c.div(value)]
+                rootElement.appendChild(
+                    widgetdom.createElement(widget.childs.view[0])
+                )
+            }
+
 
         }
 
@@ -107,10 +119,11 @@ class widgetdom {
     static compareChilds(currNode, nextNode){
         const deleteIndexs = []
 
-        let useView = false
+        let useView = true
         let currChild = []
         if (Array.isArray(currNode.childs)){
             currChild = currNode.childs
+            useView = false
         } else {
             if ('view' in currNode.childs){
 
@@ -118,7 +131,6 @@ class widgetdom {
                 currChild = Array.isArray(child)
                     ?child
                     :[]
-                useView = true
 
             }
         }
@@ -150,13 +162,15 @@ class widgetdom {
                     nw.push(child)
                 }
             })
-
-            if (useView){
-                currNode.childs.view = nw
-            } else {
-                currNode.childs = nw
-            }
+            currChild = nw
         }
+
+        if (useView){
+            currNode.childs.view = currChild
+        } else {
+            currNode.childs = currChild
+        }
+        
 
 
     }

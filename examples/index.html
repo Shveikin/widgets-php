@@ -96,34 +96,53 @@
         //     })
         // )
 
-        widgetstate.use(
+        // widgetstate.use(
+        //     {
+        //         min: 0,
+        //         max: 100,
+        //     },{
+        //         name: 'rashod',
+        //         alias: {
+        //             min: 'rashod_min',
+        //             max: 'rashod_max',
+        //         }
+        //     }
+        // )
+
+        // c.app([
+        //     c.slider({
+        //         title: 'Расход',
+        //         state: 'rashod',
+        //         range: {min: 0, max: 200},
+        //         sliderWidth: 500,
+        //         type: 'int'
+        //     }),
+        //     // c.slider({
+        //     //     title: 'Температура',
+        //     //     state: 'temp',
+        //     //     range: {min: 0, max: 100},
+        //     //     sliderWidth: 500,
+        //     // }),
+        // ])
+
+
+
+        const state = widgetstate.use(
             {
-                min: 0,
-                max: 100,
-            },{
-                name: 'rashod',
-                alias: {
-                    min: 'rashod_min',
-                    max: 'rashod_max',
-                }
+                _list: [
+                    '11',
+                    '22',
+                ],
             }
         )
 
-        c.app([
-            c.slider({
-                title: 'Расход',
-                state: 'rashod',
-                range: {min: 0, max: 200},
-                sliderWidth: 500,
-                type: 'int'
-            }),
-            // c.slider({
-            //     title: 'Температура',
-            //     state: 'temp',
-            //     range: {min: 0, max: 100},
-            //     sliderWidth: 500,
-            // }),
-        ])
+        const map = state.map('_list', val => c.input({value: val}))
+
+        c.app(
+            map
+        )
+
+        // state.list = ['1','2','3']
 
 
     </script>

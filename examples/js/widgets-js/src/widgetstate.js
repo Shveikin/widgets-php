@@ -214,7 +214,7 @@ class widgetstate {
 		return widgetstate.keys(self).map(itm => self[itm])
 	}
 
-	static map(self, func){
+	static mapArray(self, func){
 		return widgetstate.values(self).map(func)
 	}
 
@@ -280,6 +280,7 @@ class widgetstate {
         }
     }
 
+
     static updateAll(self, _stateProp = false) {
 		let stateProps = [] 
 		if (_stateProp==false)
@@ -303,7 +304,8 @@ class widgetstate {
 					switch (widgetType) {
 						case 'Widget':
 							if (stateData.changeWidgetProp == 'childs'){
-								widgetdom.update(stateData.widget, c.div(value))
+								const child = c.div(value)
+								widgetdom.update(stateData.widget, child)
 							} else {
 								stateData.widget.props[stateData.changeWidgetProp] = value
 								widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
@@ -362,6 +364,26 @@ class widgetstate {
 		const state = this;
 		return (prop) => {
 			state[prop] = !state[prop]
+		}
+	}
+
+	static map(self){
+		const state = this;
+		return (prop, callback = false) => {
+			return state.watch(prop, function(prop){
+				if (callback==false){
+					return prop
+				}
+				const type = widgetconvertor.getType(callback)
+				return prop.map(itm => {
+					switch(type){
+						case 'Function':
+							return callback(itm)
+						break;
+					}
+				})
+				
+			})
 		}
 	}
 

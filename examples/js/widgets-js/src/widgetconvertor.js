@@ -80,7 +80,7 @@ class widgetconvertor {
 			case 'Widget':
 			case 'WidgetTools':
 			case 'State':
-				childs = [source]
+				childs = source
 			break;
 		}
 
