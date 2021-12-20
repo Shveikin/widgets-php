@@ -133,14 +133,17 @@ class state {
         );
     }
 
-    function map($prop, $callback){
-        $imprint = new Imprint();
-        $refernce = $callback($imprint);
+    function map($prop, $callback = false){
+        $imprint = new Imprint($this, $prop);
+        $refernce = false;
+        if (is_callable($callback)){
+            $refernce = $callback($imprint)->toArray();
+        }
 
         $state_map = c::state_map(
             state: $this->_name,
             prop: $prop,
-            refernce: $refernce->toArray(),
+            refernce: $refernce,
             useColls: $imprint->getColls(),
             view: '***',
         );

@@ -8,15 +8,42 @@ class widgetdom {
         return widgetdom.idCounter++;
     }
 
+    static makeElement(widget, parent = false){
+        widget.rootElement = document.createElement(widget.type);
+        widget.rootElement.setAttribute('key_id', widget.id)
+        widget.parent = parent
+
+        widgetdom.parentLink(widget, parent)
+    }
+
+    static parentLink(widget, parent){
+        const parentType = widgetconvertor.getType(parent)
+        switch (parentType) {
+            case 'HTML':
+                parent.appendChild(widget.rootElement)
+            break;
+            case 'Widget':
+                widgetdom.parentLink(widget, parent.rootElement)
+                // if (parent.rootElement){
+                //     parent.rootElement.appendChild(widget.rootElement)
+                // } else {
+                //     console.error(parent)
+                // }
+            break;
+            default:
+                console.log('Не знаю как добавить в этот парент! ', parentType, parent);
+            break;
+        }
+    }
+
     /**
      * CREATE ELEMENT
      */
-    static createElement(widget){
+    static createElement(widget, parent){
         if (widget.type in widgetdom.widgetStore){
             widget = widgetdom.widgetStore[widget.type](widget.props)
         }
-        const rootElement = document.createElement(widget.type);
-        widget.rootElement = rootElement
+        widgetdom.makeElement(widget, parent)
 
 
         if (widget.props)
@@ -33,8 +60,7 @@ class widgetdom {
                 const widgetType = widgetconvertor.getType(childWidget)
                 switch(widgetType){
                     case 'Widget':
-                        const childElement = widgetdom.createElement(childWidget)
-                        rootElement.appendChild(childElement)
+                        widgetdom.createElement(childWidget, widget)
                     break;
                     default: 
                         console.log('Не знаю что делать с этим child - ', widgetType)
@@ -44,22 +70,23 @@ class widgetdom {
             })
         } else {
             const childType = widgetconvertor.getType(widget.childs)
-            let value = ''
-            const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
-            // if (change) value = newValue
 
-            if (!change){
-                if (!('childs' in widget)) widget.childs = {}
-                widget.childs.view = [c.div(value)]
-                rootElement.appendChild(
-                    widgetdom.createElement(widget.childs.view[0])
-                )
+            if ('view' in widget.childs) {
+                widget.childs.view = []
             }
 
+            let value = ''
+            const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
 
+            if (!change){
+                // if (!('childs' in widget)) widget.childs = {}
+
+                // const childWidget = c.div(value)
+
+                // widget.childs.view = [childWidget]
+                // widgetdom.createElement(childWidget, child)
+            }
         }
-
-        return rootElement
     }
 
 
@@ -68,19 +95,24 @@ class widgetdom {
      */
     static update(currNode, nextNode, index = 0){
         if (!nextNode) {
-            if (currNode.rootElement.parentElement)
+            if (currNode.rootElement.parentElement){
                 currNode.rootElement.parentElement.removeChild(currNode.rootElement)
-                return false
+                currNode.rootElement = null
+            } else {
+                alert('Нет парента');
+            }
+
+            return true
         } else if (widgetdom.changedType(currNode, nextNode)) {
 
-            nextNode.rootElement = widgetdom.createElement(nextNode)
+            widgetdom.createElement(nextNode)
             widgetdom.nodeReplace(currNode, nextNode)
 
         } else {
             widgetdom.compareProps(currNode, nextNode)
             widgetdom.compareChilds(currNode, nextNode)
         }
-        return true
+        return false
     }
 
 
@@ -138,18 +170,25 @@ class widgetdom {
         const max = Math.max(currChild.length, nextNode.childs.length)
         for (let i = 0; i < max; i++) {
             if (currChild[i]) {
-                if (!widgetdom.update(
+
+                const removeChildElement = widgetdom.update(
                     currChild[i],
                     nextNode.childs[i],
                     i
-                )) {
+                )
+
+                if (removeChildElement) {
                     deleteIndexs.push(i)
                 }
             } else {
-                currNode.rootElement.appendChild(
-                    widgetdom.createElement(nextNode.childs[i])
-                )
-                currChild.push(nextNode.childs[i])
+                const child = nextNode.childs[i];
+
+                console.log(currNode.id)
+                console.log(currNode.rootElement)
+                widgetdom.createElement(child, currNode)
+
+                
+                currChild.push(child)
             }
         }
 
@@ -170,7 +209,6 @@ class widgetdom {
         } else {
             currNode.childs = currChild
         }
-        
 
 
     }
@@ -258,10 +296,9 @@ class widgetdom {
 
     static active = {}
     static firstRender(rootElement, querySelector, widget){
-        const result = widgetdom.createElement(widget)
-        widgetdom.active[querySelector] = widget
         rootElement.innerHTML = ''
-        rootElement.appendChild(result)
+        widgetdom.createElement(widget, rootElement)
+        widgetdom.active[querySelector] = widget
     }
 
 

@@ -127,22 +127,83 @@
 
 
 
-        const state = widgetstate.use(
-            {
-                _list: [
-                    '11',
-                    '22',
-                ],
-            }
-        )
+        // const state = widgetstate.use({
+        //     list: 
+        //     [
+        //         {
+        //             image: '1.jpg',
+        //             _connects: [1, 2, 3],
+        //         },
+        //         {
+        //             image: '2.jpg',
+        //             _connects: [5],
+        //         },
+        //         {
+        //             image: '3.jpg',
+        //             _connects: [11, 12, 13, 55, 64],
+        //         }
+        //     ],
+        // })
 
-        const map = state.map('_list', val => c.input({value: val}))
+        // c.app(
+        //     state.map('list', function(itm){
+        //         if (widgetconvertor.getType(itm)=='Object')
+        //         return c.div([
+        //             itm.watch('image'),
+        //             itm.map('_connects')
+        //         ])
+        //     })
+        // )
 
-        c.app(
-            map
-        )
+        
 
-        // state.list = ['1','2','3']
+        // const state = widgetstate.use({
+        //     list: {
+        //         _name: 'jj',
+        //         text: 'Hello',
+        //         _otherList: [1,2,3] 
+        //     }
+        // })
+
+        // c.app([
+        //     state.list.watch('text'),
+        //     state.list.map('_otherList', function(val){
+        //         return val * 2
+        //     })
+        // ])
+
+
+        // widgetstate.use({"list":[{"text":"hello"},{"text":"world"}]},{"name":"mapList"});
+
+        // c.app(
+        //     {"element":"div","_name":"element_3","child":[{"element":"state_map","_name":"element_2","state":"mapList","prop":"_list","refernce":{"element":"textarea","_name":"element_1","child":["**text**"]},"useColls":["text"],"view":"***"}]}
+        // )
+
+
+
+
+        widgetstate.use({"sreda_id":14,"weight":1000,"sreda_title":"\u0412\u043e\u0437\u0434\u0443\u0445"},{"name":"sreda"});
+        widgetstate.use({
+                "_list": [
+                    {
+                        "id": "1",
+                        "environment": "Азот (N2 Nitrogen)",
+                        "weight": "1.2506",
+                        "state": "2"
+                    },
+                    {
+                        "id": "2",
+                        "environment": "Азотная кислота (концентрированная) (Nitric Acid, (concentrated))",
+                        "weight": "1370",
+                        "state": "1"
+                    }
+                ]
+            }, {"name":"sredaList"});
+        widgetstate.use({"isOpen":false}, {"name":"sredaControllerProps_1"});
+
+            c.app(
+                {"element":"div","_name":"element_15","child":[{"element":"div","_name":"element_1","child":[{"element":"div","_name":"element_14","style":"font-family: \"Trebuchet MS\"; font-size: 14px;","child":[{"element":"div","_name":"element_5","style":"border: 1px solid #ccc; padding: 5px; cursor: pointer;","onclick":{"element":"func","function":"widgetstate.name('sredaControllerProps_1').checkTurn('isOpen')","view":"widgetstate.name(`sredaControllerProps_1`).checkTurn(`isOpen`)"},"child":[{"element":"div","_name":"element_4","style":"display: flex; justify-content: space-between;","child":[{"element":"state_watcher","_name":"element_2","state":"sreda","watch":"sreda_title","callback":false,"view":"\u0412\u043e\u0437\u0434\u0443\u0445"},{"element":"state_check","_name":"element_3","state":"sredaControllerProps_1","prop":"isOpen","value":true,"_true":"\u25b2","_false":"\u25bc","view":"\u25bc"}]}]},{"element":"div","_name":"element_13","child":[{"element":"state_check","_name":"element_12","state":"sredaControllerProps_1","prop":"isOpen","value":true,"_true":{"element":"div","_name":"element_11","style":"border: 1px solid #ccc; \r\n                                    padding: 5px; \r\n                                    height: 200px; \r\n                                    margin-top: -1px;\r\n                                    overflow: auto;\r\n                            ","child":[{"element":"state_map","_name":"element_10","state":"sredaList","prop":"_list","refernce":{"element":"div","_name":"element_9","style":{"element":"state_check","_name":"element_6","state":"sreda","prop":"sreda_id","value":"**id**","_true":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","_false":"color: #222;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","view":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;"},"innerHTML":"**environment**","onclick":{"element":"state_update_group","list":[{"element":"state_update","_name":"element_7","state":"sreda","stateProps":{"sreda_id":"**id**","sreda_title":"**environment**"}},{"element":"state_update","_name":"element_8","state":"sredaControllerProps_1","stateProps":{"isOpen":false}},{"element":"widget_request","function":"select","props":[],"url":"\/index.php","class":"SredaController","useState":["sreda"],"view":""}]}},"useColls":["id","environment"],"view":"***"}]},"_false":"","view":""}]}]}]}]}
+            )
 
 
     </script>

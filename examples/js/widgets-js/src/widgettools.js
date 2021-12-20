@@ -92,10 +92,9 @@ class widgettools {
 	}
 
 	static state_map(props){
-		const state_map = 
-			widgetstate.name(props.state)
-			// bn._list
-			.map(itm => {
+		const state_map = widgetstate.name(props.state).map(props.prop, itm => {
+
+			if (props.refernce){
 				let reference = JSON.stringify(props.refernce)
 				props.useColls.map(replace => {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
@@ -105,10 +104,12 @@ class widgettools {
 				const newElement = c.div(myProps)
 
 				return newElement
-			})
+			} else {
+				return itm
+			}
+		})
 
-		// const element = c.div(state_map)
-		return element
+		return state_map
 	}
 
 	static state_update(props){

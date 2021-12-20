@@ -29,15 +29,18 @@ class widgetstate {
 			obj = {}
 
 		let stateName = '';
+		if (props && 'name' in props){
+			stateName = props.name
+			obj['_name'] = stateName
+		} else
 		if ('_name' in obj){
 			stateName = obj['_name'];
-			delete obj['_name'];
+			// delete obj['_name'];
 		} else {
 			stateName = 'state_' + widgetstate.state_length;
+			obj['_name'] = stateName
 		}
 
-		if (props && 'name' in props)
-			stateName = props.name
 
 
 
@@ -77,8 +80,12 @@ class widgetstate {
                 }
             },
             set(object, prop, value){
-                object[prop] = value
-                widgetstate.updateAll(object, prop)
+				if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
+					object[prop] = value
+				} else {
+					object[prop] = widgetstate.use(value)
+				}
+                widgetstate.updateAll(object._name, prop)
 				widgetstate.setAlias(stateName, prop, value)
 				return true
             }
@@ -182,14 +189,14 @@ class widgetstate {
 
 	static set(self, key, value){
 		self[key] = value
-		widgetstate.updateAll(self)
+		widgetstate.updateAll(self._name)
 	}
 
 	static push(self, prop){
 		const count = widgetstate.keys(self).length 
 		self['' + count] = prop
 
-		widgetstate.updateAll(this)
+		widgetstate.updateAll(this._name)
 	}
 
 	static filterSystemVars(array){
@@ -246,7 +253,12 @@ class widgetstate {
 
             return {
                 link(widget, changeWidgetProp = false){
-                    if (!('___updates' in self)) self.___updates = {}
+                    // if (!('___updates' in self)) self.___updates = {}
+					const stateName = self._name
+					
+					if (!(stateName in widgetstate.updates)) widgetstate.updates[stateName] = {}
+					const ___updates = widgetstate.updates[stateName]
+					
 					const widgetType = widgetconvertor.getType(widget)
 					const id = widgetType=='Widget'?widget.id:Math.floor(Math.random() * 6)
 
@@ -262,17 +274,17 @@ class widgetstate {
 					if (widgetType=='Widget'){
 						if (!(state in widget)) widget.state = {}
 						if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
-							link: self.___updates,
+							link: ___updates,
 							key,
 							stateProps
 						}
 					}
 
                     stateProps.map(stateProp => {
-                        if (!(stateProp in self.___updates)) self.___updates[stateProp] = {}
-                        self.___updates[stateProp][key] = state
+                        if (!(stateProp in ___updates)) ___updates[stateProp] = {}
+                        ___updates[stateProp][key] = state
 
-                        widgetstate.updateAll(self, stateProp)
+                        widgetstate.updateAll(stateName, stateProp)
                     })
 
                 }
@@ -281,21 +293,24 @@ class widgetstate {
     }
 
 
-    static updateAll(self, _stateProp = false) {
-		let stateProps = [] 
-		if (_stateProp==false)
-			stateProps = widgetstate.keys(self)
-		else 
-			stateProps = [_stateProp]
+	static updates = {}
+
+    static updateAll(stateName, _stateProp = false) {
+		let stateProps = [_stateProp]
 		
 		stateProps.forEach(stateProp => {
 
-			if ('___updates' in self && stateProp in self.___updates){
-				Object.values(self.___updates[stateProp]).forEach(stateData => {
+			// if ('___updates' in self && stateProp in self.___updates){
+			// 	Object.values(self.___updates[stateProp]).forEach(stateData => {
+			
+			if (stateName in widgetstate.updates && stateProp in widgetstate.updates[stateName]){
+				const ___updates = widgetstate.updates[stateName][stateProp]
 
+
+				Object.values(___updates).forEach(stateData => {
 					const properties = []
 					stateData.stateProps.forEach(i => {
-						properties.push(self[i])
+						properties.push(widgetstate.name(stateName)[i])
 					})
 
 					const value = stateData.updateStateFunction.apply(this, properties)
@@ -324,8 +339,8 @@ class widgetstate {
 			}
 		})
 
-		if (self.___parent) 
-			widgetstate.updateAll(self.___parent)
+		// if (self.___parent) 
+		// 	widgetstate.updateAll(self.___parent)
     }
 
     static props(self) {
@@ -375,14 +390,17 @@ class widgetstate {
 					return prop
 				}
 				const type = widgetconvertor.getType(callback)
-				return prop.map(itm => {
+				const array = Array.isArray(prop)?prop:prop.values()
+				const list = array.map(itm => {
 					switch(type){
 						case 'Function':
-							return callback(itm)
+							const result = callback(itm)
+							return result
 						break;
 					}
 				})
-				
+
+				return list
 			})
 		}
 	}

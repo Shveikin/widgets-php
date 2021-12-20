@@ -37,8 +37,11 @@
 use Widget\c;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once 'states/MapState.php';
 require_once 'states/SredaState.php';
+
 require_once 'components/SredaController.php';
+// 'SredaState.php'
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
@@ -49,7 +52,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 imprt([
     'function_list',
     'sqli_connect',
-    'rashodstate',
+    // 'rashodstate',
     // 'rashod',
     // 'config',
     // // 'ModxClearMashine',
@@ -81,24 +84,43 @@ echo '<script src="/js/components/slider.js"></script>';
 
 
 
-// $first = SredaController::element();
+$first = SredaController::element();
 
-// echo c::div([
-//     SredaController::element(),
-// ])->html(true);
+echo c::div([
+    $first,
+])->html(true);
 
 
 // echo c::div('Hello');
 
-RashodState::state();
+// RashodState::state();
 
-echo c::slider(
-    state: 'rashod',
-    title: 'Расход',
-    range: ['min' =>  0, 'max' => 200],
-    sliderWidth: 500,
-    type: 'int'
-)->html(true);
+// echo c::slider(
+//     state: 'rashod',
+//     title: 'Расход',
+//     range: ['min' =>  0, 'max' => 200],
+//     sliderWidth: 500,
+//     type: 'int'
+// )->html(true);
+
+
+
+// MapState::state();
+
+// $state = MapState::state();
+
+// echo c::div(
+//     $state->map('_list', function($itm){
+        
+//         return [
+//             c::textarea(value: $itm->text),
+//             // $itm->map('list')
+//             $itm->_list->map('list')
+//         ];
+//     })
+// )->html(true);
+
+
 
 // echo $first->html(true);
 

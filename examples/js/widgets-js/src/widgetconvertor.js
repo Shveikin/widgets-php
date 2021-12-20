@@ -57,9 +57,6 @@ class widgetconvertor {
 			case 'Element':
 				type = source.element
 			case 'Object':
-				// if ('type' in source){
-				// 	type = source['type']
-				// }
 				Object.keys(source).forEach(prop => {
 					if (childElements.includes(prop)){
 						if (prop!='element'){
@@ -78,9 +75,15 @@ class widgetconvertor {
 				})
 			break;
 			case 'Widget':
+				childs = [source]
+			break;
 			case 'WidgetTools':
 			case 'State':
-				childs = source
+				if (type in widgetconvertor.singleElement){
+					props[widgetconvertor.singleElement[type]] = source
+				} else {
+					childs = source
+				}
 			break;
 		}
 
@@ -135,9 +138,11 @@ class widgetconvertor {
         if (Array.isArray(element))
 			type = 'Array'
 		else
-        if (typeof element == 'object'){
+        if (element && typeof element == 'object'){
 			type = 'Object'
-			
+			if (element instanceof HTMLElement || element instanceof Text)
+				type = 'HTML'
+			else
 			if ('type' in element && 'props' in element && 'childs' in element)
 				type = 'Widget'
 			else
@@ -156,17 +161,14 @@ class widgetconvertor {
 		if (typeof element=='number')
 			type = 'Int'
 		else
-		if (element instanceof HTMLElement || element instanceof Text)
-			type = 'HTML'
-		else
 		if (typeof element == 'function')
 			type = 'Function'
+		else
 		if (typeof element == 'boolean')
 			type = 'Bool'
 		
 		return type;
 	}
-
 
     static checkState(widget, prop){
 
@@ -178,12 +180,12 @@ class widgetconvertor {
 		let change = false;
 		if (widgetconvertor.getType(value)=='WidgetTools'){
 			value = widgettools.create(value)
-			change = true
+			change = 'WidgetTools'
 		}
 
 		if (widgetconvertor.getType(value)=='State'){
 			value = widgetstate.inspector(value, widget, prop)
-			change = true
+			change = 'State'
 			// return [true, false]
 		}
 
