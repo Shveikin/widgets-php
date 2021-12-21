@@ -91,14 +91,18 @@ class widgettools {
 		}
 	}
 
-	static state_map(props){
-		const state_map = widgetstate.name(props.state).map(props.prop, itm => {
+	static state_map({state, prop, refernce = false, useColls = false}){
+		const state_map = widgetstate.name(state).map(prop, itm => {
 
-			if (props.refernce){
-				let reference = JSON.stringify(props.refernce)
-				props.useColls.map(replace => {
-					reference = reference.replaceAll(`**${replace}**`, itm[replace])
-				})
+			if (refernce){
+				let reference = JSON.stringify(refernce)
+				if (useColls){
+					useColls.forEach(replace => {
+						reference = reference.replaceAll(`**${replace}**`, itm[replace])
+					})
+				} else {
+					reference = reference.replaceAll('**val**', itm)
+				}
 				const myProps = JSON.parse(reference)
 				return myProps
 				const newElement = c.div({child: myProps})

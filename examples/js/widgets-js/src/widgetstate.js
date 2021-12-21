@@ -80,13 +80,16 @@ class widgetstate {
                 }
             },
             set(object, prop, value){
-				if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
-					object[prop] = value
-				} else {
-					object[prop] = widgetstate.use(value)
+				if (object[prop]!=value){
+
+					if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
+						object[prop] = value
+					} else {
+						object[prop] = widgetstate.use(value)
+					}
+					widgetstate.updateAll(object._name, prop)
+					widgetstate.setAlias(stateName, prop, value)
 				}
-                widgetstate.updateAll(object._name, prop)
-				widgetstate.setAlias(stateName, prop, value)
 				return true
             }
         })
@@ -271,14 +274,14 @@ class widgetstate {
                     }
 					const key = id + '-' + stateProps.join(',')
 
-					if (widgetType=='Widget'){
-						if (!(state in widget)) widget.state = {}
-						if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
-							link: ___updates,
-							key,
-							stateProps
-						}
-					}
+					// if (widgetType=='Widget'){
+					// 	if (!(state in widget)) widget.state = {}
+					// 	if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
+					// 		link: ___updates,
+					// 		key,
+					// 		stateProps
+					// 	}
+					// }
 
                     stateProps.map(stateProp => {
                         if (!(stateProp in ___updates)) ___updates[stateProp] = {}
@@ -360,8 +363,6 @@ class widgetstate {
 					return prop==val
 						?_true
 						:_false
-						// ?widgetconvertor.toWidget(_true)
-						// :widgetconvertor.toWidget(_false)
 				})
 		}
 	}

@@ -135,7 +135,8 @@ class widgetconvertor {
 					result.push(source)
 				break;
 				default:
-					result.push(c.div(source))
+					const wrapper = c.div(source)
+					result.push(wrapper)
 				break;
 			}
 		})

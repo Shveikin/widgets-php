@@ -18,46 +18,38 @@ class SredaController extends WidgetsConponent {
         $this->createState('sredaControllerProps', [
             'isOpen' => false,
         ]);
+
+        $this->createState('myList', [
+            '_list' => [0,1,2,3,4,5]
+        ]);
     }
 
     function draw($layout, $props) {
-        $layout->child = [
-            c::input(type: 'checkbox', checked: $this->state('sredaControllerProps')->model('isOpen')),
-            'fff',
-            $this->state('sredaControllerProps')->check('isOpen', true, 
-                
-                c::div(child: 
-                    $this->state('sredaList')->map('_list', function($itm){
-                        return $itm->environment;
-                    })
-                )
-            )
-        ];
-        // $propertyState = $this->state('sredaControllerProps');
-        // $layout->div(
-        //     style: 'font-family: "Trebuchet MS"; font-size: 14px;',
-        //     child: [
-        //         c::div(
-        //             style: 'border: 1px solid #ccc; padding: 5px; cursor: pointer;',
-        //             child: $this->drawTitle(),
-        //             onclick: $propertyState->checkTurn('isOpen')
-        //         ),
-        //         c::div(
-        //             child: $propertyState->check('isOpen', true,
-        //                 c::div(
-        //                     style: 'border: 1px solid #ccc; 
-        //                             padding: 5px; 
-        //                             height: 200px; 
-        //                             margin-top: -1px;
-        //                             overflow: auto;
-        //                     ',
-        //                     child: $this->drawList()
-        //                 ),
-        //                 ''
-        //             )
-        //         ),
-        //     ]
-        // );
+        $propertyState = $this->state('sredaControllerProps');
+        $layout->div(
+            style: 'font-family: "Trebuchet MS"; font-size: 14px;',
+            child: [
+                c::div(
+                    style: 'border: 1px solid #ccc; padding: 5px; cursor: pointer;',
+                    child: $this->drawTitle(),
+                    onclick: $propertyState->checkTurn('isOpen')
+                ),
+                c::div(
+                    child: $propertyState->check('isOpen', true,
+                        c::div(
+                            style: 'border: 1px solid #ccc; 
+                                    padding: 5px; 
+                                    height: 200px; 
+                                    margin-top: -1px;
+                                    overflow: auto;
+                            ',
+                            child: $this->drawList()
+                        ),
+                        ''
+                    )
+                ),
+            ]
+        );
     }
 
     function drawTitle(){

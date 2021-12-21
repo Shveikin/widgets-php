@@ -10,11 +10,13 @@ class widgetdom {
     }
 
     static makeElement(widget, parent = false){
-        widget.rootElement = document.createElement(widget.type);
+        const element = document.createElement(widget.type);
+        widget.rootElement = element;
         widget.rootElement.setAttribute('key_id', widget.id)
         widget.parent = parent
-
-        widgetdom.parentLink(widget, parent)
+        if (parent)
+            widgetdom.parentLink(widget, parent)
+        return element;
     }
 
     static parentLink(widget, parent){
@@ -35,18 +37,12 @@ class widgetdom {
     /**
      * CREATE ELEMENT
      */
-    static createElement(widget, parent){
+    static createElement(widget, parent = false){
         if (widget.type in widgetdom.widgetStore){
             widget = widgetdom.widgetStore[widget.type](widget.props)
         }
-        // console.log('>>>>', parent.rootElement)
-        if ('rootElement' in parent && parent.rootElement==undefined){
-            const prn = c.div()
-            widgetdom.createElement(prn, parent.parent) 
-            parent = prn
-        }
-        widgetdom.makeElement(widget, parent)
-
+        
+        const rootElement = widgetdom.makeElement(widget, parent)
 
         if (widget.props)
         Object.keys(widget.props).forEach(prop => {
@@ -89,6 +85,8 @@ class widgetdom {
                 // widgetdom.createElement(childWidget, child)
             }
         }
+
+        return rootElement;
     }
 
 
@@ -97,6 +95,7 @@ class widgetdom {
      */
     static update(currNode, nextNode, index = 0){
         if (!nextNode) {
+            console.log('deleteID - ', currNode.id);
             if (currNode.rootElement.parentElement){
                 currNode.rootElement.parentElement.removeChild(currNode.rootElement)
                 currNode.rootElement = null
@@ -146,6 +145,26 @@ class widgetdom {
         })
     }
 
+
+    static getChildsFrom(widget){
+        let useView = true
+        let currChild = []
+        if (Array.isArray(widget.childs)){
+            currChild = widget.childs
+            useView = false
+        } else {
+            if ('view' in widget.childs){
+
+                const child = widget.childs.view
+                currChild = Array.isArray(child)
+                    ?child
+                    :[]
+
+            }
+        }
+        return [false, currChild]
+    }
+
     /**
      * СРАВНИТЬ 2 ноды
      * Проверка детей
@@ -153,41 +172,29 @@ class widgetdom {
     static compareChilds(currNode, nextNode){
         const deleteIndexs = []
 
-        let useView = true
-        let currChild = []
-        if (Array.isArray(currNode.childs)){
-            currChild = currNode.childs
-            useView = false
-        } else {
-            if ('view' in currNode.childs){
+        let [useViewCurrent, currChildCurrent] = widgetdom.getChildsFrom(currNode)
+        let [useViewNext, currChildNext] = widgetdom.getChildsFrom(nextNode)
 
-                const child = currNode.childs.view
-                currChild = Array.isArray(child)
-                    ?child
-                    :[]
-
-            }
-        }
-
-        const max = Math.max(currChild.length, nextNode.childs.length)
+        
+        const max = Math.max(currChildCurrent.length, currChildNext.length)
         for (let i = 0; i < max; i++) {
-            if (currChild[i]) {
-
+            if (currChildCurrent[i]) {
                 const removeChildElement = widgetdom.update(
-                    currChild[i],
-                    nextNode.childs[i],
+                    currChildCurrent[i],
+                    currChildNext[i],
                     i
                 )
 
                 if (removeChildElement) {
                     deleteIndexs.push(i)
                 }
+
             } else {
-                const child = nextNode.childs[i];
+                const child = currChildNext[i];
+                const element = widgetdom.createElement(child)
+                widgetdom.parentLink(child, currNode)
 
-                widgetdom.createElement(child, currNode)
-
-                currChild.push(child)
+                currChildCurrent.push(currChildNext[i])
             }
         }
 
@@ -195,18 +202,18 @@ class widgetdom {
         if (deleteIndexs.length!=0){
             console.log('deleteIndexs', deleteIndexs)
             const nw = []
-            currChild.forEach((child, key) => {
+            currChildCurrent.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
                 }
             })
-            currChild = nw
+            currChildCurrent = nw
         }
 
-        if (useView){
-            currNode.childs.view = currChild
+        if (useViewCurrent){
+            currNode.childs.view = currChildCurrent
         } else {
-            currNode.childs = currChild
+            currNode.childs = currChildCurrent
         }
 
 

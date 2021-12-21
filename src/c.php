@@ -11,7 +11,7 @@ class widget {
     function __construct($tag, $props = []) {
         self::$names_length++;
         $this->element = $tag;
-        $this->_name = "element_" . self::$names_length;
+        // $this->_name = "element_" . self::$names_length;
         $this->setProps($props);
     }
 

@@ -138,14 +138,28 @@ class state {
         $refernce = false;
         if (is_callable($callback)){
             $refernce = $callback($imprint);
-            $refernce = gettype($refernce)=='string'?$refernce:$refernce->toArray();
+            if ($refernce instanceof widget){
+                $refernce = $refernce->toArray();
+            }
+            $imprint = $imprint->getColls();
+        } else {
+            $imprint = false;
         }
 
+
+        $state_map = [
+            'element' => 'state_map',
+            'state' => $this->_name,
+            'prop' => $prop,
+            'refernce' => $refernce,
+            'useColls' => $imprint,
+        ];
+        if (true)
         $state_map = c::state_map(
             state: $this->_name,
             prop: $prop,
             refernce: $refernce,
-            useColls: $imprint->getColls(),
+            useColls: $imprint,
             view: '***',
         );
 
