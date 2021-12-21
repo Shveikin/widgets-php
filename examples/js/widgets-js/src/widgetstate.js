@@ -357,10 +357,12 @@ class widgetstate {
 		const state = this;
 		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop==val
+					return prop==val
 						?_true
 						:_false
-			})
+						// ?widgetconvertor.toWidget(_true)
+						// :widgetconvertor.toWidget(_false)
+				})
 		}
 	}
 
@@ -368,9 +370,11 @@ class widgetstate {
 		const state = this;
 		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop.includes(val)
+				const result = prop.includes(val)
 						?_true
 						:_false
+
+				return result
 			})
 		}
 	}

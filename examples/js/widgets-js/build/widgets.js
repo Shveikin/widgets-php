@@ -136,6 +136,17 @@ class widgetconvertor {
         }
     }
 
+	static toWidget(element){
+		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Widget')
+	}
+
+	static BoolToWidget(element){
+		return c.div()
+	}
+
+	static StateToWidget(state){
+		return c.div({child: state})
+	}
 
 	static toArrayOfWidgets(element){
 		if (!Array.isArray(element))
@@ -242,7 +253,8 @@ class widgetdom {
     static idCounter = 0
 
     static getId(){
-        return widgetdom.idCounter++;
+        const result = widgetdom.idCounter++
+        return result
     }
 
     static makeElement(widget, parent = false){
@@ -261,11 +273,6 @@ class widgetdom {
             break;
             case 'Widget':
                 widgetdom.parentLink(widget, parent.rootElement)
-                // if (parent.rootElement){
-                //     parent.rootElement.appendChild(widget.rootElement)
-                // } else {
-                //     console.error(parent)
-                // }
             break;
             default:
                 console.log('Не знаю как добавить в этот парент! ', parentType, parent);
@@ -279,6 +286,12 @@ class widgetdom {
     static createElement(widget, parent){
         if (widget.type in widgetdom.widgetStore){
             widget = widgetdom.widgetStore[widget.type](widget.props)
+        }
+        // console.log('>>>>', parent.rootElement)
+        if ('rootElement' in parent && parent.rootElement==undefined){
+            const prn = c.div()
+            widgetdom.createElement(prn, parent.parent) 
+            parent = prn
         }
         widgetdom.makeElement(widget, parent)
 
@@ -420,11 +433,8 @@ class widgetdom {
             } else {
                 const child = nextNode.childs[i];
 
-                console.log(currNode.id)
-                console.log(currNode.rootElement)
                 widgetdom.createElement(child, currNode)
 
-                
                 currChild.push(child)
             }
         }
@@ -913,10 +923,12 @@ class widgetstate {
 		const state = this;
 		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop==val
+					return prop==val
 						?_true
 						:_false
-			})
+						// ?widgetconvertor.toWidget(_true)
+						// :widgetconvertor.toWidget(_false)
+				})
 		}
 	}
 
@@ -924,9 +936,11 @@ class widgetstate {
 		const state = this;
 		return (prop, val, _true, _false = false) => {
 			return state.watch(prop, function(prop){
-				return prop.includes(val)
+				const result = prop.includes(val)
 						?_true
 						:_false
+
+				return result
 			})
 		}
 	}
@@ -1118,13 +1132,14 @@ class widgettools {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
 				})
 				const myProps = JSON.parse(reference)
-				if ('_name' in myProps) delete myProps['_name']
-				const newElement = c.div(myProps)
+				return myProps
+				const newElement = c.div({child: myProps})
 
 				return newElement
 			} else {
 				return itm
 			}
+			
 		})
 
 		return state_map

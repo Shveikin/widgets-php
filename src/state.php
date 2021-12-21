@@ -137,7 +137,8 @@ class state {
         $imprint = new Imprint($this, $prop);
         $refernce = false;
         if (is_callable($callback)){
-            $refernce = $callback($imprint)->toArray();
+            $refernce = $callback($imprint);
+            $refernce = gettype($refernce)=='string'?$refernce:$refernce->toArray();
         }
 
         $state_map = c::state_map(

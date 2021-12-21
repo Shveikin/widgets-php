@@ -111,6 +111,17 @@ class widgetconvertor {
         }
     }
 
+	static toWidget(element){
+		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Widget')
+	}
+
+	static BoolToWidget(element){
+		return c.div()
+	}
+
+	static StateToWidget(state){
+		return c.div({child: state})
+	}
 
 	static toArrayOfWidgets(element){
 		if (!Array.isArray(element))

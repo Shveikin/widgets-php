@@ -11,12 +11,6 @@ class SredaController extends WidgetsConponent {
     static $useState = [SredaState::class];
 
     function mainState() {
-        // $this->createGlobalState('sreda', [
-        //     'sreda_id' => 14,
-        //     'weight' => 1000,
-        //     'sreda_title' => 'Вода',
-        // ]);
-
         $this->createGlobalState('sredaList', [
             '_list' => $this->loadList(0, 40),
         ]);
@@ -27,33 +21,43 @@ class SredaController extends WidgetsConponent {
     }
 
     function draw($layout, $props) {
-        $propertyState = $this->state('sredaControllerProps');
-        $layout->div(
-            style: 'font-family: "Trebuchet MS"; font-size: 14px;',
-            child: [
-                c::div(
-                    style: 'border: 1px solid #ccc; padding: 5px; cursor: pointer;',
-                    child: $this->drawTitle(),
-                    onclick: $propertyState->checkTurn('isOpen')
-                ),
-                c::div(
-                    child: $propertyState->check('isOpen', true,
-                        c::div(
-                            style: 'border: 1px solid #ccc; 
-                                    padding: 5px; 
-                                    height: 200px; 
-                                    margin-top: -1px;
-                                    overflow: auto;
-                            ',
-                            child: $this->drawList()
-                        ),
-                        ''
-                    )
-                ),
-            ]
-        );
-
-        $this->state('sreda')->sreda_title = 'Воздух';
+        $layout->child = [
+            c::input(type: 'checkbox', checked: $this->state('sredaControllerProps')->model('isOpen')),
+            'fff',
+            $this->state('sredaControllerProps')->check('isOpen', true, 
+                
+                c::div(child: 
+                    $this->state('sredaList')->map('_list', function($itm){
+                        return $itm->environment;
+                    })
+                )
+            )
+        ];
+        // $propertyState = $this->state('sredaControllerProps');
+        // $layout->div(
+        //     style: 'font-family: "Trebuchet MS"; font-size: 14px;',
+        //     child: [
+        //         c::div(
+        //             style: 'border: 1px solid #ccc; padding: 5px; cursor: pointer;',
+        //             child: $this->drawTitle(),
+        //             onclick: $propertyState->checkTurn('isOpen')
+        //         ),
+        //         c::div(
+        //             child: $propertyState->check('isOpen', true,
+        //                 c::div(
+        //                     style: 'border: 1px solid #ccc; 
+        //                             padding: 5px; 
+        //                             height: 200px; 
+        //                             margin-top: -1px;
+        //                             overflow: auto;
+        //                     ',
+        //                     child: $this->drawList()
+        //                 ),
+        //                 ''
+        //             )
+        //         ),
+        //     ]
+        // );
     }
 
     function drawTitle(){
@@ -69,7 +73,7 @@ class SredaController extends WidgetsConponent {
     }
 
     function drawList(){
-        return $this->state('sredaList')->map('_list', function($itm){
+        return c::div(child: $this->state('sredaList')->map('_list', function($itm){
                 $style = 'cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;';
                 return c::div(
                     style: state::name('sreda')->check('sreda_id', $itm->id, "color: rgb(0,149,255);font-weight: 600;$style", "color: #222;$style"),
@@ -85,16 +89,9 @@ class SredaController extends WidgetsConponent {
                         $this->select
                     ])
 
-
-                    // state::name('sreda')->update(
-                    //     sreda_id: $itm->id,
-                    //     sreda_title: $itm->environment,
-                    // )
-
-
                 );
             }
-        );
+        ));
     }
 
 

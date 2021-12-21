@@ -100,13 +100,14 @@ class widgettools {
 					reference = reference.replaceAll(`**${replace}**`, itm[replace])
 				})
 				const myProps = JSON.parse(reference)
-				if ('_name' in myProps) delete myProps['_name']
-				const newElement = c.div(myProps)
+				return myProps
+				const newElement = c.div({child: myProps})
 
 				return newElement
 			} else {
 				return itm
 			}
+			
 		})
 
 		return state_map

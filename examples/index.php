@@ -45,7 +45,7 @@ require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 
@@ -124,6 +124,6 @@ echo c::div([
 
 // echo $first->html(true);
 
-// echo $first->print_r();
+echo $first->print_r();
 
 ?>
