@@ -94,8 +94,7 @@ class widgettools {
 	static state_map({state, prop, refernce = false, useColls = false}){
 		const clearItm = itm => 
 			itm.replaceAll('"', '\\\"').replaceAll('\n', '').replaceAll('\r', '')
-			
-		
+
 		let insert = itm => clearItm(itm)
 		if (refernce){
 			let reference = JSON.stringify(refernce)
@@ -106,7 +105,6 @@ class widgettools {
 					useColls.forEach(replace => {
 						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
 					})
-					console.log('JSON', result)
 					return JSON.parse(result)
 				}
 			} else {

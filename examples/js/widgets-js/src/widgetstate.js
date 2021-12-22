@@ -272,7 +272,7 @@ class widgetstate {
                         updateStateFunction,
                         stateProps
                     }
-					const key = id + '-' + stateProps.join(',')
+					const key = stateProps.join(',')
 
 					// if (widgetType=='Widget'){
 					// 	if (!(state in widget)) widget.state = {}
@@ -285,7 +285,9 @@ class widgetstate {
 
                     stateProps.map(stateProp => {
                         if (!(stateProp in ___updates)) ___updates[stateProp] = {}
-                        ___updates[stateProp][key] = state
+                        if (!(id in ___updates[stateProp])) ___updates[stateProp][id] = {}
+
+                        ___updates[stateProp][id][key] = state
 
                         widgetstate.updateAll(stateName, stateProp)
                     })
@@ -309,36 +311,40 @@ class widgetstate {
 			if (stateName in widgetstate.updates && stateProp in widgetstate.updates[stateName]){
 				const ___updates = widgetstate.updates[stateName][stateProp]
 
+				Object.values(___updates).forEach(propsList => {
+					Object.values(propsList).forEach(stateData => {
+						const properties = []
+						stateData.stateProps.forEach(i => {
+							properties.push(widgetstate.name(stateName)[i])
+						})
 
-				Object.values(___updates).forEach(stateData => {
-					const properties = []
-					stateData.stateProps.forEach(i => {
-						properties.push(widgetstate.name(stateName)[i])
+						const value = stateData.updateStateFunction.apply(this, properties)
+						
+						const widgetType = widgetconvertor.getType(stateData.widget);
+						switch (widgetType) {
+							case 'Widget':
+								if (stateData.changeWidgetProp == 'childs'){
+									const child = c.div(value)
+									widgetdom.update(stateData.widget, child)
+								} else {
+									stateData.widget.props[stateData.changeWidgetProp] = value
+									widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
+								}
+							break;
+							case 'Function':
+								const func = stateData.widget;
+								func(value);
+							break;
+							default:
+								console.log('Не знаю как применить изменения ', widgetType);
+							break;
+						}
+
 					})
-
-					const value = stateData.updateStateFunction.apply(this, properties)
-					
-					const widgetType = widgetconvertor.getType(stateData.widget);
-					switch (widgetType) {
-						case 'Widget':
-							if (stateData.changeWidgetProp == 'childs'){
-								const child = c.div(value)
-								widgetdom.update(stateData.widget, child)
-							} else {
-								stateData.widget.props[stateData.changeWidgetProp] = value
-								widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
-							}
-						break;
-						case 'Function':
-							const func = stateData.widget;
-							func(value);
-						break;
-						default:
-							console.log('Не знаю как применить изменения ', widgetType);
-						break;
-					}
-
 				})
+
+
+
 			}
 		})
 

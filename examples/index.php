@@ -45,7 +45,7 @@ require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 
@@ -84,10 +84,10 @@ echo '<script src="/js/components/slider.js"></script>';
 
 
 
-$first = SredaController::element();
-
 echo c::div([
-    $first,
+    SredaController::element(),
+    SredaController::element(),
+    SredaController::element()
 ])->html(true);
 
 
@@ -124,6 +124,6 @@ echo c::div([
 
 // echo $first->html(true);
 
-echo $first->print_r();
+// echo $first->print_r();
 
 ?>

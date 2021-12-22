@@ -344,12 +344,10 @@ class widgetdom {
      */
     static update(currNode, nextNode, index = 0){
         if (!nextNode) {
-            console.log('deleteID - ', currNode.id);
+            
             if (currNode.rootElement.parentElement){
                 currNode.rootElement.parentElement.removeChild(currNode.rootElement)
                 currNode.rootElement = null
-            } else {
-                alert('Нет парента');
             }
 
             return true
@@ -449,11 +447,12 @@ class widgetdom {
 
 
         if (deleteIndexs.length!=0){
-            console.log('deleteIndexs', deleteIndexs)
             const nw = []
             currChildCurrent.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
+                } else {
+                    widgetdom.deleteChildsFromState(child)
                 }
             })
             currChildCurrent = nw
@@ -468,6 +467,22 @@ class widgetdom {
 
     }
 
+
+    static deleteChildsFromState(child){
+        const id = child.id
+        Object.values(widgetstate.updates).forEach(stateNames => {
+            Object.values(stateNames).forEach(stateProps => {
+                if (id in stateProps){
+                    delete stateProps[id]
+                }
+            })
+        })
+        if (Array.isArray(child.childs)){
+            child.childs.forEach(innerChild => {
+                widgetdom.deleteChildsFromState(innerChild)
+            })
+        }
+    }
 
     static nodeReplace(currNode, nextNode){
         if (nextNode.rootElement!=currNode.rootElement)
@@ -520,7 +535,7 @@ class widgetdom {
                 }
             break;
             default:
-                console.info('Не применено', prop, value, type)
+                // console.info('Не применено', prop, value, type)
             break;
         }
         
@@ -846,7 +861,7 @@ class widgetstate {
                         updateStateFunction,
                         stateProps
                     }
-					const key = id + '-' + stateProps.join(',')
+					const key = stateProps.join(',')
 
 					// if (widgetType=='Widget'){
 					// 	if (!(state in widget)) widget.state = {}
@@ -859,7 +874,9 @@ class widgetstate {
 
                     stateProps.map(stateProp => {
                         if (!(stateProp in ___updates)) ___updates[stateProp] = {}
-                        ___updates[stateProp][key] = state
+                        if (!(id in ___updates[stateProp])) ___updates[stateProp][id] = {}
+
+                        ___updates[stateProp][id][key] = state
 
                         widgetstate.updateAll(stateName, stateProp)
                     })
@@ -883,36 +900,40 @@ class widgetstate {
 			if (stateName in widgetstate.updates && stateProp in widgetstate.updates[stateName]){
 				const ___updates = widgetstate.updates[stateName][stateProp]
 
+				Object.values(___updates).forEach(propsList => {
+					Object.values(propsList).forEach(stateData => {
+						const properties = []
+						stateData.stateProps.forEach(i => {
+							properties.push(widgetstate.name(stateName)[i])
+						})
 
-				Object.values(___updates).forEach(stateData => {
-					const properties = []
-					stateData.stateProps.forEach(i => {
-						properties.push(widgetstate.name(stateName)[i])
+						const value = stateData.updateStateFunction.apply(this, properties)
+						
+						const widgetType = widgetconvertor.getType(stateData.widget);
+						switch (widgetType) {
+							case 'Widget':
+								if (stateData.changeWidgetProp == 'childs'){
+									const child = c.div(value)
+									widgetdom.update(stateData.widget, child)
+								} else {
+									stateData.widget.props[stateData.changeWidgetProp] = value
+									widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
+								}
+							break;
+							case 'Function':
+								const func = stateData.widget;
+								func(value);
+							break;
+							default:
+								console.log('Не знаю как применить изменения ', widgetType);
+							break;
+						}
+
 					})
-
-					const value = stateData.updateStateFunction.apply(this, properties)
-					
-					const widgetType = widgetconvertor.getType(stateData.widget);
-					switch (widgetType) {
-						case 'Widget':
-							if (stateData.changeWidgetProp == 'childs'){
-								const child = c.div(value)
-								widgetdom.update(stateData.widget, child)
-							} else {
-								stateData.widget.props[stateData.changeWidgetProp] = value
-								widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
-							}
-						break;
-						case 'Function':
-							const func = stateData.widget;
-							func(value);
-						break;
-						default:
-							console.log('Не знаю как применить изменения ', widgetType);
-						break;
-					}
-
 				})
+
+
+
 			}
 		})
 
@@ -1135,8 +1156,7 @@ class widgettools {
 	static state_map({state, prop, refernce = false, useColls = false}){
 		const clearItm = itm => 
 			itm.replaceAll('"', '\\\"').replaceAll('\n', '').replaceAll('\r', '')
-			
-		
+
 		let insert = itm => clearItm(itm)
 		if (refernce){
 			let reference = JSON.stringify(refernce)
@@ -1147,7 +1167,6 @@ class widgettools {
 					useColls.forEach(replace => {
 						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
 					})
-					console.log('JSON', result)
 					return JSON.parse(result)
 				}
 			} else {

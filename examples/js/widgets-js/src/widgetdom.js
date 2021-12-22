@@ -95,12 +95,10 @@ class widgetdom {
      */
     static update(currNode, nextNode, index = 0){
         if (!nextNode) {
-            console.log('deleteID - ', currNode.id);
+            
             if (currNode.rootElement.parentElement){
                 currNode.rootElement.parentElement.removeChild(currNode.rootElement)
                 currNode.rootElement = null
-            } else {
-                alert('Нет парента');
             }
 
             return true
@@ -200,11 +198,12 @@ class widgetdom {
 
 
         if (deleteIndexs.length!=0){
-            console.log('deleteIndexs', deleteIndexs)
             const nw = []
             currChildCurrent.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
+                } else {
+                    widgetdom.deleteChildsFromState(child)
                 }
             })
             currChildCurrent = nw
@@ -219,6 +218,22 @@ class widgetdom {
 
     }
 
+
+    static deleteChildsFromState(child){
+        const id = child.id
+        Object.values(widgetstate.updates).forEach(stateNames => {
+            Object.values(stateNames).forEach(stateProps => {
+                if (id in stateProps){
+                    delete stateProps[id]
+                }
+            })
+        })
+        if (Array.isArray(child.childs)){
+            child.childs.forEach(innerChild => {
+                widgetdom.deleteChildsFromState(innerChild)
+            })
+        }
+    }
 
     static nodeReplace(currNode, nextNode){
         if (nextNode.rootElement!=currNode.rootElement)
@@ -271,7 +286,7 @@ class widgetdom {
                 }
             break;
             default:
-                console.info('Не применено', prop, value, type)
+                // console.info('Не применено', prop, value, type)
             break;
         }
         
