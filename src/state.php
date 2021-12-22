@@ -32,7 +32,11 @@ class state {
 
         if ($this->_alias)
         foreach ($this->_alias as $key => $value) {
-            $this->_default[$key] = $this->_data[$key]; // Установил значения по умолчанию
+            if (isset($this->_data[$key])){
+                $this->_default[$key] = $this->_data[$key]; // Установил значения по умолчанию
+            // } else {
+            //     $this->_default[$key] = [];
+            }
         }
 
         
@@ -57,7 +61,7 @@ class state {
         if ($this->_alias)
         foreach ($this->_alias as $stateKey => $urlKey) {
             if (isset($_GET[$urlKey])){
-                if (isset($this->_default[$stateKey]) && is_array($this->_data[$stateKey])){
+                if (isset($this->_default[$stateKey]) && isset($this->_data[$stateKey]) && is_array($this->_data[$stateKey])){
                     $this->_data[$stateKey] = explode(',', $_GET[$urlKey]);
                 } else {
                     $this->_data[$stateKey] = $_GET[$urlKey]; // Установил значения по умолчанию

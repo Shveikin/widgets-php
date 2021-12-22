@@ -92,25 +92,51 @@ class widgettools {
 	}
 
 	static state_map({state, prop, refernce = false, useColls = false}){
-		const state_map = widgetstate.name(state).map(prop, itm => {
+		const clearItm = itm => 
+			itm.replaceAll('"', '\\\"').replaceAll('\n', '').replaceAll('\r', '')
+			
+		
+		let insert = itm => clearItm(itm)
+		if (refernce){
+			let reference = JSON.stringify(refernce)
+			if (useColls){
+				insert = itm => {
 
-			if (refernce){
-				let reference = JSON.stringify(refernce)
-				if (useColls){
+					let result = reference
 					useColls.forEach(replace => {
-						reference = reference.replaceAll(`**${replace}**`, itm[replace])
+						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
 					})
-				} else {
-					reference = reference.replaceAll('**val**', itm)
+					console.log('JSON', result)
+					return JSON.parse(result)
 				}
-				const myProps = JSON.parse(reference)
-				return myProps
-				const newElement = c.div({child: myProps})
-
-				return newElement
 			} else {
-				return itm
+				insert = itm => {
+					let result = reference
+					result = result.replaceAll('**val**', clearItm(itm))
+					return JSON.parse(result)
+				}
 			}
+		}
+
+		const state_map = widgetstate.name(state).map(prop, itm => {
+			return insert(itm)
+			// if (refernce){
+			// 	let reference = JSON.stringify(refernce)
+			// 	if (useColls){
+			// 		useColls.forEach(replace => {
+			// 			reference = reference.replaceAll(`**${replace}**`, itm[replace])
+			// 		})
+			// 	} else {
+			// 		reference = reference.replaceAll('**val**', itm)
+			// 	}
+			// 	const myProps = JSON.parse(reference)
+			// 	return myProps
+			// 	const newElement = c.div({child: myProps})
+
+			// 	return newElement
+			// } else {
+			// 	return itm
+			// }
 			
 		})
 
