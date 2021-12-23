@@ -21,6 +21,7 @@ class BindElement {
             'class' => $this->get('class'),
             'useState' => $this->get('useState'),
             'view' => '',
+            'returnType' => $this->get('returnType'),
         ];
     }
 }

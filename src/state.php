@@ -9,24 +9,34 @@ class state {
     public $_data = [];
     public $_alias = false; // [значение в state => значение в URL]
     public $_default = false; // те значения которые совпадют с default в url записываться не будут
+    public $onchange = false;
 
-    function __construct($name, $defaultArray = false) {
+    function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
         $this->_name = $name;
         $this->_data = static::default();
+        $this->onchange = $onchange;
 
         if ($defaultArray!=false){
             $this->_data = $defaultArray;
         }
 
-        $alias = static::alias();
+        if ($aliasArray){
+            $alias = $aliasArray;
+        } else {
+            $alias = static::alias();
+        }
         if ($alias){
             $isMulti = $this->isMultiArray($alias);
             $this->_alias = [];
             foreach ($alias as $key => $val){
                 if (!$isMulti) $key = $val;
 
-                if (substr($val, 0, 1)=='_') $val = substr($val, 1);
-                $this->_alias[$key] = $val;
+                if (is_array($val)){
+                    
+                } else {
+                    if (substr($val, 0, 1)=='_') $val = substr($val, 1);
+                    $this->_alias[$key] = $val;
+                }
             }
         }
 
@@ -53,13 +63,37 @@ class state {
         if ($this->_default){
             $props['default'] = $this->_default;
         }
+        if ($this->onchange!=false){
+            $change = $this->onchange;
+            if ($change instanceof widget) {
+                $change = $change->toArray();
+            } else if ($change instanceof BindElement) {
+                $change = $change->appy();
+            }
+
+            $props['onchange'] = $change;
+        }
         
-        return "widgetstate.use(". json_encode($this->_data).','. json_encode($props) . ");";
+        return "widgetstate.use(". json_encode($this->_data).",\n". json_encode($props) . ");\n";
     }
+
+
 
     function updateStartingValues(){
         if ($this->_alias)
         foreach ($this->_alias as $stateKey => $urlKey) {
+            $this->checkAliasFromGet($stateKey, $urlKey);
+        }
+    }
+
+    function checkAliasFromGet($stateKey, $urlKey){
+        if (is_array($urlKey)){
+            foreach ($urlKey as $doubleKey) {
+
+                //FIX
+                $this->checkAliasFromGet($stateKey, $doubleKey);
+            }
+        } else {
             if (isset($_GET[$urlKey])){
                 if (isset($this->_default[$stateKey]) && isset($this->_data[$stateKey]) && is_array($this->_data[$stateKey])){
                     $this->_data[$stateKey] = explode(',', $_GET[$urlKey]);
@@ -231,6 +265,14 @@ class state {
         $result = [];
         if (static::$alias!=false){
             $result = static::$alias;
+        }
+        return $result;
+    }
+
+    static function toArray(){
+        $result = [];
+        foreach (state::$names as $stateName => $state) {
+            $result[$stateName] = $state->_data;
         }
         return $result;
     }

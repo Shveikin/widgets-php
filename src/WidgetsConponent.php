@@ -60,7 +60,7 @@ abstract class WidgetsConponent {
 
 
     static function element(...$props){
-        $element = new static();
+        $element = new static($props);
         return $element->layout($props);
     }
 
@@ -103,13 +103,14 @@ abstract class WidgetsConponent {
     function getUseStateList(){
         $result = [];
         foreach (static::$useState as $stateName) {
-            if (isset(state::$name[$stateName])){
+            if (isset(state::$names[$stateName])){
                 array_push($result, $stateName);
             } else if (class_exists($stateName)){
                 $stateName = $stateName::state()->getName();
                 array_push($result, $stateName);
             } else {
-                throw new Exception("Не получилось определить стейт $stateName");
+                array_push($result, $stateName);
+                // throw new Exception("Не получилось определить стейт $stateName");
             }
         }
 
@@ -121,33 +122,52 @@ abstract class WidgetsConponent {
      */
     private $stateAlias = [];
 
-    public function __construct() {
+    public function __construct($props = []) {
         foreach (static::$useState as $class) {
             $state = $class::state();
             if ($state)
                 $this->stateAlias[$state->getName()] = $state->getName();
         };
-        $this->mainState();
+        $this->mainState($props);
     }
 
     public static function runFetchRequest($data) {
-        $props = $data['props'];
-        $class = $props['class'];
-        $function = $props['function'];
-        $function_props = $props['props'];
 
-        $_this = $data['this'];
+        /** Инициализация стейта */
+        if (isset($data['state'])){
+            foreach ($data['state'] as $statName => $state) {
+                // $name = $state['_name'];
+                new state($statName, $state);
+            }
+        }
 
-        $instance = new $class();
-        $instance->element = c::div(...$_this);
-        $instance->{$function}(...$function_props);
+        if (isset($data['executor'])){
+            $executor = $data['executor'];
+
+            $class = $executor['class'];
+            $function = $executor['function'];
+            $function_props = $executor['props'];
+                    
+            $instance = new $class();
+            $functionResult = $instance->{$function}(...$function_props);
+
+            $result = [
+                'request_id' => $data['request_id'],
+                'result' => $functionResult,
+                'state' => state::toArray(),
+            ];
+
+            echo json_encode($result);
+        }
     }
+
+
 
     public static function init() {
         $data = file_get_contents('php://input');
         if ($data) {
             $data = json_decode($data, true);
-            if (isset($data['props'])) {
+            if (isset($data['request_id'])) {
                 self::runFetchRequest($data);
             }
         }
@@ -191,20 +211,37 @@ abstract class WidgetsConponent {
      * Создать стейт
      * @return stateAlias
      */
-    final public function createState(string $stateName, array $stateBody) {
+    final public function createState(...$props) {
+
+        $stateName = isset($props['name'])?$props['name']:'myNewState';
+        $state = isset($props['state'])?$props['state']:[];
+        $alias = isset($props['alias'])?$props['alias']:false;
+
+
         $stateAlias = static::getStateAlias($stateName);
         $this->stateAlias[$stateName] = $stateAlias;
-        new state($stateAlias, $stateBody);
+        new state($stateAlias, $state, $alias);
         return $stateAlias;
     }
 
     /**
      * Создать глобальный стейт
+     * name - название стейта
+     * state - массив данных
+     * alias - псевдонимы
+     * onchange = 
+     * 
      * @return stateName
      */
-    final public function createGlobalState(string $stateName, array $stateBody) {
+    final public function createGlobalState(...$props) {
+        $stateName = isset($props['name'])?$props['name']:'myNewState';
+        $state = isset($props['state'])?$props['state']:[];
+        $alias = isset($props['alias'])?$props['alias']:false;
+        $onchange = isset($props['onchange'])?$props['onchange']:false;
+
+
         $this->stateAlias[$stateName] = $stateName;
-        new state($stateName, $stateBody);
+        new state($stateName, $state, $alias, $onchange);
         return $stateName;
     }
 

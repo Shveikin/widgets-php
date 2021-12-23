@@ -288,54 +288,75 @@ class widgetdom {
      */
     static createElement(widget, parent = false){
         if (widget.type in widgetdom.widgetStore){
-            widget = widgetdom.widgetStore[widget.type](widget.props)
+            const storeElement = widgetdom.widgetStore[widget.type](widget.props)
+            const storeElementType = widgetconvertor.getType(storeElement)
+            
+            switch (storeElementType){
+                case 'HTML':
+                    widget.rootElement = storeElement
+                    return storeElement
+                break;
+                case 'Widget':
+                    widget = storeElement
+                break;
+            }
         }
         
-        const rootElement = widgetdom.makeElement(widget, parent)
+        const widgetType = widgetconvertor.getType(widget)
+        switch (widgetType){
+            case 'Widget':
+                const rootElement = widgetdom.makeElement(widget, parent)
 
-        if (widget.props)
-        Object.keys(widget.props).forEach(prop => {
-            if (prop in widgetsmartprops){
-                widgetsmartprops[prop](widget, widget.props[prop])
-            } else {
-                widgetdom.assignProp(widget, prop)
-            }
-        });
+                if (widget.props)
+                Object.keys(widget.props).forEach(prop => {
+                    if (prop in widgetsmartprops){
+                        widgetsmartprops[prop](widget, widget.props[prop])
+                    } else {
+                        widgetdom.assignProp(widget, prop)
+                    }
+                });
 
-        if (Array.isArray(widget.childs)){
-            widget.childs.forEach(childWidget => {
-                const widgetType = widgetconvertor.getType(childWidget)
-                switch(widgetType){
-                    case 'Widget':
-                        widgetdom.createElement(childWidget, widget)
-                    break;
-                    default: 
-                        console.log('Не знаю что делать с этим child - ', widgetType)
-                    break;
+                if (Array.isArray(widget.childs)){
+                    widget.childs.forEach(childWidget => {
+                        const widgetType = widgetconvertor.getType(childWidget)
+                        switch(widgetType){
+                            case 'Widget':
+                                widgetdom.createElement(childWidget, widget)
+                            break;
+                            default: 
+                                console.log('Не знаю что делать с этим child - ', widgetType)
+                            break;
+                        }
+
+                    })
+                } else {
+                    const childType = widgetconvertor.getType(widget.childs)
+
+                    if ('view' in widget.childs) {
+                        widget.childs.view = []
+                    }
+
+                    let value = ''
+                    const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
+
+                    if (!change){
+                        // if (!('childs' in widget)) widget.childs = {}
+
+                        // const childWidget = c.div(value)
+
+                        // widget.childs.view = [childWidget]
+                        // widgetdom.createElement(childWidget, child)
+                    }
                 }
 
-            })
-        } else {
-            const childType = widgetconvertor.getType(widget.childs)
-
-            if ('view' in widget.childs) {
-                widget.childs.view = []
-            }
-
-            let value = ''
-            const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
-
-            if (!change){
-                // if (!('childs' in widget)) widget.childs = {}
-
-                // const childWidget = c.div(value)
-
-                // widget.childs.view = [childWidget]
-                // widgetdom.createElement(childWidget, child)
-            }
+                return rootElement;
+            
+            default:
+                console.log('Не знаю как создать этот компонент', widgetType, widget);
+            break;
         }
 
-        return rootElement;
+
     }
 
 
@@ -344,12 +365,10 @@ class widgetdom {
      */
     static update(currNode, nextNode, index = 0){
         if (!nextNode) {
-            console.log('deleteID - ', currNode.id);
+            
             if (currNode.rootElement.parentElement){
                 currNode.rootElement.parentElement.removeChild(currNode.rootElement)
                 currNode.rootElement = null
-            } else {
-                alert('Нет парента');
             }
 
             return true
@@ -449,11 +468,12 @@ class widgetdom {
 
 
         if (deleteIndexs.length!=0){
-            console.log('deleteIndexs', deleteIndexs)
             const nw = []
             currChildCurrent.forEach((child, key) => {
                 if (!deleteIndexs.includes(key)) {
                     nw.push(child)
+                } else {
+                    widgetdom.deleteChildsFromState(child)
                 }
             })
             currChildCurrent = nw
@@ -468,6 +488,22 @@ class widgetdom {
 
     }
 
+
+    static deleteChildsFromState(child){
+        const id = child.id
+        Object.values(widgetstate.updates).forEach(stateNames => {
+            Object.values(stateNames).forEach(stateProps => {
+                if (id in stateProps){
+                    delete stateProps[id]
+                }
+            })
+        })
+        if (Array.isArray(child.childs)){
+            child.childs.forEach(innerChild => {
+                widgetdom.deleteChildsFromState(innerChild)
+            })
+        }
+    }
 
     static nodeReplace(currNode, nextNode){
         if (nextNode.rootElement!=currNode.rootElement)
@@ -520,7 +556,7 @@ class widgetdom {
                 }
             break;
             default:
-                console.info('Не применено', prop, value, type)
+                // console.info('Не применено', prop, value, type)
             break;
         }
         
@@ -719,9 +755,17 @@ class widgetstate {
 				const url = widgetstate.getStrUrl();
 				if (urlcurrent==url && widgetstate.currentUrl!=url){
 					widgetstate.updateHistory(url)
+					if (widgetstate.props[stateName]?.onchange){
+						widgetstate.runOnChange(widgetstate.props[stateName].onchange)
+					}
 				}
 			}, 100)
 		}
+	}
+
+	static runOnChange(onchange){
+		const func = widgetconvertor.toFunction(onchange)
+		func();
 	}
 
 	static getStrUrl(){
@@ -791,6 +835,8 @@ class widgetstate {
 		const data = { ...self }
 		delete data['___parent']
 		delete data['___updates']
+		delete data['_name']
+
 		return data
 	}
 
@@ -846,7 +892,7 @@ class widgetstate {
                         updateStateFunction,
                         stateProps
                     }
-					const key = id + '-' + stateProps.join(',')
+					const key = stateProps.join(',')
 
 					// if (widgetType=='Widget'){
 					// 	if (!(state in widget)) widget.state = {}
@@ -859,7 +905,9 @@ class widgetstate {
 
                     stateProps.map(stateProp => {
                         if (!(stateProp in ___updates)) ___updates[stateProp] = {}
-                        ___updates[stateProp][key] = state
+                        if (!(id in ___updates[stateProp])) ___updates[stateProp][id] = {}
+
+                        ___updates[stateProp][id][key] = state
 
                         widgetstate.updateAll(stateName, stateProp)
                     })
@@ -883,36 +931,40 @@ class widgetstate {
 			if (stateName in widgetstate.updates && stateProp in widgetstate.updates[stateName]){
 				const ___updates = widgetstate.updates[stateName][stateProp]
 
+				Object.values(___updates).forEach(propsList => {
+					Object.values(propsList).forEach(stateData => {
+						const properties = []
+						stateData.stateProps.forEach(i => {
+							properties.push(widgetstate.name(stateName)[i])
+						})
 
-				Object.values(___updates).forEach(stateData => {
-					const properties = []
-					stateData.stateProps.forEach(i => {
-						properties.push(widgetstate.name(stateName)[i])
+						const value = stateData.updateStateFunction.apply(this, properties)
+						
+						const widgetType = widgetconvertor.getType(stateData.widget);
+						switch (widgetType) {
+							case 'Widget':
+								if (stateData.changeWidgetProp == 'childs'){
+									const child = c.div(value)
+									widgetdom.update(stateData.widget, child)
+								} else {
+									stateData.widget.props[stateData.changeWidgetProp] = value
+									widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
+								}
+							break;
+							case 'Function':
+								const func = stateData.widget;
+								func(value);
+							break;
+							default:
+								console.log('Не знаю как применить изменения ', widgetType);
+							break;
+						}
+
 					})
-
-					const value = stateData.updateStateFunction.apply(this, properties)
-					
-					const widgetType = widgetconvertor.getType(stateData.widget);
-					switch (widgetType) {
-						case 'Widget':
-							if (stateData.changeWidgetProp == 'childs'){
-								const child = c.div(value)
-								widgetdom.update(stateData.widget, child)
-							} else {
-								stateData.widget.props[stateData.changeWidgetProp] = value
-								widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
-							}
-						break;
-						case 'Function':
-							const func = stateData.widget;
-							func(value);
-						break;
-						default:
-							console.log('Не знаю как применить изменения ', widgetType);
-						break;
-					}
-
 				})
+
+
+
 			}
 		})
 
@@ -1105,28 +1157,46 @@ class widgettools {
 		return Function(props.function);
 	}
 
+	static current_request = false
 	static widget_request(props){
 		return {
-			link: function(widget, prop){
+			link: function(widget = false, prop = false){
 
 				const state = {}
 				props.useState.map(stateName => (
 					state[stateName] = widgetstate.name(stateName).data()
 				))
 
-				return function(){
-					fetch(props.url, {
-						method: 'POST',
-						body: JSON.stringify({
-							state
-							// this: widget.props
-						})
+				
+				widgetstate.current_request = Math.random()
+				fetch(props.url, {
+					method: 'POST',
+					body: JSON.stringify({
+						state,
+						// this: widget.props
+						executor: {
+							class: props.class,
+							function: props.function,
+							props: props.props,
+						},
+						request_id: widgetstate.current_request,
 					})
-					.then(res => res.json())
-					.then(res => {
-						console.log('>>>>>', res)
-					})
-				}
+				})
+				.then(res => res.json())
+				.then(res => {
+					if (res.request_id==widgetstate.current_request){
+						// Применение стейта
+						if ('state' in res){
+							Object.keys(res.state).forEach(stateName => {
+								Object.keys(res.state[stateName]).forEach(propName => {
+									widgetstate.name(stateName)[propName] = res.state[stateName][propName]
+								})
+							})
+						}
+
+						
+					}
+				})
 
 			}
 		}
@@ -1135,8 +1205,7 @@ class widgettools {
 	static state_map({state, prop, refernce = false, useColls = false}){
 		const clearItm = itm => 
 			itm.replaceAll('"', '\\\"').replaceAll('\n', '').replaceAll('\r', '')
-			
-		
+
 		let insert = itm => clearItm(itm)
 		if (refernce){
 			let reference = JSON.stringify(refernce)
@@ -1147,7 +1216,6 @@ class widgettools {
 					useColls.forEach(replace => {
 						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
 					})
-					console.log('JSON', result)
 					return JSON.parse(result)
 				}
 			} else {

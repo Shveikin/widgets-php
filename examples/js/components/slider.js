@@ -1,7 +1,20 @@
 
 c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
 
-    const globalState = widgetstate.name(state)
+    console.log('slider - state', state);
+
+    let globalState = false;
+    if (Array.isArray(state)){
+        state.forEach(key => {
+            if (globalState){
+                globalState = globalState[key]
+            } else {
+                globalState = widgetstate.name(key)
+            }
+        })
+    } else {
+        globalState = widgetstate.name(state)
+    }
     const min = 0;
     const max = 100;
 

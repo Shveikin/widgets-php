@@ -64,28 +64,46 @@ class widgettools {
 		return Function(props.function);
 	}
 
+	static current_request = false
 	static widget_request(props){
 		return {
-			link: function(widget, prop){
+			link: function(widget = false, prop = false){
 
 				const state = {}
 				props.useState.map(stateName => (
 					state[stateName] = widgetstate.name(stateName).data()
 				))
 
-				return function(){
-					fetch(props.url, {
-						method: 'POST',
-						body: JSON.stringify({
-							state
-							// this: widget.props
-						})
+				
+				widgetstate.current_request = Math.random()
+				fetch(props.url, {
+					method: 'POST',
+					body: JSON.stringify({
+						state,
+						// this: widget.props
+						executor: {
+							class: props.class,
+							function: props.function,
+							props: props.props,
+						},
+						request_id: widgetstate.current_request,
 					})
-					.then(res => res.json())
-					.then(res => {
-						console.log('>>>>>', res)
-					})
-				}
+				})
+				.then(res => res.json())
+				.then(res => {
+					if (res.request_id==widgetstate.current_request){
+						// Применение стейта
+						if ('state' in res){
+							Object.keys(res.state).forEach(stateName => {
+								Object.keys(res.state[stateName]).forEach(propName => {
+									widgetstate.name(stateName)[propName] = res.state[stateName][propName]
+								})
+							})
+						}
+
+						
+					}
+				})
 
 			}
 		}
@@ -94,8 +112,7 @@ class widgettools {
 	static state_map({state, prop, refernce = false, useColls = false}){
 		const clearItm = itm => 
 			itm.replaceAll('"', '\\\"').replaceAll('\n', '').replaceAll('\r', '')
-			
-		
+
 		let insert = itm => clearItm(itm)
 		if (refernce){
 			let reference = JSON.stringify(refernce)
@@ -106,7 +123,6 @@ class widgettools {
 					useColls.forEach(replace => {
 						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
 					})
-					console.log('JSON', result)
 					return JSON.parse(result)
 				}
 			} else {
