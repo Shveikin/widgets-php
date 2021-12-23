@@ -1,7 +1,6 @@
 
-c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
+c.slider = function({state, title, sliderWidth = 500, range, type = 'float2'}) {
 
-    console.log('slider - state', state);
 
     let globalState = false;
     if (Array.isArray(state)){
@@ -17,6 +16,7 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
     }
     const min = 0;
     const max = 100;
+    const boxsizing = 12
 
     return c.div({
         style: 'margin-bottom: 20px;',
@@ -31,13 +31,14 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
             dragboard: {
                 childs: [
                     c.div({
-                        className: 'sliderLine'
+                        className: 'sliderLine',
+                        title: 'DD',
                     }),
                     c.div({
                         className: 'sliderLine',
                         style: globalState.watch((min, max) => {
-                            const min_pos = widgetconvertor.map(min, [range.min, range.max], [0, sliderWidth])
-                            const max_pos = widgetconvertor.map(max, [range.min, range.max], [0, sliderWidth])
+                            const min_pos = widgetconvertor.map(min, range, [0, sliderWidth]) + (boxsizing /2)
+                            const max_pos = widgetconvertor.map(max, range, [0, sliderWidth]) + (boxsizing /2)
 
                             return `left: ${min_pos}px; width: ${max_pos-min_pos}px; background: rgb(0, 150, 187);`
                         })
@@ -49,13 +50,13 @@ c.slider = function({state, title, range, sliderWidth = 500, type = 'float2'}) {
                     max: c.div({className: 'sliderPoint'}),
                 },
                 axis: 'x',
-                range: [0, 200],
+                range,
                 width: sliderWidth,
                 height: 34,
-                boxsizing: 16,
+                boxsizing,
                 ondrag(id, x, y, posx, posy){
                     const value = widgetconvertor.roundValue(
-                        widgetconvertor.map(x, [0, 100], [range.min, range.max]),
+                        widgetconvertor.map(x, [0, 100], range),
                         type
                     )
                     

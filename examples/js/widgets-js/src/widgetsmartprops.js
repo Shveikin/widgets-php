@@ -11,14 +11,14 @@ class widgetsmartprops {
             y: props.boxsizing?(props.boxsizing.y?props.boxsizing.y:props.boxsizing):0,
         }
 
-        const width = props.width?props.width - boxsizing.x:0
-        const height = props.height?props.height - boxsizing.y:0
+        const width = props.width/* ?props.width + boxsizing.x:0 */
+        const height = props.height/* ?props.height + boxsizing.y:0 */
 
 
 
         dragboard.rootElement.style.position = 'relative'
         dragboard.rootElement.style.userSelect = 'none'
-        dragboard.rootElement.style.width = width + 'px'
+        dragboard.rootElement.style.width = width + boxsizing.x + 'px'
         dragboard.rootElement.style.height = props.height + 'px'
 
         if ('childs' in props) {
@@ -38,10 +38,18 @@ class widgetsmartprops {
             let posx, posy = 0
             if (props?.axis != 'y'){
                 posx = (parseInt(elements[mouseDown].style.left) + x)
+                if (posx>props.width)
+                    posx = props.width
+                if (posx < 0)
+                    posx = 0
                 elements[mouseDown].style.left = posx + 'px'
             }
             if (props?.axis != 'x'){
                 posy = (parseInt(elements[mouseDown].style.top) + y)
+                if (posy>props.height)
+                    posy = props.height
+                if (posy < 0)
+                    posy = 0
                 elements[mouseDown].style.top = posy + 'px'
             }
 
@@ -109,7 +117,13 @@ class widgetsmartprops {
 
             dragboard.rootElement.onmousemove = (event) => {
                 if (mouseDown!==false){
-                    mousemove(event.screenX - mouseDownPosition[0], event.screenY - mouseDownPosition[1]);
+                    let x = event.screenX - mouseDownPosition[0]
+                    let y = event.screenY - mouseDownPosition[1]
+                    
+
+                    
+
+                    mousemove(x, y);
                     mouseDownPosition = [event.screenX, event.screenY];
                 }
             }
