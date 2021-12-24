@@ -8,7 +8,7 @@ c.reactTree = () => {
             console.log('select', data)
             // window.open(`http://fluidline.beget.tech/REVOLUTION/INTERFACE2/parser/${data[0]}/img`, '_blank') 
         },
-        checkedKeys: ["26128"],
+        checkedKeys: ["48"],
         onCheck: (check) => {
             console.log('check', check)
 

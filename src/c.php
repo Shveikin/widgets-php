@@ -324,4 +324,37 @@ class c {
             'view' => $view,
         ];
     }
+
+    static function filterArray($array, string $sort){
+        $result = [];
+
+        $_first = substr($sort, 0, 1)=='%';
+        $_last  = substr($sort, -1)=='%';
+
+        $sortText = trim($sort, '%');
+
+
+        foreach((array)$array as $val) {
+            if (!$_first && !$_last){
+                if ($val == $sortText){
+                    array_push($result, $val);
+                }
+            } else 
+            if ($_first && $_last) {
+                if (strpos($val, $sortText)!==false) {
+                    array_push($result, $val);
+                }
+            } else if ($_first){
+                if (substr($val, -strlen($sortText)) == $sortText){
+                    array_push($result, $val);
+                }
+            } else if ($_last){
+                if (substr($val, 0, strlen($sortText)) == $sortText){
+                    array_push($result, $val);
+                }
+            }
+        }
+
+        return $result;
+    }
 }

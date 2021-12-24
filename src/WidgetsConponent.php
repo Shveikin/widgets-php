@@ -2,6 +2,7 @@
 
 namespace Widget;
 
+use DataGet;
 use Error;
 use ErrorException;
 use Exception;
@@ -135,9 +136,8 @@ abstract class WidgetsConponent {
 
         /** Инициализация стейта */
         if (isset($data['state'])){
-            foreach ($data['state'] as $statName => $state) {
-                // $name = $state['_name'];
-                new state($statName, $state);
+            foreach ($data['state'] as $stateName => $state) {
+                $state['source']::create($stateName, $state['data']);
             }
         }
 

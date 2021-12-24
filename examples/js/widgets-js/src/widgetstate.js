@@ -114,8 +114,10 @@ class widgetstate {
 		if ('alias' in props){
 			Object.keys(props.alias).forEach(prop => {
 
-				if (!('default' in props) || props.default[prop]!=widgetstate.name(stateName)[prop]){
-					widgetstate.url[props.alias[prop]] = widgetstate.name(stateName)[prop]
+				const currentValue = widgetstate.name(stateName)[prop]
+				if (currentValue && currentValue?.length!=0)
+				if (!('default' in props) || props.default[prop]!=currentValue){
+					widgetstate.url[props.alias[prop]] = currentValue
 				}
 			})
 		}

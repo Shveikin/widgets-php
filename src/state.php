@@ -10,11 +10,18 @@ class state {
     public $_alias = false; // [значение в state => значение в URL]
     public $_default = false; // те значения которые совпадют с default в url записываться не будут
     public $onchange = false;
+    public $sourceClass = 'state';
 
     function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
+        $this->sourceClass = static::class;
         $this->_name = $name;
-        $this->_data = static::default();
-        $this->onchange = $onchange;
+        $this->_data = static::default($this);
+        
+        if ($onchange!=false){
+            $this->onchange = $onchange;
+        } else {
+            $this->onchange = static::onchange();
+        }
 
         if ($defaultArray!=false){
             $this->_data = $defaultArray;
@@ -23,7 +30,7 @@ class state {
         if ($aliasArray){
             $alias = $aliasArray;
         } else {
-            $alias = static::alias();
+            $alias = static::alias($this);
         }
         if ($alias){
             $isMulti = $this->isMultiArray($alias);
@@ -53,10 +60,14 @@ class state {
         $this->updateStartingValues();
 
         state::$names[$this->_name] = $this;
+        
     }
 
     function stateJsContructor(){
-        $props = ['name' => $this->_name];
+        $props = [
+            'name' => $this->_name,
+            'sourceClass' => $this->sourceClass,
+        ];
         if ($this->_alias){
             $props['alias'] = $this->_alias;
         }
@@ -253,7 +264,7 @@ class state {
         return self::$names[static::$name];
     }
 
-    static function default(){
+    static function default($state){
         $result = [];
         if (static::$default!=false){
             $result = static::$default;
@@ -269,11 +280,77 @@ class state {
         return $result;
     }
 
+    static function onchange(){
+        return false;
+    }
+
     static function toArray(){
         $result = [];
         foreach (state::$names as $stateName => $state) {
             $result[$stateName] = $state->_data;
         }
+        return $result;
+    }
+
+    static function create($stateName, $data = false) {
+        $state = new static($stateName);
+        if ($data)
+            $state->_data = $data;
+    }
+    
+    static function getData() {
+        $result = [];
+        $states = state::$names;
+        foreach ($states as $stateName => $state) {
+
+            if (method_exists($state, 'data')){
+                $data = $state->data();
+                if (!empty($data)){
+                    foreach ($data as $key => $value) {
+                        // list($key, $value) = $array;
+                        $result[$key] = $value;
+                    }
+                }
+            } else {
+                foreach ($state->_data as $key => $value) {
+                    $result[$state->_name . '_' . $key] = $value;
+                }
+            }
+
+        }
+        return $result;
+    }
+
+    /** 
+     * Получить только данные которые отличаются от данных по умолчанию
+    */
+    function getChangedData(){
+        $args = func_get_args();
+        $data = $this->_data;
+        $default = $this->_default;
+        foreach ($args as $value) {
+            $keys = c::filterArray(array_keys((array)$data), $value);
+            $data2 = [];
+            foreach ($keys as $key) {
+                $data2[$key] = $data[$key];
+                $default2[$key] = $default[$key];
+            }
+            $data = $data2;
+            $default = $default2;
+        }
+
+        $result = [];
+        if (is_array($data)){
+            foreach ($data as $key => $value) {
+                if (!isset($default[$key]) || $default[$key]!=$value){
+                    $result[$key] = $value;
+                }
+            }
+        } else {
+            if ($data!=$default)
+                $result = $data;
+        }
+
         return $result;
     }
 

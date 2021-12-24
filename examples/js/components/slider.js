@@ -32,17 +32,16 @@ c.slider = function({state, title, sliderWidth = 500, range, type = 'float2'}) {
                 childs: [
                     c.div({
                         className: 'sliderLine',
-                        title: 'DD',
                     }),
-                    c.div({
-                        className: 'sliderLine',
-                        style: globalState.watch((min, max) => {
-                            const min_pos = widgetconvertor.map(min, range, [0, sliderWidth]) + (boxsizing /2)
-                            const max_pos = widgetconvertor.map(max, range, [0, sliderWidth]) + (boxsizing /2)
+                    // c.div({
+                    //     className: 'sliderLine',
+                    //     style: globalState.watch((min, max) => {
+                    //         const min_pos = widgetconvertor.map(min, range, [0, sliderWidth])
+                    //         const max_pos = widgetconvertor.map(max, range, [0, sliderWidth + (boxsizing /2)])
 
-                            return `left: ${min_pos}px; width: ${max_pos-min_pos}px; background: rgb(0, 150, 187);`
-                        })
-                    }),
+                    //         return `left: ${min_pos}px; width: ${max_pos-min_pos}px; background: rgb(0, 150, 187);`
+                    //     })
+                    // }),
                 ],
                 state: globalState,
                 drag: {

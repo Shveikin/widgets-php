@@ -70,9 +70,14 @@ class widgettools {
 			link: function(widget = false, prop = false){
 
 				const state = {}
-				props.useState.map(stateName => (
-					state[stateName] = widgetstate.name(stateName).data()
-				))
+				props.useState.map(stateName => {
+					
+					if (stateName in widgetstate.names)
+					state[stateName] = {
+						data: widgetstate.name(stateName).data(),
+						source: widgetstate.props[stateName].sourceClass,
+					}
+				})
 
 				
 				widgetstate.current_request = Math.random()
@@ -101,7 +106,11 @@ class widgettools {
 							})
 						}
 
-						
+						if ('then' in props.extra){
+							window[props.extra.then](res.result);
+						}
+
+
 					}
 				})
 
