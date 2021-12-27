@@ -34,22 +34,59 @@ class widgetsmartprops {
         let shift = false;
 
 
+        let sliderMoveRange = {
+            x: {min: 0, max: props.width },
+            y: {min: 0, max: props.height},
+        }
+
+        if (props.useSlide){
+            props.state.watch('_slide').link(function(_slide){
+                const rangeList = _slide.map(range => {
+                    let [min, max] = range
+                    if (min=="rangeMin")
+                        min = props.state._range[0]
+                    if (max=="rangeMax")
+                        max = props.state._range[1]
+
+                    const x_range = {
+                        min: widgetconvertor.map(min, props.range, [0, props.width]),
+                        max: widgetconvertor.map(max, props.range, [0, props.width]),
+                    }
+
+                    return {
+                        x: x_range
+                    }
+
+
+                    
+                })
+
+
+                // console.log('rangeList', rangeList)
+                sliderMoveRange = rangeList
+            })
+        }
+
+
         function mousemove(x, y){
             let posx, posy = 0
+
+            const range = Array.isArray(sliderMoveRange)?sliderMoveRange[mouseDown]:sliderMoveRange
+
             if (props?.axis != 'y'){
                 posx = (parseInt(elements[mouseDown].style.left) + x)
-                if (posx>props.width)
-                    posx = props.width
-                if (posx < 0)
-                    posx = 0
+                if (posx>range.x.max)
+                    posx = range.x.max
+                if (posx < range.x.min)
+                    posx = range.x.min
                 elements[mouseDown].style.left = posx + 'px'
             }
             if (props?.axis != 'x'){
                 posy = (parseInt(elements[mouseDown].style.top) + y)
-                if (posy>props.height)
-                    posy = props.height
-                if (posy < 0)
-                    posy = 0
+                if (posy>range.y.max)
+                    posy = range.y.max
+                if (posy < range.y.min)
+                    posy = range.y.min
                 elements[mouseDown].style.top = posy + 'px'
             }
 
@@ -57,7 +94,7 @@ class widgetsmartprops {
                 let valposx = posx
                 let valposy = posy
 
-                valposx = widgetconvertor.map(posx, [0, width], [0, 100])
+                valposx = widgetconvertor.map(posx, [0, width],  [0, 100])
                 valposy = widgetconvertor.map(posy, [0, height], [0, 100])
                 props.ondrag(mouseDown, valposx, valposy, posx, posy)
             }

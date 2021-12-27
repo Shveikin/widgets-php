@@ -45,7 +45,7 @@ require_once 'components/SredaController.php';
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
+    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp2/htdocs/revo";
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
 
@@ -74,8 +74,8 @@ imprt([
 ]);
 
 
-$mysqli = getConnect();
-$mysqli_JINO = getConnect(JINO);
+// $mysqli = getConnect();
+// $mysqli_JINO = getConnect(JINO);
 
 
 
@@ -84,11 +84,11 @@ echo '<script src="/js/components/slider.js"></script>';
 
 
 
-echo c::div([
-    SredaController::element(),
-    SredaController::element(),
-    SredaController::element()
-])->html(true);
+// echo c::div([
+//     SredaController::element(),
+//     // SredaController::element(),
+//     // SredaController::element()
+// ])->html(true);
 
 
 // echo c::div('Hello');
@@ -98,7 +98,7 @@ echo c::div([
 // echo c::slider(
 //     state: 'rashod',
 //     title: 'Расход',
-//     range: ['min' =>  0, 'max' => 200],
+//     range: [0, 200],
 //     sliderWidth: 500,
 //     type: 'int'
 // )->html(true);
