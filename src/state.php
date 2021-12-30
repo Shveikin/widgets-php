@@ -12,10 +12,20 @@ class state {
     public $onchange = false;
     public $sourceClass = 'state';
 
+    private $outStateValues = [];
+
+    function outValuesLoad(){
+
+    }
+
     function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
         $this->sourceClass = static::class;
         $this->_name = $name;
-        $this->_data = static::default($this);
+        state::$names[$this->_name] = $this;
+
+
+
+        $this->setData(static::default($this), 'create default');
         
         if ($onchange!=false){
             $this->onchange = $onchange;
@@ -24,7 +34,7 @@ class state {
         }
 
         if ($defaultArray!=false){
-            $this->_data = $defaultArray;
+            $this->setData($defaultArray, 'defaultArray');
         }
 
         if ($aliasArray){
@@ -32,6 +42,7 @@ class state {
         } else {
             $alias = static::alias($this);
         }
+        
         if ($alias){
             $isMulti = $this->isMultiArray($alias);
             $this->_alias = [];
@@ -46,7 +57,43 @@ class state {
                 }
             }
         }
+        
+        $this->refreshDefaults();
+        $this->updateStartingValues();
 
+        
+        
+
+        
+    }
+
+    function setData($data, $from = false){
+        $oldData = $this->_data;
+
+        
+        foreach ($data as $key => $value) {
+            // $alias = $this->dataAlias($key);
+            $alias = $key;
+            $old = isset($this->_data[$alias])?$this->_data[$alias]:-1;
+
+            if (isset($oldData[$alias]))
+            if ($old!=($oldData[$alias])) {
+                    $aa = [$oldData[$alias], $old, $value];
+                    // cprint_r2('было - сейчас - хотел установить оо остановил', $aa);
+                    continue;
+                }
+
+            if ($old!=$value){
+                $this->_data[$alias] = $value;
+                
+                if (method_exists($this, "update_$alias")){
+                    $this->{"update_$alias"}($value, $old);
+                }
+            }
+        }
+    }
+
+    function refreshDefaults(){
         if ($this->_alias)
         foreach ($this->_alias as $key => $value) {
             if (isset($this->_data[$key])){
@@ -55,12 +102,6 @@ class state {
             //     $this->_default[$key] = [];
             }
         }
-
-        
-        $this->updateStartingValues();
-
-        state::$names[$this->_name] = $this;
-        
     }
 
     function stateJsContructor(){
@@ -89,11 +130,28 @@ class state {
     }
 
 
+    function initPostData(){
+        $data = file_get_contents('php://input');
+        if ($data) {
+            $data = json_decode($data, true);
+            if (isset($data['request_id']) && isset($data['state'])) {
+                self::$postData = $data['state'];
+            } else {
+                self::$postData = [];
+            }
+        }
+    }
 
+    static $postData = false;
     function updateStartingValues(){
         if ($this->_alias)
         foreach ($this->_alias as $stateKey => $urlKey) {
             $this->checkAliasFromGet($stateKey, $urlKey);
+        }
+        if (self::$postData==false) $this->initPostData();
+        if (isset(self::$postData[$this->_name])){
+            $state = self::$postData[$this->_name];
+            $this->setData($state['data'], 'from post');
         }
     }
 
@@ -107,9 +165,9 @@ class state {
         } else {
             if (isset($_GET[$urlKey])){
                 if (isset($this->_default[$stateKey]) && isset($this->_data[$stateKey]) && is_array($this->_data[$stateKey])){
-                    $this->_data[$stateKey] = explode(',', $_GET[$urlKey]);
+                    $this->setData([$stateKey => explode(',', $_GET[$urlKey])], 'from get');
                 } else {
-                    $this->_data[$stateKey] = $_GET[$urlKey]; // Установил значения по умолчанию
+                    $this->setData([$stateKey => $_GET[$urlKey]], 'from get'); // Установил значения по умолчанию
                 }
             }
         }
@@ -124,12 +182,15 @@ class state {
     }
 
     function __set($prop, $value) {
-        $this->_data[$prop] = $value;
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        $alias = $this->dataAlias($prop);
+        $this->setData([$alias => $value], "Прямая запись $er");
+        // $this->_data[$prop] = $value;
     }
 
     function __get($prop) {
         if (!isset($this->_data[$prop])) {
-            $this->_data[$prop] = 0;
+            $this->setData([$prop => 0], 'empty');
         }
 
         return $this->_data[$prop];
@@ -160,11 +221,16 @@ class state {
             prop: $stateProp,
             value: $value,
             result: $result,
-            view: function () use ($stateProp, $value) {
-                return is_array($this->_data[$stateProp]) && in_array($value, $this->_data[$stateProp]);
-            }
+            view: '',
+            // function () use ($stateProp, $value) {
+            //     return is_array($this->_data[$stateProp]) && in_array($value, $this->_data[$stateProp]);
+            // }
         );
     }
+
+
+
+
 
 
     function check($prop, $value, $true, $false = false) {
@@ -181,6 +247,41 @@ class state {
             },
         );
     }
+
+    function checkIn($prop, $value, $true, $false = false) {
+        return c::state_check_in(
+            state: $this->_name,
+            prop: $prop,
+            value: $value,
+            _true: $true,
+            _false: $false,
+            view: function () use ($prop, $true, $false) {
+                return $this->{$prop}
+                    ?$true
+                    :$false;
+            },
+        );
+    }
+
+    function checkIf($prop, $value, $do) {
+        return c::state_check_if(
+            state: $this->_name,
+            prop: $prop,
+            value: $value,
+            _do: $do,
+            view: ''
+        );
+    }
+
+
+
+    function setDefault($prop){
+        return c::state_set_default(
+            state: $this->_name,
+            prop: $prop
+        );
+    }
+
 
     function map($prop, $callback = false){
         $imprint = new Imprint($this, $prop);
@@ -232,7 +333,10 @@ class state {
         return c::js_function($this . ".checkTurn('$props')");
     }
 
-
+    function refresh(){
+        $this->setData(static::default($this), 'refresh');
+        $this->refreshDefaults();
+    }
 
 //---------------------------------------------------------
 
@@ -242,10 +346,20 @@ class state {
     static $default = false;
     static $alias = false; // только для определения get параметров
 
-    static function name(string $stateName) {
+    static function name(string $stateName, string $parent = '') {
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
         
-        return self::$names[$stateName];
+        if (isset(self::$names[$stateName])){
+            return self::$names[$stateName];
+        } else {
+            if ($parent!=''){
+                $parent::create($stateName);
+
+                return self::$names[$stateName];
+            }
+            die("Стейт не определен - $stateName [$parent]<br>$er");
+            return false;
+        }
     }
 
     static function toJs(){
@@ -284,6 +398,7 @@ class state {
         return false;
     }
 
+
     static function toArray(){
         $result = [];
         foreach (state::$names as $stateName => $state) {
@@ -295,16 +410,22 @@ class state {
     static function create($stateName, $data = false) {
         $state = new static($stateName);
         if ($data)
-            $state->_data = $data;
+            $state->setData($data, 'create');
     }
     
+    static $dataHash = [];
     static function getData() {
         $result = [];
         $states = state::$names;
         foreach ($states as $stateName => $state) {
+            
 
             if (method_exists($state, 'data')){
-                $data = $state->data();
+                if (!isset(self::$dataHash[$stateName])) {
+                    self::$dataHash[$stateName] = $state->data();
+                }
+
+                $data = self::$dataHash[$stateName];
                 if (!empty($data)){
                     foreach ($data as $key => $value) {
                         // list($key, $value) = $array;
@@ -320,6 +441,7 @@ class state {
         }
         return $result;
     }
+
 
     /** 
      * Получить только данные которые отличаются от данных по умолчанию
@@ -354,4 +476,39 @@ class state {
         return $result;
     }
 
+    function getProps(){
+        return array_keys((array)$this->_data);
+    }
+
+    function getAlias($key){
+        if (isset($this->_alias[$key])){
+            return $this->_alias[$key];
+        } else {
+            return $key;
+        }
+    }
+
+    private $hashAlias = false;
+    function dataAlias($find){
+        if (isset($this->_alias[$find])){
+            return $this->_alias[$find];
+        }
+        $hashAlias = [];
+        if ($this->_alias)
+        foreach ($this->_alias as $key => $value) {
+            if ($find==$value) return $key;
+        }
+        return $find;
+    }
+
+    function get($key){
+        $alias = $this->dataAlias($key);
+        $value = $this->_data[$alias];
+        return $value;
+    }
+
+    function isDefault($key){
+        $alias = $this->dataAlias($key);
+        return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+    }
 }

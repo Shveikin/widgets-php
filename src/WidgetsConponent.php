@@ -134,12 +134,14 @@ abstract class WidgetsConponent {
 
     public static function runFetchRequest($data) {
 
-        /** Инициализация стейта */
-        if (isset($data['state'])){
-            foreach ($data['state'] as $stateName => $state) {
-                $state['source']::create($stateName, $state['data']);
-            }
-        }
+        /** Инициализация стейта - перенесено внутль стейта*/
+        // if (isset($data['state'])){
+        //     foreach ($data['state'] as $stateName => $stateProps) {
+        //         $state = state::name($stateName, $stateProps['source']);
+        //         $state->setData($stateProps['data']);
+        //         // $state['source']::create($stateName, $state['data']);
+        //     }
+        // }
 
         if (isset($data['executor'])){
             $executor = $data['executor'];

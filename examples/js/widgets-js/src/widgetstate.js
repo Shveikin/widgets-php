@@ -123,6 +123,8 @@ class widgetstate {
 		}
 	}
 
+	
+
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
@@ -203,6 +205,14 @@ class widgetstate {
 	static set(self, key, value){
 		self[key] = value
 		widgetstate.updateAll(self._name)
+	}
+
+	static setDefault(self, key){
+		if ('_name' in self){
+			if (key in widgetstate.props[self._name]?.default){
+				widgetstate.name(self._name)[key] = widgetstate.props[self._name].default[key]
+			}
+		}
 	}
 
 	static push(self, prop){

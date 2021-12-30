@@ -136,6 +136,10 @@ class widgetconvertor {
         }
     }
 
+	static UnknownToFunction(){
+		return () => {}
+	}
+
 	static toWidget(element){
 		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Widget')
 	}
@@ -536,7 +540,13 @@ class widgetdom {
             case 'Bool':
             case 'String':
             case 'Int':
-                widget.rootElement[prop] = value
+                const attrList = ['for'];
+
+                if (attrList.includes(prop)){
+                    widget.rootElement.setAttribute(prop, value)
+                } else {
+                    widget.rootElement[prop] = value
+                }
             break;
             case 'Function':
                 if (prop.substr(0,2)=='on'){
@@ -733,6 +743,8 @@ class widgetstate {
 		}
 	}
 
+	
+
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
@@ -813,6 +825,14 @@ class widgetstate {
 	static set(self, key, value){
 		self[key] = value
 		widgetstate.updateAll(self._name)
+	}
+
+	static setDefault(self, key){
+		if ('_name' in self){
+			if (key in widgetstate.props[self._name]?.default){
+				widgetstate.name(self._name)[key] = widgetstate.props[self._name].default[key]
+			}
+		}
 	}
 
 	static push(self, prop){
@@ -1145,6 +1165,48 @@ class widgettools {
 		)
 	}
 
+	static state_check_in(props){
+		const array_props = props.prop.split('.')
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
+			[...array_props]
+		)
+		const prop = array_props.slice(-1).join('.')
+
+		return state.checkIn(prop,
+			props.value, 
+			props._true, 
+			props._false
+		)
+	}
+
+	static state_check_if(props){
+		const array_props = props.prop.split('.')
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
+			[...array_props]
+		)
+		const prop = array_props.slice(-1).join('.')
+
+		return state.watch(prop).link(function(value){
+			if (value==props.value)
+				widgetconvertor.toFunction(props._do)()
+		})
+
+		// return state.check(prop,
+		// 	props.value, 
+		// 	props._true
+		// )
+	}
+
+
+
+	static state_set_default(props){
+		return widgetstate.name(props.state).setDefault(props.prop)
+	}
+
+
+
 	static state_model(props){
 		return widgetstate.name(props.state).model(props.prop)
 	}
@@ -1323,22 +1385,59 @@ class widgetsmartprops {
         let shift = false;
 
 
+        let sliderMoveRange = {
+            x: {min: 0, max: props.width },
+            y: {min: 0, max: props.height},
+        }
+
+        if (props.useSlide){
+            props.state.watch('_slide').link(function(_slide){
+                const rangeList = _slide.map(range => {
+                    let [min, max] = range
+                    if (min=="rangeMin")
+                        min = props.state._range[0]
+                    if (max=="rangeMax")
+                        max = props.state._range[1]
+
+                    const x_range = {
+                        min: widgetconvertor.map(min, props.range, [0, props.width]),
+                        max: widgetconvertor.map(max, props.range, [0, props.width]),
+                    }
+
+                    return {
+                        x: x_range
+                    }
+
+
+                    
+                })
+
+
+                // console.log('rangeList', rangeList)
+                sliderMoveRange = rangeList
+            })
+        }
+
+
         function mousemove(x, y){
             let posx, posy = 0
+
+            const range = Array.isArray(sliderMoveRange)?sliderMoveRange[mouseDown]:sliderMoveRange
+
             if (props?.axis != 'y'){
                 posx = (parseInt(elements[mouseDown].style.left) + x)
-                if (posx>props.width)
-                    posx = props.width
-                if (posx < 0)
-                    posx = 0
+                if (posx>range.x.max)
+                    posx = range.x.max
+                if (posx < range.x.min)
+                    posx = range.x.min
                 elements[mouseDown].style.left = posx + 'px'
             }
             if (props?.axis != 'x'){
                 posy = (parseInt(elements[mouseDown].style.top) + y)
-                if (posy>props.height)
-                    posy = props.height
-                if (posy < 0)
-                    posy = 0
+                if (posy>range.y.max)
+                    posy = range.y.max
+                if (posy < range.y.min)
+                    posy = range.y.min
                 elements[mouseDown].style.top = posy + 'px'
             }
 
@@ -1346,7 +1445,7 @@ class widgetsmartprops {
                 let valposx = posx
                 let valposy = posy
 
-                valposx = widgetconvertor.map(posx, [0, width], [0, 100])
+                valposx = widgetconvertor.map(posx, [0, width],  [0, 100])
                 valposy = widgetconvertor.map(posy, [0, height], [0, 100])
                 props.ondrag(mouseDown, valposx, valposy, posx, posy)
             }

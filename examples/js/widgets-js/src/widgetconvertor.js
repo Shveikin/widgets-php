@@ -111,6 +111,10 @@ class widgetconvertor {
         }
     }
 
+	static UnknownToFunction(){
+		return () => {}
+	}
+
 	static toWidget(element){
 		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Widget')
 	}

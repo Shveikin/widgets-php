@@ -50,6 +50,48 @@ class widgettools {
 		)
 	}
 
+	static state_check_in(props){
+		const array_props = props.prop.split('.')
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
+			[...array_props]
+		)
+		const prop = array_props.slice(-1).join('.')
+
+		return state.checkIn(prop,
+			props.value, 
+			props._true, 
+			props._false
+		)
+	}
+
+	static state_check_if(props){
+		const array_props = props.prop.split('.')
+		const state = widgettools.getStateFromPath(
+			widgetstate.name(props.state),
+			[...array_props]
+		)
+		const prop = array_props.slice(-1).join('.')
+
+		return state.watch(prop).link(function(value){
+			if (value==props.value)
+				widgetconvertor.toFunction(props._do)()
+		})
+
+		// return state.check(prop,
+		// 	props.value, 
+		// 	props._true
+		// )
+	}
+
+
+
+	static state_set_default(props){
+		return widgetstate.name(props.state).setDefault(props.prop)
+	}
+
+
+
 	static state_model(props){
 		return widgetstate.name(props.state).model(props.prop)
 	}

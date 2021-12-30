@@ -287,7 +287,13 @@ class widgetdom {
             case 'Bool':
             case 'String':
             case 'Int':
-                widget.rootElement[prop] = value
+                const attrList = ['for'];
+
+                if (attrList.includes(prop)){
+                    widget.rootElement.setAttribute(prop, value)
+                } else {
+                    widget.rootElement[prop] = value
+                }
             break;
             case 'Function':
                 if (prop.substr(0,2)=='on'){
