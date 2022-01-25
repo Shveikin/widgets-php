@@ -115,6 +115,10 @@ class widgetconvertor {
 		return () => {}
 	}
 
+	static BoolToFunction(bool){
+		return () => bool
+	}
+
 	static toWidget(element){
 		return widgetconvertor.convert(element, widgetconvertor.getType(element), 'Widget')
 	}
@@ -148,6 +152,10 @@ class widgetconvertor {
 		return result
 	}
 
+	static IntToFunction(int){
+		return () => int
+	}
+
 
     static getType(element){
 		let type = 'Unknown'
@@ -167,7 +175,7 @@ class widgetconvertor {
 			else
 			if ('element' in element)
 				type = 'Element'
-				if (typeof widgettools[element.element] === 'function'){
+				if (element.element == 'WidgetTools' || typeof widgettools[element.element] === 'function'){
 					type = 'WidgetTools'
 				}
 		} else

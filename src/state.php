@@ -8,25 +8,64 @@ class state {
     public $_name; // настоящее имя стейта
     public $_data = [];
     public $_alias = false; // [значение в state => значение в URL]
+    public $_request = false;
     public $_default = false; // те значения которые совпадют с default в url записываться не будут
     public $onchange = false;
     public $sourceClass = 'state';
 
+    private $active = false;
+
+    /* Обновить */
+    public $refrashDefaultException = [];
+
     private $outStateValues = [];
 
-    function outValuesLoad(){
-
+    function isActive(){
+        return $this->active;
     }
 
+    /** 
+     * Присвоить значение по указанному пути
+    */
+    function assignTo(...$path){
+        return function($value) use($path){
+            $data = &$this->_data;
+            foreach(array_slice($path, 0, count($path)-1) as $current){
+                $data = &$data[$current];
+            }
+            $current = array_slice($path, -1)[0];
+            $data[$current] = $value;
+        };
+    }
+
+    /** 
+     * Получить значение по указанному пути
+    */
+    function getValueFrom(...$path){
+        $data = $this->_data;
+        foreach($path as $current){
+            $data = $data[$current];
+        }
+        return $data;
+    }
+
+
     function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
+        
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
+        
         $this->sourceClass = static::class;
         $this->_name = $name;
         state::$names[$this->_name] = $this;
+        $this->active = true;
 
-
-
-        $this->setData(static::default($this), 'create default');
         
+        $this->__initAliasFromStaticProp($aliasArray);
+        $this->setData(static::default($this), 'create default');
+        $this->__initAliasFromStaticProp();
+        $this->__initAliasFromFunction();
+
         if ($onchange!=false){
             $this->onchange = $onchange;
         } else {
@@ -37,37 +76,33 @@ class state {
             $this->setData($defaultArray, 'defaultArray');
         }
 
-        if ($aliasArray){
-            $alias = $aliasArray;
-        } else {
-            $alias = static::alias($this);
-        }
         
-        if ($alias){
-            $isMulti = $this->isMultiArray($alias);
-            $this->_alias = [];
-            foreach ($alias as $key => $val){
-                if (!$isMulti) $key = $val;
 
-                if (is_array($val)){
-                    
-                } else {
-                    if (substr($val, 0, 1)=='_') $val = substr($val, 1);
-                    $this->_alias[$key] = $val;
-                }
-            }
-        }
         
         $this->refreshDefaults();
         $this->updateStartingValues();
+        if ($this->canSetDefaultFromRequest){
+            $this->refreshDefaults();
+        }
 
-        
-        
-
-        
     }
 
+
+    // function getRequest($name){
+
+    //     return c::state_request(
+    //         state: $this->_name,
+    //         request: $name,
+    //     );
+
+    //     // $req = $this->_request[$name];
+    //     // return  $req;
+    // }
+
+
     function setData($data, $from = false){
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        
         $oldData = $this->_data;
 
         
@@ -86,18 +121,36 @@ class state {
             if ($old!=$value){
                 $this->_data[$alias] = $value;
                 
-                if (method_exists($this, "update_$alias")){
-                    $this->{"update_$alias"}($value, $old);
+                $runRevice = false;
+                $aliasLength = strlen($alias);
+                for ($i=0; $i < $aliasLength; $i++) { 
+                    $method = 'revice_' . substr($alias, 0, $aliasLength-$i);
+                    if (method_exists($this, $method)){
+                        $this->{$method}($alias, $value, $old);
+                        $runRevice = true;
+                        break;
+                    }
+                }
+
+                
+
+
+                if ($runRevice==false)
+                if (method_exists($this, "revice")){
+                    $this->{'revice'}($alias, $value, $old);
                 }
             }
         }
     }
 
     function refreshDefaults(){
+
         if ($this->_alias)
         foreach ($this->_alias as $key => $value) {
             if (isset($this->_data[$key])){
-                $this->_default[$key] = $this->_data[$key]; // Установил значения по умолчанию
+                if (!in_array($key, $this->refrashDefaultException)){
+                    $this->_default[$key] = $this->_data[$key]; // Установил значения по умолчанию
+                }
             // } else {
             //     $this->_default[$key] = [];
             }
@@ -125,7 +178,25 @@ class state {
 
             $props['onchange'] = $change;
         }
-        
+
+
+        if ($this->_request==false){
+            $this->_request = static::setRequest();
+        }
+
+        if (!empty($this->_request)){
+            $request = [];
+            foreach ($this->_request as $key => $value) {
+                if ($value instanceof BindElement){
+                    $request[$key] = $value->appy();
+                } else {
+                    $request[$key] = $value;
+                }
+            }
+
+            $props['request'] = $request;
+        }
+
         return "widgetstate.use(". json_encode($this->_data).",\n". json_encode($props) . ");\n";
     }
 
@@ -144,6 +215,8 @@ class state {
 
     static $postData = false;
     function updateStartingValues(){
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
         if ($this->_alias)
         foreach ($this->_alias as $stateKey => $urlKey) {
             $this->checkAliasFromGet($stateKey, $urlKey);
@@ -152,10 +225,13 @@ class state {
         if (isset(self::$postData[$this->_name])){
             $state = self::$postData[$this->_name];
             $this->setData($state['data'], 'from post');
+
         }
     }
 
     function checkAliasFromGet($stateKey, $urlKey){
+        
+
         if (is_array($urlKey)){
             foreach ($urlKey as $doubleKey) {
 
@@ -164,7 +240,7 @@ class state {
             }
         } else {
             if (isset($_GET[$urlKey])){
-                if (isset($this->_default[$stateKey]) && isset($this->_data[$stateKey]) && is_array($this->_data[$stateKey])){
+                if (/* isset($this->_default[$stateKey]) && */ isset($this->_data[$stateKey]) && (is_array($this->_data[$stateKey])  ) ){
                     $this->setData([$stateKey => explode(',', $_GET[$urlKey])], 'from get');
                 } else {
                     $this->setData([$stateKey => $_GET[$urlKey]], 'from get'); // Установил значения по умолчанию
@@ -334,6 +410,9 @@ class state {
     }
 
     function refresh(){
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        $this->refrashDefaultException = [];
+
         $this->setData(static::default($this), 'refresh');
         $this->refreshDefaults();
     }
@@ -345,11 +424,12 @@ class state {
     static $name = 'global'; // используется только для определения имени в классе
     static $default = false;
     static $alias = false; // только для определения get параметров
+    public $canSetDefaultFromRequest = false;
 
     static function name(string $stateName, string $parent = '') {
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
         
-        if (isset(self::$names[$stateName])){
+        if (isset(self::$names[$stateName]) && self::$names[$stateName]->isActive()){
             return self::$names[$stateName];
         } else {
             if ($parent!=''){
@@ -362,20 +442,31 @@ class state {
         }
     }
 
-    static function toJs(){
+    static function all(){
+        $data = [];
+        foreach(self::$names as $name => $state){
+            $data[$name] = $state->_data;
+        }
+
+        return $data;
+    }
+
+    static $sendetToPage = [];
+    static function toJs($states){
         $js = '';
         foreach (self::$names as $state) {
-            $js .= $state->stateJsContructor() . "\n";
+            if (!in_array($state->_name, self::$sendetToPage) || in_array($state->_name, $states)) {
+                $js .= $state->stateJsContructor() . "\n";
+                self::$sendetToPage[] = $state->_name;
+            }
         }
 
         return $js;
-    } 
+    }
 
     static function state(){
-        if (!isset(self::$names[static::$name])){
-            new static(static::$name);
-        }
-        return self::$names[static::$name];
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        return state::name(static::$name, static::class);
     }
 
     static function default($state){
@@ -386,17 +477,75 @@ class state {
         return $result;
     }
 
-    static function alias(){
-        $result = [];
+
+    /** 
+     * Создание псевдонимов в стейте
+    */
+    function __initAliasFromStaticProp($aliasArray = false){
+        $alias = [];
         if (static::$alias!=false){
-            $result = static::$alias;
+            $alias = static::$alias;
+        } else {
+            $alias = $aliasArray;
         }
-        return $result;
+        $this->__initAliasClear($alias);
+    }
+
+    /** Проверка добавленных данных */
+    function __initAliasFromFunction(){
+        $alias = static::alias($this);
+        $this->__initAliasClear($alias);
+    }
+
+    function __initAliasClear($alias){
+        if ($alias && !empty($alias)){
+            $isMulti = $this->isMultiArray($alias);
+            $this->_alias = [];
+            foreach ($alias as $key => $val){
+                if (!$isMulti) $key = $val;
+
+                if (is_array($val)){
+                    
+                } else {
+                    if (substr($val, 0, 1)=='_') $val = substr($val, 1);
+                    $this->_alias[$key] = $val;
+                }
+            }
+        }
+    }
+
+    static function alias(){
+        return [];
     }
 
     static function onchange(){
         return false;
     }
+
+
+    /** 
+     * Группировка update
+    */
+    static function group(array $group) {
+        $temp = [];
+        foreach ($group as $key => $value) {
+            if ($value instanceof widget){
+                $temp[$key] = $value->toArray();
+            } else 
+            if ($value instanceof BindElement) {
+                $temp[$key] = $value->appy();
+            } else {
+                $temp[$key] = $value;
+            }
+        }
+
+        $result = [
+            'element' => 'state_update_group',
+            'list' => $temp,
+        ];
+        return $result;
+    }
+
 
 
     static function toArray(){
@@ -408,6 +557,8 @@ class state {
     }
 
     static function create($stateName, $data = false) {
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
         $state = new static($stateName);
         if ($data)
             $state->setData($data, 'create');
@@ -440,6 +591,10 @@ class state {
 
         }
         return $result;
+    }
+
+    static function setRequest(){
+        return [];
     }
 
 
@@ -502,6 +657,10 @@ class state {
     }
 
     function get($key){
+        if (isset($this->_data[$key])){
+            return $this->_data[$key];
+        }
+
         $alias = $this->dataAlias($key);
         $value = $this->_data[$alias];
         return $value;
@@ -510,5 +669,23 @@ class state {
     function isDefault($key){
         $alias = $this->dataAlias($key);
         return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+    }
+
+    function __call($name, $arguments){
+
+        foreach($arguments as $key => $arg){
+            if ($arg instanceof widget) {
+                $arguments[$key] = $arg->toArray();
+            }
+        }
+
+        $state_element = [
+            'element' => "WidgetTools",
+            'tool' => $name,
+            'state' => $this->_name,
+            'prop' => $arguments,
+        ];
+
+        return $state_element;
     }
 }

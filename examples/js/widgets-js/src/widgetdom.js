@@ -90,7 +90,15 @@ class widgetdom {
                     let value = ''
                     const [change, newValue] = widgetconvertor.checkState(widget, 'childs')
 
-                    if (!change){
+
+                    if (change){
+                        const type = widgetconvertor.getType(newValue)
+                        switch (type) {
+                            case 'String':
+                                rootElement.innerHTML = newValue
+                            break;
+                        }
+                        
                         // if (!('childs' in widget)) widget.childs = {}
 
                         // const childWidget = c.div(value)
@@ -362,5 +370,13 @@ class widgetdom {
 		// }
 		// return true;
 	}
+
+    static setChange(widget, name, func){
+        if (!('eventListeners' in widget)) widget.eventListeners = {}
+        if (!(name in widget.eventListeners)){
+            widget.rootElement.addEventListener('change', func, false);
+            widget.eventListeners[name] = true;
+        }
+    }
 
 }

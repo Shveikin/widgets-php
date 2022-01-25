@@ -215,11 +215,121 @@ class widgetstate {
 		}
 	}
 
+	static watchDefault(self, key, _true, _false){
+		return widgetstate.name(self._name).watch(key, function(value){
+			if (widgetstate.props[self._name]?.default == value){
+				return _true
+			} else {
+				return _false
+			}
+		})
+	}
+
 	static push(self, prop){
 		const count = widgetstate.keys(self).length 
 		self['' + count] = prop
 
 		widgetstate.updateAll(this._name)
+	}
+
+	static inside(self, prop, value){
+		if (!self[prop].includes(value)){
+			const temp = self[prop]
+			temp.push(value)
+			self[prop] = temp
+
+			widgetstate.updateAll(this._name)
+		}
+	}
+
+	static inc(self, prop){
+		widgetstate.name(self._name)[prop]++ 
+	}
+
+	static dec(self, prop){
+		widgetstate.name(self._name)[prop]--
+	}
+
+	static valueFrom(self, ...path){
+		let value = self;
+		path.forEach(key => {
+			value = value[key]
+		})
+		return value
+	}
+
+
+	/** EMPTY */
+	static checkNotEmpty(self, prop, value){
+		const array = self[prop]
+		const result = (Array.isArray(array)?array:Object.keys(array)).length!=0?value:false
+		return result
+	}
+
+	static watchNotEmpty(self, prop, value){
+		return widgetstate.name(self._name).watch(prop, function(array){
+			array = Array.isArray(array)?array:Object.keys(array)
+			const result = array.length!=0?value:false
+			return result
+		})
+	}
+
+
+
+
+
+	/** DEFAULT */
+
+	static getDefaultPropFromState(statename, prop) {
+		if (
+			statename in widgetstate.props && 
+			'default' in widgetstate.props[statename] && 
+			prop in widgetstate.props[statename]['default']
+		){
+			const isDefault = widgetstate.name(statename)[prop]==widgetstate.props[statename]['default'][prop]
+			return isDefault
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Проверка на значение по умолчанию
+	 */
+	static checkDefault(self, prop, _true = false, _false = false){
+		const returnValue = (_true == false) == _false
+		const isDefault = widgetstate.getDefaultPropFromState(self._name, prop)
+		
+		if (!returnValue) 
+			return isDefault
+		else 
+			return isDefault?_true:_false
+		
+	}
+
+	/**
+	 * При изенении проверить знаниение по умолчанию
+	 */
+	static watchDefault(self, prop, _true, _false){
+		return widgetstate.name(self._name).watch(prop, function(currentValue){
+			return widgetstate.name(self._name).checkDefault(prop)?_true:_false
+		})
+	}
+
+	static request(self, requestName, bindData = false){
+		if ('_name' in self){
+			if ('request' in widgetstate.props[self._name]){
+				if (requestName in widgetstate.props[self._name]['request']){
+
+					let request = widgetstate.props[self._name]['request'][requestName]
+					request.bind = bindData
+					request = widgetconvertor.toFunction(request)
+
+					request()
+
+				} else console.error('requestName не определен!', requestName);
+			} else console.error('request отсутствует');
+		}
 	}
 
 	static filterSystemVars(array){
@@ -238,6 +348,13 @@ class widgetstate {
 		delete data['___parent']
 		delete data['___updates']
 		delete data['_name']
+
+		// Object.keys(data).forEach(key => {
+		// 	if (widgetconvertor.getType(data[key])=='Object'){
+		// 		if ('data' in data[key])
+		// 			data[key] = data[key].data()
+		// 	}
+		// })
 
 		return data
 	}
@@ -264,8 +381,8 @@ class widgetstate {
 
     static watch(self){
         return ( stateProps, callback = false) => {
-            let updateStateFunction = _vars => _vars;
-            if (typeof stateProps == 'function'){
+            let updateStateFunction = false;
+			if (typeof stateProps == 'function'){
                 updateStateFunction = stateProps
                 const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(stateProps.toString())
                 stateProps = fprops.split(',').map(i => i.trim())
@@ -279,6 +396,7 @@ class widgetstate {
             return {
                 link(widget, changeWidgetProp = false){
                     // if (!('___updates' in self)) self.___updates = {}
+					
 					const stateName = self._name
 					
 					if (!(stateName in widgetstate.updates)) widgetstate.updates[stateName] = {}
@@ -311,8 +429,10 @@ class widgetstate {
 
                         ___updates[stateProp][id][key] = state
 
-                        widgetstate.updateAll(stateName, stateProp)
+                        // widgetstate.updateAll(stateName, stateProp)
                     })
+
+					widgetstate.updateAll(stateName, stateProps)
 
                 }
             }
@@ -322,9 +442,12 @@ class widgetstate {
 
 	static updates = {}
 
-    static updateAll(stateName, _stateProp = false) {
-		let stateProps = [_stateProp]
+    static updateAll(stateName, stateProps = []){ //_stateProp = false) {
+		// let stateProps = [_stateProp]
 		
+		if (!Array.isArray(stateProps))
+			stateProps = [stateProps]
+
 		stateProps.forEach(stateProp => {
 
 			// if ('___updates' in self && stateProp in self.___updates){
@@ -340,8 +463,15 @@ class widgetstate {
 							properties.push(widgetstate.name(stateName)[i])
 						})
 
-						const value = stateData.updateStateFunction.apply(this, properties)
-						
+						let value = false
+
+						if (typeof stateData.updateStateFunction == 'function'){
+							value = stateData.updateStateFunction.apply(this, properties)
+						} else {
+							value = properties
+						}
+
+
 						const widgetType = widgetconvertor.getType(stateData.widget);
 						switch (widgetType) {
 							case 'Widget':
@@ -355,7 +485,11 @@ class widgetstate {
 							break;
 							case 'Function':
 								const func = stateData.widget;
-								func(value);
+								if (typeof stateData.updateStateFunction == 'function'){
+									func(value);
+								} else {
+									func.apply(this, value);
+								}
 							break;
 							default:
 								console.log('Не знаю как применить изменения ', widgetType);
@@ -423,7 +557,7 @@ class widgetstate {
 					return prop
 				}
 				const type = widgetconvertor.getType(callback)
-				const array = Array.isArray(prop)?prop:prop.values()
+				const array = Array.isArray(prop)?prop:Object.values(prop)
 				const list = array.map(itm => {
 					switch(type){
 						case 'Function':
@@ -473,7 +607,7 @@ class widgetstate {
 			return {
 				link(widget, argument){
 
-					widget.rootElement.onchange = function(){
+					widgetdom.setChange(widget, 'modelIn' + prop, function() {
 						const checkboxValue = this[argument]
 						const unique = new Set(state[prop])
 						if (checkboxValue){
@@ -482,7 +616,18 @@ class widgetstate {
 							unique.delete(value)
 						}
 						state[prop] = Array.from(unique)
-					}
+					})
+
+					// widget.rootElement.onchange = function(){
+					// 	const checkboxValue = this[argument]
+					// 	const unique = new Set(state[prop])
+					// 	if (checkboxValue){
+					// 		unique.add(value)
+					// 	} else {
+					// 		unique.delete(value)
+					// 	}
+					// 	state[prop] = Array.from(unique)
+					// }
 
 					state.watch(prop, array => {
 						return array.includes(value)
@@ -491,4 +636,15 @@ class widgetstate {
 			}
 		}
 	}
+
+
+
+
+
+
+
+	static applyTo(self, prop, value){
+		return () => widgetstate.name(self._name)[prop] = value
+	}
+
 }

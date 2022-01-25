@@ -30,6 +30,11 @@ class widgetsmartprops {
             })
         }
 
+        function rangeArray(){
+            return [props.state.range_min, props.state.range_max]
+        }
+
+        console.log('props.range', rangeArray())
 
         let shift = false;
 
@@ -40,30 +45,55 @@ class widgetsmartprops {
         }
 
         if (props.useSlide){
-            props.state.watch('_slide').link(function(_slide){
-                const rangeList = _slide.map(range => {
-                    let [min, max] = range
-                    if (min=="rangeMin")
-                        min = props.state._range[0]
-                    if (max=="rangeMax")
-                        max = props.state._range[1]
+            props.state.watch(['slide_min_start', 'slide_min_finish', 'slide_max_start', 'slide_max_finish']).link(
+            function(slide_min_start, slide_min_finish, slide_max_start, slide_max_finish){
+                // const rangeList = [0, 1].map(range => {
+                //     let min = slide[range][0];
+                //     let max = slide[range][1];
+                //     if (min=="rangeMin")
+                //         min = props.state.range_min
+                //     if (max=="rangeMax")
+                //         max = props.state.range_max
 
-                    const x_range = {
-                        min: widgetconvertor.map(min, props.range, [0, props.width]),
-                        max: widgetconvertor.map(max, props.range, [0, props.width]),
+                //     const x_range = {
+                //         min: widgetconvertor.map(min, rangeArray(), [0, props.width]),
+                //         max: widgetconvertor.map(max, rangeArray(), [0, props.width]),
+                //     }
+
+                //     return {
+                //         x: x_range
+                //     }
+
+                // })
+
+                if (slide_min_start=="rangeMin")
+                    slide_min_start = props.state.range_min
+
+
+                if (slide_max_finish=="rangeMax")
+                    slide_max_finish = props.state.range_max
+
+
+
+
+
+                sliderMoveRange = [
+                    {
+                        x: {
+                            min: widgetconvertor.map(slide_min_start, rangeArray(), [0, props.width]),
+                            max: widgetconvertor.map(slide_min_finish, rangeArray(), [0, props.width]),
+                        }
+                    },
+                    {
+                        x: {
+                            min: widgetconvertor.map(slide_max_start, rangeArray(), [0, props.width]),
+                            max: widgetconvertor.map(slide_max_finish, rangeArray(), [0, props.width]),
+                        }
                     }
+                ]
+                
 
-                    return {
-                        x: x_range
-                    }
-
-
-                    
-                })
-
-
-                // console.log('rangeList', rangeList)
-                sliderMoveRange = rangeList
+                // sliderMoveRange = rangeList
             })
         }
 
@@ -121,8 +151,8 @@ class widgetsmartprops {
             if (props?.axis != 'x')
                 top = shiftVal
 
-            left = widgetconvertor.map(left, props.range, [0, width])
-            top =  widgetconvertor.map(top, props.range, [0, height])
+            left = widgetconvertor.map(left, rangeArray(), [0, width])
+            top =  widgetconvertor.map(top, rangeArray(), [0, height])
 
             return [left, top]
         }
@@ -133,9 +163,9 @@ class widgetsmartprops {
             dragElement.style.position = 'absolute'
             if (shift){
                 if ('state' in props) {
-                    props.state.watch(shift[key]).link(function(newValue){
+                    props.state.watch([shift[key], 'range_' + shift[key]]).link(function(newValue){
                         if (mouseDown===false){
-                            const left = widgetconvertor.map(newValue, props.range, [0, props.width])
+                            const left = widgetconvertor.map(newValue, rangeArray(), [0, props.width])
                             dragElement.style.left = left + 'px';
                         }
                     })

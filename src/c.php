@@ -62,6 +62,8 @@ class widget {
         } else if ($childs instanceof widget) {
             $wgt = $childs->toArray();
             array_push($array, $wgt);
+        } else if (is_subclass_of($childs, 'Widget\WidgetsConponent')){
+            self::childsToArray($array, $childs->layout);
         } else {
             array_push($array, $childs);
         }
@@ -224,22 +226,27 @@ class widget {
         }
     }
 
+
     function html($activate = false) {
-        $result = self::view($this);
+        return self::view($this);
 
-        if ($activate) {
-            $state = state::toJs();
-            $result = "
-<div id='app'>***{$result}***</div>
-<script>
-    $state
-    c.app(
-        " . json_encode($this->toArray()) . "
-    )
-</script>";
-        }
+//         $result = self::view($this);
+        
+//         if ($activate) {
+//             $id = WidgetsConponent::$rootId++;
 
-        return $result;
+//             // $state = state::toJs();
+//             $result = "
+// <div id='app$id'>***{$result}***</div>
+// <script>
+//     // $ state
+//     c.render('#app$id',
+//         " . json_encode($this->toArray()) . "
+//     )
+// </script>";
+//         }
+
+//         return $result;
     }
 
     function __toString() {

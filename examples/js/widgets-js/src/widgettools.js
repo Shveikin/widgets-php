@@ -1,11 +1,28 @@
 
 class widgettools {
     static create(element){
-		return widgettools[element.element](element)
+		if (element.element=='WidgetTools'){
+			const __fw = element.tool.endsWith("__fw");
+			if (__fw){
+				element.tool = element.tool.substr(0, element.tool.length -4)
+			}
+			const callback = () => widgetstate.name(element.state)[element.tool].apply(element, element.prop)
+			if (__fw){
+				return callback
+			} else {
+				return callback()//(...element.prop)
+			}
+		} else {
+			return widgettools[element.element](element)
+		}
 	}
 
 	static app(props){
 		widgetdom.render('#app', c.div(props))
+	}
+
+	static render(querySelector, props){
+		widgetdom.render(querySelector, c.div(props))
 	}
 
 	static getStateFromPath(state, path){
@@ -113,7 +130,6 @@ class widgettools {
 
 				const state = {}
 				props.useState.map(stateName => {
-					
 					if (stateName in widgetstate.names)
 					state[stateName] = {
 						data: widgetstate.name(stateName).data(),
@@ -121,7 +137,7 @@ class widgettools {
 					}
 				})
 
-				
+
 				widgetstate.current_request = Math.random()
 				fetch(props.url, {
 					method: 'POST',
@@ -132,6 +148,7 @@ class widgettools {
 							class: props.class,
 							function: props.function,
 							props: props.props,
+							bind: props.bind,
 						},
 						request_id: widgetstate.current_request,
 					})
@@ -149,9 +166,11 @@ class widgettools {
 						}
 
 						if ('then' in props.extra){
-							window[props.extra.then](res.result);
+							const func = window[props.extra.then].bind({
+								bind: props.bind
+							})
+							func(res.result)
 						}
-
 
 					}
 				})
@@ -172,7 +191,7 @@ class widgettools {
 
 					let result = reference
 					useColls.forEach(replace => {
-						result = result.replaceAll(`**${replace}**`, clearItm(itm[replace]))
+						result = result.replaceAll(`**${replace}**`, clearItm(replace=='_'?itm:itm[replace]))
 					})
 					return JSON.parse(result)
 				}
@@ -187,24 +206,6 @@ class widgettools {
 
 		const state_map = widgetstate.name(state).map(prop, itm => {
 			return insert(itm)
-			// if (refernce){
-			// 	let reference = JSON.stringify(refernce)
-			// 	if (useColls){
-			// 		useColls.forEach(replace => {
-			// 			reference = reference.replaceAll(`**${replace}**`, itm[replace])
-			// 		})
-			// 	} else {
-			// 		reference = reference.replaceAll('**val**', itm)
-			// 	}
-			// 	const myProps = JSON.parse(reference)
-			// 	return myProps
-			// 	const newElement = c.div({child: myProps})
-
-			// 	return newElement
-			// } else {
-			// 	return itm
-			// }
-			
 		})
 
 		return state_map
@@ -223,11 +224,8 @@ class widgettools {
 		return () => {
 
 			Object.values(props.list).forEach(prop => {
-				
 				const func = widgetconvertor.toFunction(prop)
 				func()
-				
-				
 			})
 
 		}

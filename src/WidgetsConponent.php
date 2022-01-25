@@ -22,16 +22,31 @@ abstract class WidgetsConponent {
      * использовать список дополнительных стейтов
      */
     static $useState = [];
+    static function useState(state $state){
+        array_push(static::$useState, $state->getName());
+    }
 
     /**
      * Единый стейт для всех копий компонента
      */
     static $singleState = false;
 
+    /** 
+     * Привязанные данные к request
+    */
+    public $bind = false;
+
+    /** 
+     * id корневого элемента
+    */
+    static $rootId = 0;
+
     private static $element;
     private static $widgetsApp = false;
     public static function main() {
         if (static::$widgetsApp == false) {
+            $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
             static::$widgetsApp = new static();
         }
 
@@ -39,7 +54,15 @@ abstract class WidgetsConponent {
     }
 
     public static function __callStatic($name, $arguments) {
-        return static::main()->{"static__{$name}"}(...$arguments);
+        $class = static::main();
+        $method_name = "static__{$name}";
+        if (method_exists($class, $method_name)){
+            return $class->{$method_name}(...$arguments);
+        } else {
+            $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+            $className = static::class;
+            die("$er <br> $className не содержит метод $name! ($method_name) ");
+        }
     }
 
     public function draw($layout, $props) {
@@ -50,7 +73,7 @@ abstract class WidgetsConponent {
         return static::main()->{$function_name};
     }
 
-    private $layout = false;
+    public $layout = false;
     public function layout($props = []) {
 
         $this->layout = c::div();
@@ -59,12 +82,37 @@ abstract class WidgetsConponent {
         return $this->layout;
     }
 
-
     static function element(...$props){
         $element = new static($props);
         return $element->layout($props);
     }
 
+    
+    static function widget(...$props){
+        $element = new static($props);
+        $element->layout($props);
+
+        return $element;
+    }
+
+    function html($activate = false){
+
+        $result = widget::view($this->layout);
+        if ($activate) {
+            $id = WidgetsConponent::$rootId++;
+            $stateList = $this->getUseStateList();
+            $state = state::toJs($stateList);
+            $result = "
+<div id='app$id'>***{$result}***</div>
+<script>
+    $state
+    c.render('#app$id',
+        " . json_encode($this->layout->toArray()) . "
+    )
+</script>";
+        }
+        return $result;
+    }
 
     // public function static__element() {
     //     return $this->layout();
@@ -94,8 +142,8 @@ abstract class WidgetsConponent {
         // Возвращать тулзу!
         return new BindElement(
             function: $function_name,
-            url:static::$url ? static::$url : realpath(__FILE__),
-            class :get_class($this),
+            url: static::$url ? static::$url : realpath(__FILE__),
+            class: get_class($this),
             useState: $useStates,
         );
     }
@@ -124,8 +172,10 @@ abstract class WidgetsConponent {
     private $stateAlias = [];
 
     public function __construct($props = []) {
-        foreach (static::$useState as $class) {
-            $state = $class::state();
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
+        foreach (static::$useState as $stateName) {
+            $state = class_exists($stateName)?$stateName::state():state::name($stateName);
             if ($state)
                 $this->stateAlias[$state->getName()] = $state->getName();
         };
@@ -149,8 +199,10 @@ abstract class WidgetsConponent {
             $class = $executor['class'];
             $function = $executor['function'];
             $function_props = $executor['props'];
-                    
+
             $instance = new $class();
+            if (isset($executor['bind']))
+                $instance->bind = $executor['bind'];
             $functionResult = $instance->{$function}(...$function_props);
 
             $result = [
@@ -165,6 +217,10 @@ abstract class WidgetsConponent {
 
 
 
+
+
+
+
     public static function init() {
         $data = file_get_contents('php://input');
         if ($data) {
@@ -175,16 +231,7 @@ abstract class WidgetsConponent {
         }
     }
 
-    /** 
-     * Группировка update
-    */
-    function group(array $group) {
-        $result = [
-            'element' => 'state_update_group',
-            'list' => $group,
-        ];
-        return $result;
-    }
+
 
     /**
      * Собственный стейт

@@ -31,4 +31,5 @@ class BindElement {
             'returnType' => $this->get('returnType'),
         ];
     }
+
 }
