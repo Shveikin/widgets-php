@@ -298,7 +298,11 @@ class widgetdom {
             //     return false
         }
 
+
         const type = widgetconvertor.getType(value)
+        
+
+
 
         switch(type){
             case 'Bool':

@@ -559,7 +559,11 @@ class widgetdom {
             //     return false
         }
 
+
         const type = widgetconvertor.getType(value)
+        
+
+
 
         switch(type){
             case 'Bool':
@@ -741,7 +745,8 @@ class widgetstate {
 						}
 					}
                 } else {
-                    return widgetstate.modefiersCheck(stateName, prop, object[prop])
+                    // return widgetstate.modefiersCheck(stateName, prop, object[prop])
+					return object[prop]
                 }
             },
             set(object, prop, value){
@@ -770,24 +775,16 @@ class widgetstate {
         return state;
     }
 
-	static modefiersCheck(stateName, key, value){
-		if (stateName in widgetstate.props)
-		if ('modifiers' in widgetstate.props[stateName])
-		if (key in widgetstate.props[stateName]['modifiers']){
-			const modifiers = widgetstate.props[stateName]['modifiers'][key]
-			if (Array.isArray(modifiers)){
-				let newValue = value
-				modifiers.forEach(mod => {
-					newValue = window[mod](newValue)
-				})
-				return newValue
-			} else {
-				return window[modifiers](value)
-			}
-		}
+	// static modefiersCheck(stateName, key){
+	// 	if (stateName in widgetstate.props)
+	// 	if ('modifiers' in widgetstate.props[stateName])
+	// 	if (key in widgetstate.props[stateName]['modifiers'])
+			
+	// 		return widgetstate.props[stateName]['modifiers'][key]
 
-		return value
-	}
+
+	// 	return false
+	// }
 
 	/** 
 	 * Установка значений в widgetstate.url

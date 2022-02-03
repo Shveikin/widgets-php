@@ -106,24 +106,16 @@ class widgetstate {
         return state;
     }
 
-	static modefiersCheck(stateName, key, value){
-		if (stateName in widgetstate.props)
-		if ('modifiers' in widgetstate.props[stateName])
-		if (key in widgetstate.props[stateName]['modifiers']){
-			const modifiers = widgetstate.props[stateName]['modifiers'][key]
-			if (Array.isArray(modifiers)){
-				let newValue = value
-				modifiers.forEach(mod => {
-					newValue = window[mod](newValue)
-				})
-				return newValue
-			} else {
-				return window[modifiers](value)
-			}
-		}
+	// static modefiersCheck(stateName, key){
+	// 	if (stateName in widgetstate.props)
+	// 	if ('modifiers' in widgetstate.props[stateName])
+	// 	if (key in widgetstate.props[stateName]['modifiers'])
+			
+	// 		return widgetstate.props[stateName]['modifiers'][key]
 
-		return value
-	}
+
+	// 	return false
+	// }
 
 	/** 
 	 * Установка значений в widgetstate.url
@@ -532,11 +524,7 @@ class widgetstate {
 					Object.values(propsList).forEach(stateData => {
 						const properties = []
 						stateData.stateProps.forEach(i => {
-							
-							const val = widgetstate.modefiersCheck(stateName, i, widgetstate.name(stateName)[i])
-
-							properties.push(val)
-							// properties.push(widgetstate.name(stateName)[i])
+							properties.push(widgetstate.name(stateName)[i])
 						})
 
 						let value = false
