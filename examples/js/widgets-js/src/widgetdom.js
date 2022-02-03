@@ -1,6 +1,6 @@
 
 class widgetdom {
-
+    static debug = true;
     static ids = {}
     static idCounter = 0
 
@@ -29,7 +29,8 @@ class widgetdom {
                 widgetdom.parentLink(widget, parent.rootElement)
             break;
             default:
-                console.log('Не знаю как добавить в этот парент! ', parentType, parent);
+                if (widgetdom.debug)
+                    console.log('Не знаю как добавить в этот парент! ', parentType, parent);
             break;
         }
     }
@@ -48,7 +49,12 @@ class widgetdom {
                     return storeElement
                 break;
                 case 'Widget':
+                case 'Bool':
                     widget = storeElement
+                break;
+                default:
+                    if (widgetdom.debug)
+                        console.info('Не проработанный тип элемента', storeElementType, storeElement)
                 break;
             }
         }
@@ -75,7 +81,8 @@ class widgetdom {
                                 widgetdom.createElement(childWidget, widget)
                             break;
                             default: 
-                                console.log('Не знаю что делать с этим child - ', widgetType)
+                                if (widgetdom.debug)
+                                    console.log('Не знаю что делать с этим child - ', widgetType)
                             break;
                         }
 
@@ -111,7 +118,8 @@ class widgetdom {
                 return rootElement;
             
             default:
-                console.log('Не знаю как создать этот компонент', widgetType, widget);
+                if (widgetdom.debug)
+                    console.log('Не знаю как создать этот компонент', widgetType, widget);
             break;
         }
 
@@ -283,6 +291,7 @@ class widgetdom {
         let value = widget.props[prop]
 
         const [change, newValue] = widgetconvertor.checkState(widget, prop)
+        if (newValue==undefined) return false;
 		if (change) {
             value = newValue
             // if (widget.props[prop]==value)
@@ -305,7 +314,8 @@ class widgetdom {
             break;
             case 'Function':
                 if (prop.substr(0,2)=='on'){
-                    widget.rootElement[prop] = function(){
+
+                    const func = function(){
                         value.apply(this)
 
                         if (widget.type in widgetconvertor.singleElement){
@@ -316,15 +326,26 @@ class widgetdom {
                         }
 
                     }
+
+
+                    // widget.rootElement.addEventListener(prop.substr(2), func)
+                    widgetdom.assignEventListener(widget, prop, func)
+
+                    // widget.rootElement[prop] = 
                 } else {
                     widget.rootElement[prop] = value()
                 }
             break;
             default:
-                // console.info('Не применено', prop, value, type)
+                if (widgetdom.debug)
+                    console.info('Не применено', prop, value, type)
             break;
         }
         
+    }
+
+    static assignEventListener(widget, onprop, func){
+        widget.rootElement.addEventListener(onprop.substr(2), func)
     }
 
 

@@ -76,7 +76,7 @@ class widgetstate {
 						}
 					}
                 } else {
-                    return object[prop]
+                    return widgetstate.modefiersCheck(stateName, prop, object[prop])
                 }
             },
             set(object, prop, value){
@@ -104,6 +104,25 @@ class widgetstate {
 		}
         return state;
     }
+
+	static modefiersCheck(stateName, key, value){
+		if (stateName in widgetstate.props)
+		if ('modifiers' in widgetstate.props[stateName])
+		if (key in widgetstate.props[stateName]['modifiers']){
+			const modifiers = widgetstate.props[stateName]['modifiers'][key]
+			if (Array.isArray(modifiers)){
+				let newValue = value
+				modifiers.forEach(mod => {
+					newValue = window[mod](newValue)
+				})
+				return newValue
+			} else {
+				return window[modifiers](value)
+			}
+		}
+
+		return value
+	}
 
 	/** 
 	 * Установка значений в widgetstate.url
@@ -278,7 +297,9 @@ class widgetstate {
 
 
 
-	/** DEFAULT */
+	/** 
+	 * DEFAULT 
+	 */
 
 	static getDefaultPropFromState(statename, prop) {
 		if (
@@ -306,6 +327,39 @@ class widgetstate {
 			return isDefault?_true:_false
 		
 	}
+
+
+
+	/** 
+	 * IF
+	*/
+
+	static runIf(self, prop, value, _true = false, _false = false){
+		// const array_props = props.prop.split('.')
+		// const state = widgettools.getStateFromPath(
+		// 	widgetstate.name(props.state),
+		// 	prop
+		// )
+		// const propx = array_props.slice(-1).join('.')
+
+		// return state.watch(prop).link(function(value){
+		// 	if (value==props.value)
+		// 		widgetconvertor.toFunction(props._true)()
+		// 	else
+		// 		if (_false)
+		// 			widgetconvertor.toFunction(props._false)()
+		// })
+
+
+		if (widgetstate.name(self._name)[prop]==value){
+			widgetconvertor.toFunction(_true)()
+		} else {
+			widgetconvertor.toFunction(_false)()
+		}
+	}
+
+
+
 
 	/**
 	 * При изенении проверить знаниение по умолчанию
@@ -372,6 +426,14 @@ class widgetstate {
 	}
 
 
+	static watchEmpty(self, prop, _true, _false){
+		return widgetstate.name(self._name).watch(prop, function(array){
+			array = Array.isArray(array)?array:Object.keys(array)
+			return array.length==0
+				?_true
+				:_false
+		})
+	}
 
 
 	static inspector(state, widget, changeWidgetProp) {
@@ -412,7 +474,16 @@ class widgetstate {
                         updateStateFunction,
                         stateProps
                     }
+
+
+					if (!Array.isArray(stateProps)){
+						if (widgetdom.debug)
+							console.error('stateProps must to be array type: ', stateProps)
+					}
+
 					const key = stateProps.join(',')
+
+					
 
 					// if (widgetType=='Widget'){
 					// 	if (!(state in widget)) widget.state = {}
@@ -577,7 +648,8 @@ class widgetstate {
 		return (prop, callback = false) => {
 			return {
 				link(widget, argument){
-					widget.rootElement.onchange = function(){
+					// widget.rootElement.onchange = 
+					const func = function(){
 						const modelValue = this[argument]
 						let value = modelValue
 						if (callback){
@@ -588,6 +660,9 @@ class widgetstate {
 						}
 						state[prop] = value;
 					}
+
+                    widgetdom.assignEventListener(widget, 'onchange', func)
+
 					
 					state.watch(prop, value => {
 						if (callback){

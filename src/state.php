@@ -10,6 +10,7 @@ class state {
     public $_alias = false; // [значение в state => значение в URL]
     public $_request = false;
     public $_default = false; // те значения которые совпадют с default в url записываться не будут
+    public $_modifiers = false; // список js модификаторов
     public $onchange = false;
     public $sourceClass = 'state';
 
@@ -76,9 +77,8 @@ class state {
             $this->setData($defaultArray, 'defaultArray');
         }
 
-        
+        $this->_modifiers = static::modifiers($this);
 
-        
         $this->refreshDefaults();
         $this->updateStartingValues();
         if ($this->canSetDefaultFromRequest){
@@ -109,7 +109,7 @@ class state {
         foreach ($data as $key => $value) {
             // $alias = $this->dataAlias($key);
             $alias = $key;
-            $old = isset($this->_data[$alias])?$this->_data[$alias]:-1;
+            $old = isset($this->_data[$alias])?$this->_data[$alias]:false;
 
             if (isset($oldData[$alias]))
             if ($old!=($oldData[$alias])) {
@@ -118,7 +118,7 @@ class state {
                     continue;
                 }
 
-            if ($old!=$value){
+            if ($old!==$value){
                 $this->_data[$alias] = $value;
                 
                 $runRevice = false;
@@ -167,6 +167,9 @@ class state {
         }
         if ($this->_default){
             $props['default'] = $this->_default;
+        }
+        if ($this->_modifiers){
+            $props['modifiers'] = $this->_modifiers;
         }
         if ($this->onchange!=false){
             $change = $this->onchange;
@@ -278,7 +281,9 @@ class state {
             watch: $watch,
             callback: $callback,
             view: function () use ($watch) {
-                return $this->_data[$watch];
+                return isset($this->_data[$watch])
+                    ?$this->_data[$watch]
+                    :0;
             },
         );
     }
@@ -339,15 +344,15 @@ class state {
         );
     }
 
-    function checkIf($prop, $value, $do) {
-        return c::state_check_if(
-            state: $this->_name,
-            prop: $prop,
-            value: $value,
-            _do: $do,
-            view: ''
-        );
-    }
+    // function checkIf($prop, $value, $_true, $_false = false) {
+    //     return c::state_check_if(
+    //         state: $this->_name,
+    //         prop: $prop,
+    //         value: $value,
+    //         _do: $_true,
+    //         view: ''
+    //     );
+    // }
 
 
 
@@ -424,6 +429,8 @@ class state {
     static $name = 'global'; // используется только для определения имени в классе
     static $default = false;
     static $alias = false; // только для определения get параметров
+    static $modifiers = false; // только для определения get параметров
+
     public $canSetDefaultFromRequest = false;
 
     static function name(string $stateName, string $parent = '') {
@@ -475,6 +482,10 @@ class state {
             $result = static::$default;
         }
         return $result;
+    }
+
+    static function modifiers($state){
+        return static::$modifiers;
     }
 
 
@@ -667,8 +678,12 @@ class state {
     }
 
     function isDefault($key){
-        $alias = $this->dataAlias($key);
-        return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+        if (isset($this->_default[$key])){
+            return $this->_data[$key] == $this->_default[$key];
+        } else {
+            $alias = $this->dataAlias($key);
+            return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+        }
     }
 
     function __call($name, $arguments){

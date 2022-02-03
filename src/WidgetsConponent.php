@@ -75,25 +75,26 @@ abstract class WidgetsConponent {
 
     public $layout = false;
     public function layout($props = []) {
-
         $this->layout = c::div();
         $this->draw($this->layout, $props);
 
         return $this->layout;
     }
 
+
     static function element(...$props){
         $element = new static($props);
         return $element->layout($props);
     }
 
-    
+
     static function widget(...$props){
         $element = new static($props);
         $element->layout($props);
 
         return $element;
     }
+
 
     function html($activate = false){
 

@@ -4,17 +4,13 @@ use Widget\state;
 
 class MapState extends state
 {
-    static $name = 'mapList';
+    static $name = 'state';
     static $default = [
-        '_list' =>  [
-            [
-                'text' => 'hello',
-                'list' => [1,2,3],
-            ],
-            [
-                'text' => 'world',
-                'list' => [5,6,38],
-            ],
-        ]
+        'unit' => 'c',
+        'min' => 23,
+    ];
+
+    static $modifiers = [
+        'unit' => 'unitToRu'
     ];
 }

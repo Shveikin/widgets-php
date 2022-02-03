@@ -1,129 +1,144 @@
-<style>
-    .sliderPoint {
-        border: 2px solid rgb(0, 150, 187);
-        border-radius: 50%;
-        height: 12px;
-        width: 12px;
-        cursor: pointer;
-        position: absolute;
-        margin-top: 9px;
-        background: #fff;
-    }
-
-    .sliderInput {
-        padding: 5px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-
-    .sliderLine {
-        padding: 2px;
-        background: #ddd;
-        border-radius: 5px;
-        position: absolute;
-        width: 100%;
-        box-sizing: border-box;
-        left: 0;
-        top: 16px;
-    }
-
-    #dragElement {
-        padding: 10px;
-        background: #f00;
-    }
-</style>
 <?php
 
 use Widget\c;
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once 'states/MapState.php';
-require_once 'states/SredaState.php';
 
-require_once 'components/SredaController.php';
-// 'SredaState.php'
 
 
 // if (!$_SERVER['DOCUMENT_ROOT'])
-    $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
-
-require_once $_SERVER['DOCUMENT_ROOT'] . '/env.php';
-
-imprt([
-    'function_list',
-    'sqli_connect',
-    // 'rashodstate',
-    // 'rashod',
-    // 'config',
-    // // 'ModxClearMashine',
-    // // 'FilterViewController',
-    // 'switch',
-    // 'ParserSettingController',
-    // // 'console',
-    // 'HashMaster',
-    // 'FilterController',
-    // // 'timer',
-    // 'DataGet',
-    // 'SiteController',
-    // 'types',
-    // 'datahub',
-    // 'RequestController',
-    // 'SliderController',
-    // 'RequestExecutor',
-    // 'ModxController',
-]);
+    // $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/states/MapState.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/components/Table.php';
 
 
-$mysqli = getConnect();
-$mysqli_JINO = getConnect(JINO);
+// imprt([
+//     'function_list',
+//     'sqli_connect',
+//     // 'rashodstate',
+//     // 'rashod',
+//     // 'config',
+//     // // 'ModxClearMashine',
+//     // // 'FilterViewController',
+//     // 'switch',
+//     // 'ParserSettingController',
+//     // // 'console',
+//     // 'HashMaster',
+//     // 'FilterController',
+//     // // 'timer',
+//     // 'DataGet',
+//     // 'SiteController',
+//     // 'types',
+//     // 'datahub',
+//     // 'RequestController',
+//     // 'SliderController',
+//     // 'RequestExecutor',
+//     // 'ModxController',
+// ]);
+
+
+// $mysqli = getConnect();
+// $mysqli_JINO = getConnect(JINO);
 
 
 
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
-echo '<script src="/js/components/slider.js"></script>';
+echo '<script src="/js/components/widgets.js"></script>';
+
+// echo '<script src="/js/components/slider.js"></script>';
+echo Table::widget()->html(true);
 
 
-
-echo c::div([
-    SredaController::element(),
-    SredaController::element(),
-    SredaController::element()
-])->html(true);
-
-
-// echo c::div('Hello');
-
-// RashodState::state();
-
-// echo c::slider(
-//     state: 'rashod',
-//     title: 'Расход',
-//     range: ['min' =>  0, 'max' => 200],
-//     sliderWidth: 500,
-//     type: 'int'
-// )->html(true);
-
-
-
-// MapState::state();
-
-// $state = MapState::state();
-
-// echo c::div(
-//     $state->map('_list', function($itm){
-        
-//         return [
-//             c::textarea(value: $itm->text),
-//             // $itm->map('list')
-//             $itm->_list->map('list')
-//         ];
-//     })
-// )->html(true);
-
-
-
-// echo $first->html(true);
-
-// echo $first->print_r();
 
 ?>
+<style>
+
+    .filterInput_f2 {
+        padding: 5px;
+        border: 1px solid #f4f4f4;
+        background-color: #f4f4f4;
+        width: 150px !important;
+        margin: 0 !important;
+    }
+
+    input[type=number], input[type=password], input[type=text], textarea {
+        -webkit-appearance: none;
+    }
+
+    input[type='number'] {
+        width: 250px;
+        margin: 5px;
+        text-align: center;
+    }
+
+    button, input, optgroup, select, textarea {
+        margin: 0;
+        color: inherit;
+        font-size: inherit;
+        font-family: inherit;
+        line-height: inherit;
+    }
+
+    input {
+        box-sizing: border-box;
+    }
+
+    input, select, textarea, option {
+        outline: none;
+    }
+
+    body {
+        margin: 0;
+        padding: 20px;
+        font-family: "OpenSans", sans-serif;
+        font-size: 12px;
+    }
+
+
+
+
+    .inputWrapper {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+    }
+
+    .inputWrapper:hover .inputUnit,
+    .filterInput_f2:focus ~ .inputUnit{
+        top: 30px;
+        opacity: 0;
+        visibility: hidden;
+        transition: none;
+    }
+
+    .inputUnit {
+        position: absolute;
+        top: 0;
+        padding: 5px 10px;
+        right: 2px;
+        transition: all .3s .2s;
+    }
+
+    .inputWrapper .filterInput_f2 {
+        text-align: left;
+        -moz-appearance: textfield !important;
+        -webkit-appearance: none !important;
+    }
+
+    .filterInput_f2:focus,
+    .filterInput_f2:hover {
+        border: 1px solid #ddd;
+    }
+
+    
+    /* input:focus::-webkit-inner-spin-button {
+        padding: 10px;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        /* padding: 10px; */
+        /* -webkit-appearance: none;
+        margin: 0; */
+    } */
+</style>

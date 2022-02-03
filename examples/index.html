@@ -7,6 +7,8 @@
     <title>Document</title>
     <!-- <script src="/js/widgets-js/build/widgets.js"></script> -->
 
+    
+    
     <script src="/js/widgets-js/src/c.js"></script>
     <script src="/js/widgets-js/src/widgetconvertor.js"></script>
     <script src="/js/widgets-js/src/widgetdom.js"></script>
@@ -14,73 +16,122 @@
     <script src="/js/widgets-js/src/widgettools.js"></script>
     <script src="/js/widgets-js/src/widgetsmartprops.js"></script>
 
-
-    <script src="/js/components/slider.js"></script>
-    <style>
-        .dragboard {
-            background: #ccc;
-        }
-        .dragelement {
-            padding: 20px;
-            background: #f00;
-        }
-    </style>
+    <script src="/js/components/widgets.js"></script>
 
     <style>
-        .sliderPoint {
-            border: 2px solid rgb(0, 150, 187);
-            border-radius: 50%;
-            height: 12px;
-            width: 12px;
-            cursor: pointer;
-            position: absolute;
-            margin-top: 9px;
-            background: #fff;
-        }
 
-        .sliderInput {
+        .filterInput_f2 {
             padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid #f4f4f4;
+            background-color: #f4f4f4;
+            width: 150px !important;
+            margin: 0 !important;
         }
-        
-        .sliderLine {
-            padding: 2px;
-            background: #ddd;
-            border-radius: 5px;
-            position: absolute;
-            width: 100%;
+    
+        input[type=number], input[type=password], input[type=text], textarea {
+            -webkit-appearance: none;
+        }
+    
+        input[type='number'] {
+            width: 250px;
+            margin: 5px;
+            text-align: center;
+        }
+    
+        button, input, optgroup, select, textarea {
+            margin: 0;
+            color: inherit;
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+        }
+    
+        input {
             box-sizing: border-box;
-            left: 0;
-            top: 16px;
         }
-
-        #dragElement {
+    
+        input, select, textarea, option {
+            outline: none;
+        }
+    
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: "OpenSans", sans-serif;
+            font-size: 12px;
+        }
+    
+    
+    
+    
+        .inputWrapper {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+    
+        .inputWrapper:hover .inputUnit,
+        .filterInput_f2:focus ~ .inputUnit{
+            top: 30px;
+            opacity: 0;
+            visibility: hidden;
+            transition: none;
+        }
+    
+        .inputUnit {
+            position: absolute;
+            top: 0;
+            padding: 5px 10px;
+            right: 2px;
+            transition: all .3s .2s;
+        }
+    
+        .inputWrapper .filterInput_f2 {
+            text-align: left;
+            -moz-appearance: textfield !important;
+            -webkit-appearance: none !important;
+        }
+    
+        .filterInput_f2:focus,
+        .filterInput_f2:hover {
+            border: 1px solid #ddd;
+        }
+    
+        
+        /* input:focus::-webkit-inner-spin-button {
             padding: 10px;
-            background: #f00;
         }
+    
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            /* padding: 10px; */
+            /* -webkit-appearance: none;
+            margin: 0; */
+        } */
     </style>
 
 </head>
 <body>
-    <div id="app"></div>
-    <pre id="print"></pre>
-
-    
+    <div id="app0"></div>
 
     <script>
-        widgetstate.use({"sreda_id":14,"weight":1000,"sreda_title":"\u0412\u043e\u0434\u0430"},{"name":"sreda"});
-        widgetstate.use({"_list":[{"id":"1","environment":"\u0410\u0437\u043e\u0442 (N2 Nitrogen)","weight":"1.2506","state":"2"},{"id":"2","environment":"\u0410\u0437\u043e\u0442\u043d\u0430\u044f \u043a\u0438\u0441\u043b\u043e\u0442\u0430 (\u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0430\u044f) (Nitric Acid, (concentrated))","weight":"1370","state":"1"},{"id":"3","environment":"\u0410\u043c\u043c\u0438\u0430\u043a (NH\u2083 Ammonia)","weight":"0.86","state":"1"},{"id":"4","environment":"\u0410\u0440\u0433\u043e\u043d (Ar Argon Gas)","weight":"1.784","state":"2"},{"id":"5","environment":"\u0410\u0446\u0435\u0442\u0438\u043b\u0435\u043d (C\u2082H\u2082 Acetylene)","weight":"0","state":"2"},{"id":"6","environment":"\u0410\u0446\u0435\u0442\u043e\u043d (C3H6O Acetone)","weight":"0","state":"1"},{"id":"7","environment":"\u0411\u0435\u043d\u0437\u0438\u043d (Gasoline)","weight":"0","state":"1"},{"id":"8","environment":"\u0411\u0435\u043d\u0437\u043e\u043b (Benzol)","weight":"0","state":"1"},{"id":"9","environment":"\u0411\u0440\u043e\u043c\u0438\u0441\u0442\u044b\u0439 \u0432\u043e\u0434\u043e\u0440\u043e\u0434 (HBr Hydrogen Bromide)","weight":"3.6452","state":"2"},{"id":"10","environment":"\u0411\u0443\u0442\u0430\u043d (C4H10 Butane)","weight":"2080","state":"2"},{"id":"11","environment":"\u0411\u0443\u0442\u0438\u043b\u043e\u0432\u044b\u0439 \u0441\u043f\u0438\u0440\u0442 (Butyl Acohol)","weight":"0","state":"1"},{"id":"12","environment":"\u0412\u043e\u0434\u0430 (\u041d2O Water)","weight":"1000","state":"1"},{"id":"13","environment":"\u0412\u043e\u0434\u043d\u043e-\u0441\u043e\u043b\u0435\u0432\u0430\u044f \u0441\u0440\u0435\u0434\u0430 (Water,Salt)","weight":"1230","state":"1"},{"id":"14","environment":"\u0412\u043e\u0437\u0434\u0443\u0445 (Air)","weight":"1.2","state":"2"},{"id":"15","environment":"\u0413\u0430\u0437 \u0432\u043e\u0434\u043e\u0440\u043e\u0434\u0430 (\u0445\u043e\u043b\u043e\u0434\u043d\u044b\u0439) (Hydrogen Gas (cold))","weight":"0.0899","state":"2"},{"id":"16","environment":"\u0413\u0430\u0437 \u041f\u0440\u0438\u0440\u043e\u0434\u043d\u044b\u0439 (Gas, Natural)","weight":"0.657","state":"2"},{"id":"17","environment":"\u0413\u0435\u043a\u0441\u0430\u043d (C6H14 Hexane)","weight":"0","state":"1"},{"id":"18","environment":"\u0413\u0435\u043b\u0438\u0439 (He Helium Gas)","weight":"0.1786","state":"2"},{"id":"19","environment":"\u0413\u0435\u043f\u0442\u0430\u043d (C7H16 Heptane)","weight":"0","state":"1"},{"id":"20","environment":"\u0413\u043b\u0438\u043a\u043e\u043b\u044c (C2H6O2 Glycol)","weight":"1130","state":"1"},{"id":"21","environment":"\u0413\u043b\u0438\u0446\u0435\u0440\u0438\u043d (\u0413\u043b\u0438\u0446\u0435\u0440\u0438\u043d) (Glycerine (Glycerol))","weight":"1","state":"1"},{"id":"22","environment":"\u0413\u043b\u0438\u0446\u0435\u0440\u0438\u043d (\u0413\u043b\u0438\u0446\u0435\u0440\u043e\u043b) (\u0421\u0437\u041d5(\u041e\u041d)\u0437 Glycerine (Glycerol))","weight":"1261","state":"1"},{"id":"23","environment":"\u0414\u0438\u043e\u043a\u0441\u0438\u0434 \u0441\u0435\u0440\u044b (SO2 Sulfur, Dioxide)","weight":"2260","state":"2"},{"id":"24","environment":"\u0417\u0430\u043a\u0438\u0441\u044c \u0430\u0437\u043e\u0442\u0430 (N2O Nitrous Oxide)","weight":"1530","state":"2"},{"id":"25","environment":"\u041a\u0430\u0441\u0442\u043e\u0440\u043e\u0432\u043e\u0435 \u043c\u0430\u0441\u043b\u043e (Castor Oil)","weight":"961","state":"1"},{"id":"26","environment":"\u041a\u0435\u0440\u043e\u0441\u0438\u043d (Kerosene)","weight":"800","state":"1"},{"id":"27","environment":"\u041a\u0438\u0441\u043b\u043e\u0440\u043e\u0434 (O2 Oxygen)","weight":"1100","state":"2"},{"id":"28","environment":"\u041c\u0430\u0437\u0443\u0442 (Fuel Oil)","weight":"1010","state":"1"},{"id":"29","environment":"\u041c\u0435\u0442\u0430\u043d (\u0421\u041d4 Methane)","weight":"0","state":"2"},{"id":"30","environment":"\u041c\u043e\u043b\u043e\u043a\u043e (Milk)","weight":"1020","state":"1"},{"id":"31","environment":"\u041c\u043e\u0440\u0441\u043a\u0430\u044f \u0432\u043e\u0434\u0430 (Sea Water)","weight":"1025","state":"1"},{"id":"32","environment":"\u041c\u043e\u0442\u043e\u0440\u043d\u043e\u0435 \u043c\u0430\u0441\u043b\u043e (Engine Oil)","weight":"0","state":"1"},{"id":"33","environment":"\u041d - \u0431\u0443\u0442\u0438\u043b\u043e\u0432\u044b\u0439 \u0441\u043f\u0438\u0440\u0442 (CH3(CH2)2CH2OH n - Butyl Alcohol)","weight":"810","state":"1"},{"id":"34","environment":"\u043d-\u0433\u0435\u043a\u0441\u0430\u043d (\u0421\u041d\u0437(\u0421\u041d2)4\u0421\u041d\u0437 n - Hexane)","weight":"660.6","state":"1"},{"id":"35","environment":"\u043d-\u0433\u0435\u043f\u0442\u0430\u043d (\u0421\u041d\u0437(\u0421\u041d2)5\u0421\u041d\u0437 n - Heptane)","weight":"679.5","state":"1"},{"id":"36","environment":"\u043d-\u0434\u0435\u043a\u0430\u043d (\u0421\u041d\u0437(\u0421\u041d2)8\u0421\u041d\u0437 n - Decane)","weight":"730","state":"1"},{"id":"37","environment":"\u043d-\u043e\u043a\u0442\u0430\u043d (\u0421\u041d\u0437(\u0421\u041d2)6\u0421\u041d\u0437 n - Octane)","weight":"703","state":"1"},{"id":"38","environment":"\u043d-\u043f\u0435\u043d\u0442\u0430\u043d (\u0421\u041d\u0437(\u0421\u041d2)\u0437\u0421\u041d\u0437 n - Pentane)","weight":"626","state":"1"},{"id":"39","environment":"\u041d\u0430\u0444\u0442\u0430\u043b\u0438\u043d (\u042110\u041d8 Naphthalene)","weight":"1145","state":"1"},{"id":"40","environment":"\u041d\u0435\u043e\u043d (Neon)","weight":"0.9002","state":"2"}]},{"name":"sredaList"});
-        widgetstate.use({"isOpen":false},{"name":"sredaControllerProps_1"});
-        widgetstate.use({"_list":[0,1,2,3,4,5]},{"name":"myList_1"});
-        widgetstate.use({"isOpen":false},{"name":"sredaControllerProps_2"});
-        widgetstate.use({"_list":[0,1,2,3,4,5]},{"name":"myList_2"});
-        widgetstate.use({"isOpen":false},{"name":"sredaControllerProps_3"});
-        widgetstate.use({"_list":[0,1,2,3,4,5]},{"name":"myList_3"});
+            function unitToRu(unit) {
+                return 'Температура'
+            }
 
-        c.app(
-            {"element":"div","child":[{"element":"div","child":[{"element":"div","style":"font-family: \"Trebuchet MS\"; font-size: 14px;","child":[{"element":"div","style":"border: 1px solid #ccc; padding: 5px; cursor: pointer;","onclick":{"element":"func","function":"widgetstate.name('sredaControllerProps_1').checkTurn('isOpen')","view":"widgetstate.name(`sredaControllerProps_1`).checkTurn(`isOpen`)"},"child":[{"element":"div","style":"display: flex; justify-content: space-between;","child":[{"element":"state_watcher","state":"sreda","watch":"sreda_title","callback":false,"view":"\u0412\u043e\u0434\u0430"},{"element":"state_check","state":"sredaControllerProps_1","prop":"isOpen","value":true,"_true":"\u25b2","_false":"\u25bc","view":"\u25bc"}]}]},{"element":"div","child":[{"element":"state_check","state":"sredaControllerProps_1","prop":"isOpen","value":true,"_true":{"element":"div","style":"border: 1px solid #ccc; \r\n                                    padding: 5px; \r\n                                    height: 200px; \r\n                                    margin-top: -1px;\r\n                                    overflow: auto;\r\n                            ","child":[{"element":"div","child":[{"element":"state_map","state":"sredaList","prop":"_list","refernce":{"element":"div","style":{"element":"state_check","state":"sreda","prop":"sreda_id","value":"**id**","_true":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","_false":"color: #222;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","view":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;"},"innerHTML":"**environment**","onclick":{"element":"state_update_group","list":[{"element":"state_update","state":"sreda","stateProps":{"sreda_id":"**id**","sreda_title":"**environment**"}},{"element":"state_update","state":"sredaControllerProps_1","stateProps":{"isOpen":false}},{"element":"widget_request","function":"select","props":[],"url":"\/index.php","class":"SredaController","useState":["sreda"],"view":""}]}},"useColls":["id","environment"],"view":"***"}]}]},"_false":"","view":""}]}]}]},{"element":"div","child":[{"element":"div","style":"font-family: \"Trebuchet MS\"; font-size: 14px;","child":[{"element":"div","style":"border: 1px solid #ccc; padding: 5px; cursor: pointer;","onclick":{"element":"func","function":"widgetstate.name('sredaControllerProps_2').checkTurn('isOpen')","view":"widgetstate.name(`sredaControllerProps_2`).checkTurn(`isOpen`)"},"child":[{"element":"div","style":"display: flex; justify-content: space-between;","child":[{"element":"state_watcher","state":"sreda","watch":"sreda_title","callback":false,"view":"\u0412\u043e\u0434\u0430"},{"element":"state_check","state":"sredaControllerProps_2","prop":"isOpen","value":true,"_true":"\u25b2","_false":"\u25bc","view":"\u25bc"}]}]},{"element":"div","child":[{"element":"state_check","state":"sredaControllerProps_2","prop":"isOpen","value":true,"_true":{"element":"div","style":"border: 1px solid #ccc; \r\n                                    padding: 5px; \r\n                                    height: 200px; \r\n                                    margin-top: -1px;\r\n                                    overflow: auto;\r\n                            ","child":[{"element":"div","child":[{"element":"state_map","state":"sredaList","prop":"_list","refernce":{"element":"div","style":{"element":"state_check","state":"sreda","prop":"sreda_id","value":"**id**","_true":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","_false":"color: #222;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","view":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;"},"innerHTML":"**environment**","onclick":{"element":"state_update_group","list":[{"element":"state_update","state":"sreda","stateProps":{"sreda_id":"**id**","sreda_title":"**environment**"}},{"element":"state_update","state":"sredaControllerProps_2","stateProps":{"isOpen":false}},{"element":"widget_request","function":"select","props":[],"url":"\/index.php","class":"SredaController","useState":["sreda"],"view":""}]}},"useColls":["id","environment"],"view":"***"}]}]},"_false":"","view":""}]}]}]},{"element":"div","child":[{"element":"div","style":"font-family: \"Trebuchet MS\"; font-size: 14px;","child":[{"element":"div","style":"border: 1px solid #ccc; padding: 5px; cursor: pointer;","onclick":{"element":"func","function":"widgetstate.name('sredaControllerProps_3').checkTurn('isOpen')","view":"widgetstate.name(`sredaControllerProps_3`).checkTurn(`isOpen`)"},"child":[{"element":"div","style":"display: flex; justify-content: space-between;","child":[{"element":"state_watcher","state":"sreda","watch":"sreda_title","callback":false,"view":"\u0412\u043e\u0434\u0430"},{"element":"state_check","state":"sredaControllerProps_3","prop":"isOpen","value":true,"_true":"\u25b2","_false":"\u25bc","view":"\u25bc"}]}]},{"element":"div","child":[{"element":"state_check","state":"sredaControllerProps_3","prop":"isOpen","value":true,"_true":{"element":"div","style":"border: 1px solid #ccc; \r\n                                    padding: 5px; \r\n                                    height: 200px; \r\n                                    margin-top: -1px;\r\n                                    overflow: auto;\r\n                            ","child":[{"element":"div","child":[{"element":"state_map","state":"sredaList","prop":"_list","refernce":{"element":"div","style":{"element":"state_check","state":"sreda","prop":"sreda_id","value":"**id**","_true":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","_false":"color: #222;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;","view":"color: rgb(0,149,255);font-weight: 600;cursor: pointer; padding: 3px; border-bottom: 1px solid #eee;"},"innerHTML":"**environment**","onclick":{"element":"state_update_group","list":[{"element":"state_update","state":"sreda","stateProps":{"sreda_id":"**id**","sreda_title":"**environment**"}},{"element":"state_update","state":"sredaControllerProps_3","stateProps":{"isOpen":false}},{"element":"widget_request","function":"select","props":[],"url":"\/index.php","class":"SredaController","useState":["sreda"],"view":""}]}},"useColls":["id","environment"],"view":"***"}]}]},"_false":"","view":""}]}]}]}]}
-        )
+            widgetstate.use(
+                {"unit":"c","min":23},
+                {"name":"state","sourceClass":"MapState","modifiers":{"unit":
+                    "unitToRu"
+                }}
+            );
+
+
+            c.render('#app0',
+                {"element":"div","child":[{"element":"unitInput","value":"min","unitState":"state"}]}
+            )
+
+            console.log('>>', widgetstate.names.state.unit)
     </script>
 </body>
 </html>

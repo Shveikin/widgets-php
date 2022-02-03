@@ -82,24 +82,7 @@ class widgettools {
 		)
 	}
 
-	static state_check_if(props){
-		const array_props = props.prop.split('.')
-		const state = widgettools.getStateFromPath(
-			widgetstate.name(props.state),
-			[...array_props]
-		)
-		const prop = array_props.slice(-1).join('.')
 
-		return state.watch(prop).link(function(value){
-			if (value==props.value)
-				widgetconvertor.toFunction(props._do)()
-		})
-
-		// return state.check(prop,
-		// 	props.value, 
-		// 	props._true
-		// )
-	}
 
 
 
