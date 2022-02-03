@@ -76,7 +76,8 @@ class widgetstate {
 						}
 					}
                 } else {
-                    return widgetstate.modefiersCheck(stateName, prop, object[prop])
+                    // return widgetstate.modefiersCheck(stateName, prop, object[prop])
+					return object[prop]
                 }
             },
             set(object, prop, value){
@@ -531,7 +532,11 @@ class widgetstate {
 					Object.values(propsList).forEach(stateData => {
 						const properties = []
 						stateData.stateProps.forEach(i => {
-							properties.push(widgetstate.name(stateName)[i])
+							
+							const val = widgetstate.modefiersCheck(stateName, i, widgetstate.name(stateName)[i])
+
+							properties.push(val)
+							// properties.push(widgetstate.name(stateName)[i])
 						})
 
 						let value = false
