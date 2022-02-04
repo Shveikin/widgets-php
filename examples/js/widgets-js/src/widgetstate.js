@@ -67,10 +67,12 @@ class widgetstate {
         const state = new Proxy(obj, {
             get(object, prop){
                 if (widgetstate[prop]){
+
                     return function(){
 						const result = widgetstate[prop].apply(this, [object, ...arguments])
 						if (typeof result == 'function'){
-							return result.apply(this, arguments)
+							const funcres = result.apply(this, arguments)
+							return funcres
 						} else {
 							return result
 						}
@@ -434,20 +436,38 @@ class widgetstate {
 			return state.link(widget, changeWidgetProp)
 	}
 
-    static watch(self){
-        return ( stateProps, callback = false) => {
+    static watch(self, stateProps, callback = false) {
+        // return (stateProps, callback = false) => {
+
+			const watcher = new widgetwatcher().state(self._name);
+
             let updateStateFunction = false;
 			if (typeof stateProps == 'function'){
                 updateStateFunction = stateProps
                 const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(stateProps.toString())
                 stateProps = fprops.split(',').map(i => i.trim())
+
+				watcher.keys(stateProps)
             } else if (typeof stateProps == 'string'){
                 stateProps = stateProps.split(',').map(i => i.trim())
 				if (callback){
 					updateStateFunction = callback
 				}
-            }
+				watcher.keys(stateProps)
+            } else if (typeof stateProps == 'object'){
+				watcher.set_props(stateProps)
+			}
 
+			if (updateStateFunction)
+				watcher.callback(updateStateFunction)
+
+			return watcher
+
+			return new widgetwatcher({
+				state: self._name, 
+				keys: stateProps, 
+				callback: updateStateFunction
+			})
             return {
                 link(widget, changeWidgetProp = false){
                     // if (!('___updates' in self)) self.___updates = {}
@@ -500,7 +520,7 @@ class widgetstate {
 
                 }
             }
-        }
+        // }
     }
 
 
@@ -522,17 +542,38 @@ class widgetstate {
 
 				Object.values(___updates).forEach(propsList => {
 					Object.values(propsList).forEach(stateData => {
+
+						stateData.refrash()
+						/* 
 						const properties = []
 						stateData.stateProps.forEach(i => {
 							properties.push(widgetstate.name(stateName)[i])
 						})
 
-						let value = false
+						let value = false */
 
-						if (typeof stateData.updateStateFunction == 'function'){
-							value = stateData.updateStateFunction.apply(this, properties)
-						} else {
-							value = properties
+						// if (typeof stateData.updateStateFunction == 'function'){
+						// 	value = stateData.updateStateFunction.apply(this, properties)
+						// } else {
+						// 	value = properties
+						// }
+
+						// if (typeof stateData.callback == 'function'){
+						// 	value = stateData.callback.apply(this, properties)
+						// } else {
+						// 	value = properties
+						// }
+/* 
+						for (const callback of Array.isArray(stateData.callback)?stateData.callback:[stateData.callback]){
+							
+							if (typeof callback == 'function'){
+								value = callback.apply(this, properties)
+								console.log('>', value)
+							} else {
+								value = properties
+								console.log('_', value)
+							}
+
 						}
 
 
@@ -559,7 +600,7 @@ class widgetstate {
 								console.log('Не знаю как применить изменения ', widgetType);
 							break;
 						}
-
+ */
 					})
 				})
 

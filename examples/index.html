@@ -15,6 +15,7 @@
     <script src="/js/widgets-js/src/widgetstate.js"></script>
     <script src="/js/widgets-js/src/widgettools.js"></script>
     <script src="/js/widgets-js/src/widgetsmartprops.js"></script>
+    <script src="/js/widgets-js/src/tools/watcher.js"></script>
 
     <script src="/js/components/widgets.js"></script>
 
@@ -115,23 +116,33 @@
     <div id="app0"></div>
 
     <script>
-            function unitToRu(unit) {
-                return 'Температура'
-            }
 
-            widgetstate.use(
-                {"unit":"c","min":23},
-                {"name":"state","sourceClass":"MapState","modifiers":{"unit":
-                    "unitToRu"
-                }}
+            const state = widgetstate.use(
+                {
+                    unit: "5", 
+                    unit2: "6", 
+                    min: 23,
+                }
             );
 
+            const state2 = widgetstate.use(
+                {
+                    _ff: [
+                        '5', '6', '7', '8'
+                    ]
+                }
+            );
 
+            
             c.render('#app0',
-                {"element":"div","child":[{"element":"unitInput","value":"min","unitState":"state"}]}
+                c.div(
+                    state.watch('unit')
+                )
             )
 
-            console.log('>>', widgetstate.names.state.unit)
+            // state.unit = 'f'
+
+            // console.log('>>', widgetstate.names.state.unit)
     </script>
 </body>
 </html>

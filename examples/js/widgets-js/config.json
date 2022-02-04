@@ -3,6 +3,7 @@
     "to": "build/widgets.js",
     "list": [
         "c.js",
+        "watcher.js",
         "widgetconvertor.js",
         "widgetdom.js",
         "widgetstate.js",
