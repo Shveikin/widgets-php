@@ -7,12 +7,14 @@ class widgetwatcher {
         // this._is = false
     }
 
+    arr(val){
+        return Array.isArray(val)?val:[val]
+    }
+
     set_props(props){
         Object.keys(props).forEach(itm => {
             if (typeof this[itm] == 'function'){
-                const prop = Array.isArray(props[itm])
-                                ?props[itm]
-                                :[props[itm]]
+                const prop = this.arr(props[itm])
                 this[itm].apply(this, prop)
             } else {
                 this['_'+itm] = props[itm]
@@ -21,7 +23,7 @@ class widgetwatcher {
     }
 
     keys(array){
-        this._keys = Array.isArray(array)?array:[array]
+        this._keys = this.arr(array)
     }
 
     state(stateName){
@@ -30,16 +32,14 @@ class widgetwatcher {
         return this
     }
 
+    _callback = {}
+    _callbackautokey = 1
     callback(_callback, callbackkey = false){
-        if (!Array.isArray(this._callback)) {
-            this._callback = {}
-            this._callbackautokey = 1
-        }
-
         if (!callbackkey) callbackkey = this._callbackautokey++
         this._callback[callbackkey] = _callback
     }
 
+    _current_value = false 
     check_current_value(){
         return Array.isArray(this._current_value)
     }
@@ -53,6 +53,7 @@ class widgetwatcher {
         return value
     }
 
+    
     current_value(callback){
         if (this.check_current_value()){
             return this.set_current_value(
@@ -78,6 +79,12 @@ class widgetwatcher {
         return cvs
     }
 
+
+
+    // ------------------------- Модификаторы
+
+
+
     is(etalon, _true, _false = false){
 
         this.callback(keys => {
@@ -87,13 +94,96 @@ class widgetwatcher {
         return this
     }
 
-    is_default(){
+    is_default(_true, _false){
+        
+        this.callback(keys => {
+            let _bind = false
+            let _all_default = true
+            if (this._stateName in widgetstate.props){
+                if ('default' in widgetstate.props[this._stateName]){
+                    _bind = true
+                    for (const key of this._keys) {
+                        const currentVal = this._state[key]
+                        const defaultval = widgetstate.props[this._stateName]['default'][key]
+                        
+                        if (typeof currentVal != typeof defaultval){
+                            console.log('----default TYPE NORM')
+                            _all_default = false;
+                            break;
+                        } else
+                        if (Array.isArray(currentVal)){
+                            if (currentVal.join(',')!=defaultval.join(',')) {
+                                _all_default = false;
+                                break;
+                            }
+                        } else {
+                            if (currentVal!=defaultval){
+                                _all_default = false;
+                                break;
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            
+            console.log('IS DEFAULT', this._keys)
+
+            if (_bind){
+                return _all_default?_true:_false
+            } else {
+                return _false
+            }
+        }, 'is_default_')
+
+
+        return this
+    }
+
+    is_empty(_true, _false){
+        this.callback(keys => {
+            let _all_empty = true
+
+            for (const key of this._keys){
+                const val = this._state[key]
+                const type = widgetconvertor.getType(val)
+                switch (type) {
+                    case 'Array':
+                        if (val.length != 0) {
+                            _all_empty = false
+                            break;
+                        }
+                    break;
+                    case 'Int':
+                        if (val != 0) {
+                            _all_empty = false
+                            break;
+                        }
+                    break;
+                    case 'String':
+                        if (val != '') {
+                            _all_empty = false
+                            break;
+                        }
+                    break;
+                    default:
+                        _all_empty = false
+                        console.log('Не знаю как проверить на EMPTY', type, '|', val)
+                        break;
+                    break;
+                }
+            }
+
+            return _all_empty?_true:_false
+        }, 'is_default_')
+
+
         return this
     }
 
     in(arrayProp, _true, _false){
         arrayProp = Array.isArray(arrayProp)?arrayProp:this._state[arrayProp]
-        
+
         this.callback(currentValue => {
             return arrayProp.includes(currentValue)?_true:_false
         })
@@ -117,6 +207,14 @@ class widgetwatcher {
         return this
     }
 
+
+
+    // ------------------------- LINK
+
+
+
+
+
     link(widget, widgetProp = false){
         this._widget = widget
         this._widgetProp = widgetProp
@@ -125,8 +223,8 @@ class widgetwatcher {
             widgetstate.updates[this._stateName] = {}
         const ___updates = widgetstate.updates[this._stateName]
         
-        const widgetType = widgetconvertor.getType(widget)
-        const id = widgetType=='Widget'?widget.id:Math.floor(Math.random() * 6)
+        this._widgetType = widgetconvertor.getType(widget)
+        const id = this._widgetType=='Widget'?widget.id:Math.floor(Math.random() * 6)
 
         if (!Array.isArray(this._keys)){
             if (widgetdom.debug)
@@ -155,10 +253,13 @@ class widgetwatcher {
         for (const callback of Object.values(this._callback)){
             value = this.current_value(ArrayFromState => {
                 if (typeof callback == 'function'){
-                    return callback.apply(this, Array.isArray(ArrayFromState)
-                                                    ?ArrayFromState
-                                                    :[ArrayFromState]
+
+                    return callback.apply(this, 
+                        Array.isArray(ArrayFromState)
+                            ?ArrayFromState
+                            :[ArrayFromState]
                     )
+
                 } else {
                     return ArrayFromState
                 }
@@ -169,8 +270,7 @@ class widgetwatcher {
     }
 
     applyToWidget(value){
-        const widgetType = widgetconvertor.getType(this._widget);
-        switch (widgetType) {
+        switch (this._widgetType) {
             case 'Widget':
                 if (this._widgetProp == 'childs'){
                     const child = c.div(value)
@@ -181,15 +281,10 @@ class widgetwatcher {
                 }
             break;
             case 'Function':
-                const func = this._widget;
-                if (typeof this.callback == 'function'){
-                    func(value);
-                } else {
-                    func.apply(this, value);
-                }
+                this._widget.apply(this, this.arr(value));
             break;
             default:
-                console.log('Не знаю как применить изменения ', widgetType);
+                console.log('Не знаю как применить изменения ', this._widgetType);
             break;
         }
     }

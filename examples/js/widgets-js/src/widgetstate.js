@@ -223,9 +223,12 @@ class widgetstate {
 
 	static setDefault(self, key){
 		if ('_name' in self){
-			if (key in widgetstate.props[self._name]?.default){
-				widgetstate.name(self._name)[key] = widgetstate.props[self._name].default[key]
-			}
+			(Array.isArray(key)?key:[key]).forEach(stateKey => {
+
+				if (stateKey in widgetstate.props[self._name]?.default){
+					widgetstate.name(self._name)[stateKey] = widgetstate.props[self._name].default[stateKey]
+				}
+			})
 		}
 	}
 
@@ -247,7 +250,7 @@ class widgetstate {
 	}
 
 	static inside(self, prop, value){
-		if (!self[prop].includes(value)){
+		if (prop in self && !self[prop].includes(value)){
 			const temp = self[prop]
 			temp.push(value)
 			self[prop] = temp
@@ -330,22 +333,6 @@ class widgetstate {
 	*/
 
 	static runIf(self, prop, value, _true = false, _false = false){
-		// const array_props = props.prop.split('.')
-		// const state = widgettools.getStateFromPath(
-		// 	widgetstate.name(props.state),
-		// 	prop
-		// )
-		// const propx = array_props.slice(-1).join('.')
-
-		// return state.watch(prop).link(function(value){
-		// 	if (value==props.value)
-		// 		widgetconvertor.toFunction(props._true)()
-		// 	else
-		// 		if (_false)
-		// 			widgetconvertor.toFunction(props._false)()
-		// })
-
-
 		if (widgetstate.name(self._name)[prop]==value){
 			widgetconvertor.toFunction(_true)()
 		} else {
@@ -367,6 +354,7 @@ class widgetstate {
 
 	static request(self, requestName, bindData = false){
 		if ('_name' in self){
+			if (self._name in widgetstate.props)
 			if ('request' in widgetstate.props[self._name]){
 				if (requestName in widgetstate.props[self._name]['request']){
 
@@ -393,28 +381,29 @@ class widgetstate {
 	}
 
 	static data(self){
-		const data = { ...self }
-		delete data['___parent']
-		delete data['___updates']
-		delete data['_name']
-
-		// Object.keys(data).forEach(key => {
-		// 	if (widgetconvertor.getType(data[key])=='Object'){
-		// 		if ('data' in data[key])
-		// 			data[key] = data[key].data()
-		// 	}
-		// })
-
+		const data = {};
+		for (const key of Object.keys(self)){
+			if (key!='_name' && !key.startsWith('__')){
+				data[key] = self[key]
+			}
+		}
+		
 		return data
 	}
+
+
 
 	static values(self){
 		return widgetstate.keys(self).map(itm => self[itm])
 	}
 
+
+
 	static mapArray(self, func){
 		return widgetstate.values(self).map(func)
 	}
+
+
 
 	static length(self){
 		return widgetstate.keys(self).length
@@ -436,182 +425,56 @@ class widgetstate {
 			return state.link(widget, changeWidgetProp)
 	}
 
+
+
     static watch(self, stateProps, callback = false) {
-        // return (stateProps, callback = false) => {
+		const watcher = new widgetwatcher().state(self._name);
 
-			const watcher = new widgetwatcher().state(self._name);
+		let updateStateFunction = false;
+		if (typeof stateProps == 'function'){
+			updateStateFunction = stateProps
+			const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(stateProps.toString())
+			stateProps = fprops.split(',').map(i => i.trim())
+		} else if (typeof stateProps == 'string'){
+			stateProps = stateProps.split(',').map(i => i.trim())
+		}
 
-            let updateStateFunction = false;
-			if (typeof stateProps == 'function'){
-                updateStateFunction = stateProps
-                const [_, fprops] = /\(?(.{0,}?)[\)|=]/m.exec(stateProps.toString())
-                stateProps = fprops.split(',').map(i => i.trim())
+		if (updateStateFunction)
+			callback = updateStateFunction
+		
+		if (Array.isArray(stateProps)){
+			watcher.keys(stateProps)
+		} else {
+			watcher.set_props(stateProps)
+		}
 
-				watcher.keys(stateProps)
-            } else if (typeof stateProps == 'string'){
-                stateProps = stateProps.split(',').map(i => i.trim())
-				if (callback){
-					updateStateFunction = callback
-				}
-				watcher.keys(stateProps)
-            } else if (typeof stateProps == 'object'){
-				watcher.set_props(stateProps)
-			}
+		if (callback)
+			watcher.callback(callback)
 
-			if (updateStateFunction)
-				watcher.callback(updateStateFunction)
-
-			return watcher
-
-			return new widgetwatcher({
-				state: self._name, 
-				keys: stateProps, 
-				callback: updateStateFunction
-			})
-            return {
-                link(widget, changeWidgetProp = false){
-                    // if (!('___updates' in self)) self.___updates = {}
-					
-					const stateName = self._name
-					
-					if (!(stateName in widgetstate.updates)) widgetstate.updates[stateName] = {}
-					const ___updates = widgetstate.updates[stateName]
-					
-					const widgetType = widgetconvertor.getType(widget)
-					const id = widgetType=='Widget'?widget.id:Math.floor(Math.random() * 6)
-
-
-                    const state = {
-                        widget,
-                        changeWidgetProp,
-                        updateStateFunction,
-                        stateProps
-                    }
-
-
-					if (!Array.isArray(stateProps)){
-						if (widgetdom.debug)
-							console.error('stateProps must to be array type: ', stateProps)
-					}
-
-					const key = stateProps.join(',')
-
-					
-
-					// if (widgetType=='Widget'){
-					// 	if (!(state in widget)) widget.state = {}
-					// 	if (!(changeWidgetProp in widget.state)) widget.state[changeWidgetProp] = {
-					// 		link: ___updates,
-					// 		key,
-					// 		stateProps
-					// 	}
-					// }
-
-                    stateProps.map(stateProp => {
-                        if (!(stateProp in ___updates)) ___updates[stateProp] = {}
-                        if (!(id in ___updates[stateProp])) ___updates[stateProp][id] = {}
-
-                        ___updates[stateProp][id][key] = state
-
-                        // widgetstate.updateAll(stateName, stateProp)
-                    })
-
-					widgetstate.updateAll(stateName, stateProps)
-
-                }
-            }
-        // }
+		return watcher
     }
 
 
 	static updates = {}
 
-    static updateAll(stateName, stateProps = []){ //_stateProp = false) {
-		// let stateProps = [_stateProp]
-		
+    static updateAll(stateName, stateProps = []){
 		if (!Array.isArray(stateProps))
 			stateProps = [stateProps]
 
 		stateProps.forEach(stateProp => {
-
-			// if ('___updates' in self && stateProp in self.___updates){
-			// 	Object.values(self.___updates[stateProp]).forEach(stateData => {
-			
 			if (stateName in widgetstate.updates && stateProp in widgetstate.updates[stateName]){
 				const ___updates = widgetstate.updates[stateName][stateProp]
 
 				Object.values(___updates).forEach(propsList => {
 					Object.values(propsList).forEach(stateData => {
-
 						stateData.refrash()
-						/* 
-						const properties = []
-						stateData.stateProps.forEach(i => {
-							properties.push(widgetstate.name(stateName)[i])
-						})
-
-						let value = false */
-
-						// if (typeof stateData.updateStateFunction == 'function'){
-						// 	value = stateData.updateStateFunction.apply(this, properties)
-						// } else {
-						// 	value = properties
-						// }
-
-						// if (typeof stateData.callback == 'function'){
-						// 	value = stateData.callback.apply(this, properties)
-						// } else {
-						// 	value = properties
-						// }
-/* 
-						for (const callback of Array.isArray(stateData.callback)?stateData.callback:[stateData.callback]){
-							
-							if (typeof callback == 'function'){
-								value = callback.apply(this, properties)
-								console.log('>', value)
-							} else {
-								value = properties
-								console.log('_', value)
-							}
-
-						}
-
-
-						const widgetType = widgetconvertor.getType(stateData.widget);
-						switch (widgetType) {
-							case 'Widget':
-								if (stateData.changeWidgetProp == 'childs'){
-									const child = c.div(value)
-									widgetdom.update(stateData.widget, child)
-								} else {
-									stateData.widget.props[stateData.changeWidgetProp] = value
-									widgetdom.assignProp(stateData.widget, stateData.changeWidgetProp)
-								}
-							break;
-							case 'Function':
-								const func = stateData.widget;
-								if (typeof stateData.updateStateFunction == 'function'){
-									func(value);
-								} else {
-									func.apply(this, value);
-								}
-							break;
-							default:
-								console.log('Не знаю как применить изменения ', widgetType);
-							break;
-						}
- */
 					})
 				})
-
-
-
 			}
 		})
+	}
 
-		// if (self.___parent) 
-		// 	widgetstate.updateAll(self.___parent)
-    }
+
 
     static props(self) {
 		const props = {}
@@ -623,6 +486,8 @@ class widgetstate {
         return props;
     }
 
+
+
 	static check(self){
 		const state = this;
 		return (prop, val, _true, _false = false) => {
@@ -633,6 +498,8 @@ class widgetstate {
 				})
 		}
 	}
+
+
 
 	static checkIn(self){
 		const state = this;
@@ -647,12 +514,16 @@ class widgetstate {
 		}
 	}
 
+
+
 	static checkTurn(self){
 		const state = this;
 		return (prop) => {
 			state[prop] = !state[prop]
 		}
 	}
+
+
 
 	static map(self){
 		const state = this;
@@ -677,12 +548,13 @@ class widgetstate {
 		}
 	}
 
+
+
 	static model(self){
 		const state = this;
 		return (prop, callback = false) => {
 			return {
 				link(widget, argument){
-					// widget.rootElement.onchange = 
 					const func = function(){
 						const modelValue = this[argument]
 						let value = modelValue
@@ -697,7 +569,7 @@ class widgetstate {
 
                     widgetdom.assignEventListener(widget, 'onchange', func)
 
-					
+
 					state.watch(prop, value => {
 						if (callback){
 							return callback(value)
@@ -709,6 +581,8 @@ class widgetstate {
 			}
 		}
 	}
+
+
 
 	static modelIn(self){
 		const state = this;
@@ -727,19 +601,8 @@ class widgetstate {
 						state[prop] = Array.from(unique)
 					})
 
-					// widget.rootElement.onchange = function(){
-					// 	const checkboxValue = this[argument]
-					// 	const unique = new Set(state[prop])
-					// 	if (checkboxValue){
-					// 		unique.add(value)
-					// 	} else {
-					// 		unique.delete(value)
-					// 	}
-					// 	state[prop] = Array.from(unique)
-					// }
-
 					state.watch(prop, array => {
-						return array.includes(value)
+						return Array.isArray(array)?array.includes(value):false
 					}).link(widget, argument)
 				}
 			}

@@ -6,11 +6,14 @@ class widgettools {
 			if (__fw){
 				element.tool = element.tool.substr(0, element.tool.length -4)
 			}
-			const callback = () => widgetstate.name(element.state)[element.tool].apply(element, element.prop)
+			const callback = () => {
+				return widgetstate.name(element.state)[element.tool].apply(element, element.prop)
+			}
+
 			if (__fw){
 				return callback
 			} else {
-				return callback()//(...element.prop)
+				return callback()
 			}
 		} else {
 			return widgettools[element.element](element)
@@ -107,6 +110,7 @@ class widgettools {
 	}
 
 	static current_request = false
+	static request_catcher = false
 	static widget_request(props){
 		return {
 			link: function(widget = false, prop = false){
@@ -155,11 +159,22 @@ class widgettools {
 							func(res.result)
 						}
 
+						if (typeof widgettools.request_catcher == 'function'){
+							widgettools.request_catcher(res)
+							widgettools.request_catcher = false
+						}
+
 					}
 				})
 
 			}
 		}
+	}
+
+	static catch_request(func){
+		return new Promise((resolve) => {
+			widgettools.request_catcher = (result) => resolve(result)
+		});
 	}
 
 	static state_map({state, prop, refernce = false, useColls = false}){
@@ -207,6 +222,8 @@ class widgettools {
 		return () => {
 
 			Object.values(props.list).forEach(prop => {
+				if ('bind' in props)
+					prop.bind = props['bind']
 				const func = widgetconvertor.toFunction(prop)
 				func()
 			})

@@ -232,4 +232,12 @@ class widgetconvertor {
 	static StateToFunction(State){
 		return State.link
 	}
+
+	static StringToFunction(str){
+		return () => str
+	}
+
+	static ArrayToFunction(array){
+		return () => array
+	}
 }

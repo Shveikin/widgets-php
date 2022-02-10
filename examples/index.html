@@ -7,8 +7,6 @@
     <title>Document</title>
     <!-- <script src="/js/widgets-js/build/widgets.js"></script> -->
 
-    
-    
     <script src="/js/widgets-js/src/c.js"></script>
     <script src="/js/widgets-js/src/widgetconvertor.js"></script>
     <script src="/js/widgets-js/src/widgetdom.js"></script>
@@ -18,9 +16,9 @@
     <script src="/js/widgets-js/src/tools/watcher.js"></script>
 
     <script src="/js/components/widgets.js"></script>
+    <script src="/js/components/slider.js"></script>
 
     <style>
-
         .filterInput_f2 {
             padding: 5px;
             border: 1px solid #f4f4f4;
@@ -64,7 +62,6 @@
     
     
     
-    
         .inputWrapper {
             position: relative;
             display: inline-block;
@@ -98,6 +95,167 @@
             border: 1px solid #ddd;
         }
     
+
+        .title_f2 {
+
+        }
+
+
+
+
+        /* -- input --*/
+        .filterInput_f2 {
+            padding: 5px;
+            border: 1px solid #f4f4f4;
+            background-color: #f4f4f4;
+            width: 150px !important;
+            margin: 0 !important;
+        }
+
+        .filterInput_f2:focus,
+        .filterInput_f2:hover {
+            border: 1px solid #ddd;
+        }
+
+
+
+
+
+        /* input wrapper */
+
+        .inputWrapper {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .inputWrapper:hover .inputUnit,
+        .filterInput_f2:focus ~ .inputUnit{
+            top: 30px;
+            opacity: 0;
+            visibility: hidden;
+            transition: none;
+        }
+
+        .inputUnit {
+            position: absolute;
+            top: 0;
+            padding: 5px 10px;
+            right: 2px;
+            transition: all .3s .2s;
+        }
+
+        .inputWrapper .filterInput_f2 {
+            text-align: left;
+            -moz-appearance: textfield !important;
+            -webkit-appearance: none !important;
+        }
+
+
+
+
+
+
+
+
+        /* slider--*/
+        .sliderPoint {
+            border: 2px solid rgb(0, 150, 187);
+            border-radius: 50%;
+            height: 12px;
+            width: 12px;
+            cursor: pointer;
+            position: absolute;
+            margin-top: 12px;
+            background: #fff;
+        }
+
+
+        .sliderLine {
+            padding: 2px;
+            background: #ddd;
+            border-radius: 5px;
+            position: absolute;
+            width: 100%;
+            box-sizing: border-box;
+            left: 0;
+            top: 16px;
+        }
+
+        .filterElementRow2_f2 {
+            display: flex;
+            font-size: 12px;
+            padding: 5px 0;
+        }
+
+        .filterWrapper_f2 {
+            padding: 15px 0;
+        }
+
+        .filterElementRow2_f2 .title_f2 {
+            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+
+
+
+        /*--SREDA --*/
+        .filterSredaBox_f2 {
+            font-family: "Trebuchet MS"; 
+            font-size: 14px;
+            border: 1px solid #f4f4f4; 
+        }
+
+        .filterSredaBox_f2:hover {
+            border: 1px solid #ddd; 
+        }
+
+        .filterSredaTitle_f2 {
+            background-color: #f4f4f4;
+            padding: 5px; 
+            cursor: pointer;
+        }
+
+        .filterSredaList_f2 {
+            padding: 5px; 
+            height: 200px;
+            overflow: auto;
+            border-top: 1px solid #ddd;
+        }
+
+        .filterSredaList_f2::-webkit-scrollbar {
+            width: 12px;
+        }
+        .filterSredaList_f2::-webkit-scrollbar-track {
+            background: #fff;
+        }
+        .filterSredaList_f2::-webkit-scrollbar-thumb {
+            background-color: #ddd;
+            border-radius: 20px;
+            border: 3px solid #fff;
+        }
+
+
+
+
+
+        /*- checkbox -*/
+
+        .filterCheckbox_f2 {
+            padding: 4px;
+        }
+
+        .filterCustomCheckbox_f2 {
+            width: 100%;
+            line-height: 19px;
+        }
+
+        .filterCheckboxLabel_f2 {
+            display: flex;
+        }
         
         /* input:focus::-webkit-inner-spin-button {
             padding: 10px;
@@ -113,37 +271,76 @@
 
 </head>
 <body>
-    <div id="app0"></div>
-
+    <div id="app"></div>
     <script>
 
-            const state = widgetstate.use(
-                {
-                    unit: "5", 
-                    unit2: "6", 
-                    min: 23,
-                }
-            );
+        const unitToRu = unit => unit 
+        const scrollState = widgetstate.use({
+            _kns: [1,2,3],
+        }, {
+            default: {
+                _kns: [1,2,3],
+            }
+        })
 
-            const state2 = widgetstate.use(
-                {
-                    _ff: [
-                        '5', '6', '7', '8'
-                    ]
-                }
-            );
+        // scrollState.watch('scrollTo').link(function(scrollTo){
+        //     if (scrollTo!==false){
+        //         window.scrollTo({ top: scrollTo, behavior: 'smooth' });
+        //         scrollState.scrollTo = false
+        //     }
+        // })
 
-            
-            c.render('#app0',
-                c.div(
-                    state.watch('unit')
-                )
+        c.app(c.div(
+            scrollState.watch('_kns').is_default(
+                false,
+                'ИЗМЕНЕНО'
             )
+        ))
 
-            // state.unit = 'f'
+        // const state = widgetstate.use(
+        //     {
+        //         "unit": "m3h",
+        //         "range_min": 0,
+        //         "min": 10,
+        //         "max": 100,
+        //         "range_max": 100
+        //     },
+        //     {
+        //         "name": "Расход",
+        //         "sourceClass": "SliderState",
+        //         "alias": {
+        //             "unit": "unit_rashod",
+        //             "min": "rashod_min",
+        //             "max": "rashod_max"
+        //         },
+        //         "default": {
+        //             "unit": "m3h",
+        //             "min": 10,
+        //             "max": 100
+        //         },
+        //         "onchange": {
+        //             "element": "WidgetTools",
+        //             "tool": "request",
+        //             "state": "filter",
+        //             "prop": [
+        //                 "changeFilter"
+        //             ]
+        //         }
+        //     }
+        // );
 
-            // console.log('>>', widgetstate.names.state.unit)
+
+        // c.app( 
+        //     c.slider({
+        //         title: 'Расход',
+        //         state: state._name,
+        //         sliderType: 'double',
+        //         url: 'rashod',
+        //     })
+        // )
+
     </script>
+    
 </body>
 </html>
 

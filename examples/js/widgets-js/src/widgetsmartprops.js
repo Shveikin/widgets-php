@@ -11,9 +11,8 @@ class widgetsmartprops {
             y: props.boxsizing?(props.boxsizing.y?props.boxsizing.y:props.boxsizing):0,
         }
 
-        const width = props.width/* ?props.width + boxsizing.x:0 */
-        const height = props.height/* ?props.height + boxsizing.y:0 */
-
+        const width = props.width
+        const height = props.height
 
 
         dragboard.rootElement.style.position = 'relative'
@@ -34,10 +33,7 @@ class widgetsmartprops {
             return [props.state.range_min, props.state.range_max]
         }
 
-        console.log('props.range', rangeArray())
-
         let shift = false;
-
 
         let sliderMoveRange = {
             x: {min: 0, max: props.width },
@@ -47,34 +43,12 @@ class widgetsmartprops {
         if (props.useSlide){
             props.state.watch(['slide_min_start', 'slide_min_finish', 'slide_max_start', 'slide_max_finish']).link(
             function(slide_min_start, slide_min_finish, slide_max_start, slide_max_finish){
-                // const rangeList = [0, 1].map(range => {
-                //     let min = slide[range][0];
-                //     let max = slide[range][1];
-                //     if (min=="rangeMin")
-                //         min = props.state.range_min
-                //     if (max=="rangeMax")
-                //         max = props.state.range_max
-
-                //     const x_range = {
-                //         min: widgetconvertor.map(min, rangeArray(), [0, props.width]),
-                //         max: widgetconvertor.map(max, rangeArray(), [0, props.width]),
-                //     }
-
-                //     return {
-                //         x: x_range
-                //     }
-
-                // })
 
                 if (slide_min_start=="rangeMin")
                     slide_min_start = props.state.range_min
 
-
                 if (slide_max_finish=="rangeMax")
                     slide_max_finish = props.state.range_max
-
-
-
 
 
                 sliderMoveRange = [
@@ -92,8 +66,6 @@ class widgetsmartprops {
                     }
                 ]
                 
-
-                // sliderMoveRange = rangeList
             })
         }
 
@@ -165,6 +137,7 @@ class widgetsmartprops {
                 if ('state' in props) {
                     props.state.watch([shift[key], 'range_' + shift[key]]).link(function(newValue){
                         if (mouseDown===false){
+                            // #left
                             const left = widgetconvertor.map(newValue, rangeArray(), [0, props.width])
                             dragElement.style.left = left + 'px';
                         }
@@ -186,9 +159,6 @@ class widgetsmartprops {
                 if (mouseDown!==false){
                     let x = event.screenX - mouseDownPosition[0]
                     let y = event.screenY - mouseDownPosition[1]
-                    
-
-                    
 
                     mousemove(x, y);
                     mouseDownPosition = [event.screenX, event.screenY];
@@ -201,6 +171,5 @@ class widgetsmartprops {
             dragboard.rootElement.appendChild(dragElement)
             elements.push(dragElement)
         })
-        // console.log(widget, props)
     }
 }
