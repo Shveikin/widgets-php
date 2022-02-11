@@ -30,7 +30,7 @@ class widgetdom {
             break;
             default:
                 if (widgetdom.debug)
-                    console.log('Не знаю как добавить в этот парент! ', parentType, parent);
+                    console.info('Не знаю как добавить в этот парент! ', parentType, parent);
             break;
         }
     }
@@ -82,7 +82,7 @@ class widgetdom {
                             break;
                             default: 
                                 if (widgetdom.debug)
-                                    console.log('Не знаю что делать с этим child - ', widgetType)
+                                    console.info('Не знаю что делать с этим child - ', widgetType)
                             break;
                         }
 
@@ -119,7 +119,7 @@ class widgetdom {
             
             default:
                 if (widgetdom.debug)
-                    console.log('Не знаю как создать этот компонент', widgetType, widget);
+                    console.info('Не знаю как создать этот компонент', widgetType, widget);
             break;
         }
 

@@ -124,6 +124,12 @@ class widgettools {
 					}
 				})
 
+				const req_catcher = (result) => {
+					if (typeof widgettools.request_catcher == 'function'){
+						widgettools.request_catcher(result)
+						widgettools.request_catcher = false
+					}
+				}
 
 				widgetstate.current_request = Math.random()
 				fetch(props.url, {
@@ -159,13 +165,13 @@ class widgettools {
 							func(res.result)
 						}
 
-						if (typeof widgettools.request_catcher == 'function'){
-							widgettools.request_catcher(res)
-							widgettools.request_catcher = false
-						}
+						req_catcher(res)
 
 					}
 				})
+				.catch((error) => {
+					req_catcher(error)
+				});
 
 			}
 		}

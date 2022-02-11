@@ -132,7 +132,7 @@ class widgetwatcher {
                         const defaultval = widgetstate.props[this._stateName]['default'][key]
                         
                         if (typeof currentVal != typeof defaultval){
-                            console.log('----default TYPE NORM')
+                            console.info('----default TYPE NORM')
                             _all_default = false;
                             break;
                         } else
@@ -152,7 +152,7 @@ class widgetwatcher {
                 }
             }
             
-            console.log('IS DEFAULT', this._keys)
+            console.info('IS DEFAULT', this._keys)
 
             if (_bind){
                 return _all_default?_true:_false
@@ -193,7 +193,7 @@ class widgetwatcher {
                     break;
                     default:
                         _all_empty = false
-                        console.log('Не знаю как проверить на EMPTY', type, '|', val)
+                        console.info('Не знаю как проверить на EMPTY', type, '|', val)
                         break;
                     break;
                 }
@@ -309,7 +309,7 @@ class widgetwatcher {
                 this._widget.apply(this, this.arr(value));
             break;
             default:
-                console.log('Не знаю как применить изменения ', this._widgetType);
+                console.info('Не знаю как применить изменения ', this._widgetType);
             break;
         }
     }
@@ -592,7 +592,7 @@ class widgetdom {
             break;
             default:
                 if (widgetdom.debug)
-                    console.log('Не знаю как добавить в этот парент! ', parentType, parent);
+                    console.info('Не знаю как добавить в этот парент! ', parentType, parent);
             break;
         }
     }
@@ -644,7 +644,7 @@ class widgetdom {
                             break;
                             default: 
                                 if (widgetdom.debug)
-                                    console.log('Не знаю что делать с этим child - ', widgetType)
+                                    console.info('Не знаю что делать с этим child - ', widgetType)
                             break;
                         }
 
@@ -681,7 +681,7 @@ class widgetdom {
             
             default:
                 if (widgetdom.debug)
-                    console.log('Не знаю как создать этот компонент', widgetType, widget);
+                    console.info('Не знаю как создать этот компонент', widgetType, widget);
             break;
         }
 
@@ -1717,6 +1717,12 @@ class widgettools {
 					}
 				})
 
+				const req_catcher = (result) => {
+					if (typeof widgettools.request_catcher == 'function'){
+						widgettools.request_catcher(result)
+						widgettools.request_catcher = false
+					}
+				}
 
 				widgetstate.current_request = Math.random()
 				fetch(props.url, {
@@ -1752,13 +1758,13 @@ class widgettools {
 							func(res.result)
 						}
 
-						if (typeof widgettools.request_catcher == 'function'){
-							widgettools.request_catcher(res)
-							widgettools.request_catcher = false
-						}
+						req_catcher(res)
 
 					}
 				})
+				.catch((error) => {
+					req_catcher(error)
+				});
 
 			}
 		}

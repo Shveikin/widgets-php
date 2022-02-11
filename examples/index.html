@@ -275,13 +275,16 @@
     <script>
 
         const unitToRu = unit => unit 
-        const scrollState = widgetstate.use({
-            _kns: [1,2,3],
-        }, {
-            default: {
-                _kns: [1,2,3],
+        const scrollState = widgetstate.use(
+            {
+                _list: [],
+            },
+            {
+                onchange(){
+                    alert(11)
+                }
             }
-        })
+        )
 
         // scrollState.watch('scrollTo').link(function(scrollTo){
         //     if (scrollTo!==false){
@@ -290,12 +293,17 @@
         //     }
         // })
 
-        c.app(c.div(
-            scrollState.watch('_kns').is_default(
-                false,
-                'ИЗМЕНЕНО'
-            )
-        ))
+        c.app(
+            c.input({
+                type: 'checkbox',
+                checked: scrollState.modelIn('_list', 555),
+                onchange(){console.log('КЛИК по inputu')},
+            })
+        )
+
+        scrollState.watch('_list').link(function(val){
+            console.log('_list', val)
+        })
 
         // const state = widgetstate.use(
         //     {

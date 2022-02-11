@@ -107,7 +107,7 @@ class widgetwatcher {
                         const defaultval = widgetstate.props[this._stateName]['default'][key]
                         
                         if (typeof currentVal != typeof defaultval){
-                            console.log('----default TYPE NORM')
+                            console.info('----default TYPE NORM')
                             _all_default = false;
                             break;
                         } else
@@ -127,7 +127,7 @@ class widgetwatcher {
                 }
             }
             
-            console.log('IS DEFAULT', this._keys)
+            console.info('IS DEFAULT', this._keys)
 
             if (_bind){
                 return _all_default?_true:_false
@@ -168,7 +168,7 @@ class widgetwatcher {
                     break;
                     default:
                         _all_empty = false
-                        console.log('Не знаю как проверить на EMPTY', type, '|', val)
+                        console.info('Не знаю как проверить на EMPTY', type, '|', val)
                         break;
                     break;
                 }
@@ -284,7 +284,7 @@ class widgetwatcher {
                 this._widget.apply(this, this.arr(value));
             break;
             default:
-                console.log('Не знаю как применить изменения ', this._widgetType);
+                console.info('Не знаю как применить изменения ', this._widgetType);
             break;
         }
     }
