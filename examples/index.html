@@ -274,81 +274,32 @@
     <div id="app"></div>
     <script>
 
-        const unitToRu = unit => unit 
-        const scrollState = widgetstate.use(
+        const state = widgetstate.use(
             {
-                _list: [],
+                "_view": [
+                    "stock_count",
+                    "connect_in"
+                ],
+                "kolichestvo_na_sklade_s": 0,
+                "temp": 22,
+                "p2": 2,
+                "_compatibility": [
+                    "1",
+                    "2",
+                ],
             },
             {
-                onchange(){
-                    alert(11)
-                }
+                name: "filter",
+                alias: true
             }
-        )
-
-        // scrollState.watch('scrollTo').link(function(scrollTo){
-        //     if (scrollTo!==false){
-        //         window.scrollTo({ top: scrollTo, behavior: 'smooth' });
-        //         scrollState.scrollTo = false
-        //     }
-        // })
-
-        c.app(
-            c.input({
-                type: 'checkbox',
-                checked: scrollState.modelIn('_list', 555),
-                onchange(){console.log('КЛИК по inputu')},
-            })
-        )
-
-        scrollState.watch('_list').link(function(val){
-            console.log('_list', val)
-        })
-
-        // const state = widgetstate.use(
-        //     {
-        //         "unit": "m3h",
-        //         "range_min": 0,
-        //         "min": 10,
-        //         "max": 100,
-        //         "range_max": 100
-        //     },
-        //     {
-        //         "name": "Расход",
-        //         "sourceClass": "SliderState",
-        //         "alias": {
-        //             "unit": "unit_rashod",
-        //             "min": "rashod_min",
-        //             "max": "rashod_max"
-        //         },
-        //         "default": {
-        //             "unit": "m3h",
-        //             "min": 10,
-        //             "max": 100
-        //         },
-        //         "onchange": {
-        //             "element": "WidgetTools",
-        //             "tool": "request",
-        //             "state": "filter",
-        //             "prop": [
-        //                 "changeFilter"
-        //             ]
-        //         }
-        //     }
-        // );
+        );
 
 
-        // c.app( 
-        //     c.slider({
-        //         title: 'Расход',
-        //         state: state._name,
-        //         sliderType: 'double',
-        //         url: 'rashod',
-        //     })
-        // )
+        c.app(state.watch('_compatibility'))
 
+
+        state._compatibility = [12,45]
     </script>
-    
 </body>
 </html>
 

@@ -1114,17 +1114,18 @@ class widgetstate {
 	static setAlias(stateName, prop, value){
 		if (stateName in widgetstate.props)
 		if ('alias' in widgetstate.props[stateName])
-		if (prop in widgetstate.props[stateName].alias){
-			const alias = widgetstate.props[stateName].alias[prop]
-			let defaultValue = widgetstate.props[stateName]?.default
-			if (defaultValue && prop in defaultValue) defaultValue = defaultValue[prop]
+		if (widgetstate.props[stateName].alias==true || prop in widgetstate.props[stateName].alias){
 
-			if (widgetstate.valueCompare(defaultValue, value)){
-				delete widgetstate.url[alias]
+			const aliasProp = widgetstate.getAlias(stateName, prop)
+			const defaultValue = widgetstate.getDefaultValue(stateName, prop, aliasProp)
+
+			if (defaultValue)
+			if (widgetstate.valueCompare(defaultValue[0], value)){
+				delete widgetstate.url[aliasProp.title]
 			} else {
-				const url = alias in widgetstate.url?widgetstate.url[alias]:false
+				const url = aliasProp.title in widgetstate.url?widgetstate.url[aliasProp.title]:false
 				if (!widgetstate.valueCompare(url, value)){
-					widgetstate.url[alias] = value
+					widgetstate.url[aliasProp.title] = value
 				}
 			}
 
@@ -1137,8 +1138,32 @@ class widgetstate {
 						widgetstate.runOnChange(widgetstate.props[stateName].onchange)
 					}
 				}
-			}, 100)
+			}, 300)
 		}
+	}
+
+	static getDefaultValue(stateName, prop, aliasProp = false){
+		if (aliasProp && aliasProp.generate){
+			return prop.startsWith('_')
+				?[[]]
+				:[false]
+		} else {
+			let defaultValue = widgetstate.props[stateName]?.default
+			if (defaultValue && prop in defaultValue) 
+				return [defaultValue[prop]]
+			else
+				return false
+		}
+	}
+
+	static getAlias(stateName, prop){
+		const generate = widgetstate.props[stateName].alias==true
+		const title = generate
+			?prop.startsWith('_')
+				?prop.substr(1)
+				:prop
+			:widgetstate.props[stateName].alias[prop]
+		return {generate, title}
 	}
 
 	static runOnChange(onchange){

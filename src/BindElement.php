@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Widget;
 
 class BindElement {

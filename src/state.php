@@ -145,14 +145,12 @@ class state {
 
     function refreshDefaults(){
 
-        if ($this->_alias)
+        if (is_array($this->_alias))
         foreach ($this->_alias as $key => $value) {
             if (isset($this->_data[$key])){
                 if (!in_array($key, $this->refrashDefaultException)){
                     $this->_default[$key] = $this->_data[$key]; // Установил значения по умолчанию
                 }
-            // } else {
-            //     $this->_default[$key] = [];
             }
         }
     }
@@ -220,7 +218,7 @@ class state {
     function updateStartingValues(){
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
 
-        if ($this->_alias)
+        if (is_array($this->_alias))
         foreach ($this->_alias as $stateKey => $urlKey) {
             $this->checkAliasFromGet($stateKey, $urlKey);
         }
@@ -510,16 +508,20 @@ class state {
 
     function __initAliasClear($alias){
         if ($alias && !empty($alias)){
-            $isMulti = $this->isMultiArray($alias);
-            $this->_alias = [];
-            foreach ($alias as $key => $val){
-                if (!$isMulti) $key = $val;
+            if ($alias===true){
+                $this->_alias = $alias;
+            } else {
+                $isMulti = $this->isMultiArray($alias);
+                $this->_alias = [];
+                foreach ($alias as $key => $val){
+                    if (!$isMulti) $key = $val;
 
-                if (is_array($val)){
-                    
-                } else {
-                    if (substr($val, 0, 1)=='_') $val = substr($val, 1);
-                    $this->_alias[$key] = $val;
+                    if (is_array($val)){
+                        
+                    } else {
+                        if (substr($val, 0, 1)=='_') $val = substr($val, 1);
+                        $this->_alias[$key] = $val;
+                    }
                 }
             }
         }

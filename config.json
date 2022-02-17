@@ -1,0 +1,13 @@
+{
+    "from": "src/",
+    "to": "build/wpack.php",
+    "list": [
+        "BindElement.php",
+        "c.php",
+        "Imprint.php",
+        "RequestController.php",
+        "state.php",
+        "WidgetComponent.php"
+    ],
+    "run_script": "xcopy src C:\\xampp2\\htdocs\\revo\\NEXT\\vendor\\widgets\\c\\src /y"
+}

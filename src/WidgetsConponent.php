@@ -42,15 +42,17 @@ abstract class WidgetsConponent {
     static $rootId = 0;
 
     private static $element;
-    private static $widgetsApp = false;
+    private static $widgetApps = [];
+
+
     public static function main() {
-        if (static::$widgetsApp == false) {
+        if (!isset(static::$widgetApps[static::class])) {
             $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
 
-            static::$widgetsApp = new static();
+            static::$widgetApps[static::class] = new static();
         }
 
-        return static::$widgetsApp;
+        return static::$widgetApps[static::class];
     }
 
     public static function __callStatic($name, $arguments) {
@@ -185,6 +187,8 @@ abstract class WidgetsConponent {
 
     public static function runFetchRequest($data) {
 
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
         /** Инициализация стейта - перенесено внутль стейта*/
         // if (isset($data['state'])){
         //     foreach ($data['state'] as $stateName => $stateProps) {
@@ -223,6 +227,8 @@ abstract class WidgetsConponent {
 
 
     public static function init() {
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
         $data = file_get_contents('php://input');
         if ($data) {
             $data = json_decode($data, true);
