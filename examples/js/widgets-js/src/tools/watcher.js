@@ -41,15 +41,15 @@ class widgetwatcher {
 
     _current_value = false 
     check_current_value(){
-        return Array.isArray(this._current_value)
+        return typeof this._current_value == 'object' && 'currentValue' in this._current_value
     }
 
     get_current_value(){
-        return this._current_value[0]
+        return this._current_value.currentValue
     }
 
     set_current_value(value){
-        this._current_value = [value]
+        this._current_value = {currentValue: value}
         return value
     }
 
@@ -251,22 +251,19 @@ class widgetwatcher {
 
         if (this._callback)
         for (const callback of Object.values(this._callback)){
-            value = this.current_value(ArrayFromState => {
+            this.current_value(ArrayFromState => {
                 if (typeof callback == 'function'){
 
-                    return callback.apply(this, 
-                        Array.isArray(ArrayFromState)
-                            ?ArrayFromState
-                            :[ArrayFromState]
-                    )
-
+                    return callback.apply(this, this.arr(ArrayFromState))
+                    
                 } else {
                     return ArrayFromState
                 }
             })
         }
 
-        this.applyToWidget(value)
+        value = this.get_current_value()
+        this.applyToWidget(this.arr(value)[0])
     }
 
     applyToWidget(value){

@@ -6,6 +6,7 @@ use DataGet;
 use Error;
 use ErrorException;
 use Exception;
+use Widget\tool\dialog\widgetdialog;
 
 abstract class WidgetsConponent {
     /**
@@ -102,6 +103,14 @@ abstract class WidgetsConponent {
 
         $result = widget::view($this->layout);
         if ($activate) {
+            if (!widgetdialog::$renderDialogElementToHtml){
+                $this->layout = c::div([
+                    widgetdialog::widget(),
+                    $this->widget(),
+                ]);
+
+                widgetdialog::$renderDialogElementToHtml = true;
+            }
             $id = WidgetsConponent::$rootId++;
             $stateList = $this->getUseStateList();
             $state = state::toJs($stateList);

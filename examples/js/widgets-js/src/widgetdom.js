@@ -356,12 +356,15 @@ class widgetdom {
     /**
      * RENDER
      */
-    static render(querySelector, widget){
+    static render(querySelector, widget, mode = 'rebuild'){
         if (querySelector in widgetdom.active){
             const currNode = widgetdom.active[querySelector]
             widgetdom.update(currNode, widget)
         } else {
+/* 
             const rootElement = window.document.querySelector(querySelector);
+
+
             if (rootElement){
                 widgetdom.firstRender(rootElement, querySelector, widget)
             } else {
@@ -371,8 +374,44 @@ class widgetdom {
                         widgetdom.firstRender(rootElement, querySelector, widget)
                     }
                 })
-            }
+            } 
+*/
+
+            widgetdom.querySelector(querySelector, mode).then(rootElement => {
+                widgetdom.firstRender(rootElement, querySelector, widget)
+            }).catch(message => {
+                console.error('widget render ', message)
+            })
+
+
         }
+    }
+
+    static querySelector(querySelector, mode = 'rebuild'){
+        return new Promise(function(resolve, reject){
+            const rootElement = window.document.querySelector(querySelector);
+            if (rootElement){
+                switch (mode) {
+                    case 'rebuild':
+                        resolve(rootElement);
+                    break;
+                    case 'append':
+                        const wrapper = document.createElement('div')
+                        rootElement.appendChild(wrapper)
+                        resolve(wrapper);
+                    break;
+                }
+            } else {
+                window.addEventListener('load', () => {
+                    const rootElement = widgetdom.querySelector(querySelector, mode);
+                    if (rootElement){
+                        resolve(rootElement)
+                    } else {
+                        reject('Элемента нет ' + querySelector)
+                    }
+                })
+            }
+        })
     }
 
     static active = {}

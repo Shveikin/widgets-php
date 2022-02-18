@@ -78,8 +78,10 @@ class widgetstate {
 						}
 					}
                 } else {
-                    // return widgetstate.modefiersCheck(stateName, prop, object[prop])
-					return object[prop]
+					if (prop in object)
+						return object[prop]
+					else
+						return false
                 }
             },
             set(object, prop, value){
@@ -617,7 +619,8 @@ class widgetstate {
 
 					widgetdom.setChange(widget, 'modelIn' + prop, function() {
 						const checkboxValue = this[argument]
-						const unique = new Set(state[prop])
+						const statevalue = state[prop] 
+						const unique = new Set(Array.isArray(statevalue)?statevalue:[])
 						if (checkboxValue){
 							unique.add(value)
 						} else {
@@ -642,6 +645,14 @@ class widgetstate {
 
 	static applyTo(self, prop, value){
 		return () => widgetstate.name(self._name)[prop] = value
+	}
+
+	static pushTo(self, prop, value){
+		let temp = widgetstate.name(self._name)[prop]
+		if (!Array.isArray(temp)) temp = [temp]
+		temp.push(value)
+		widgetstate.name(self._name)[prop] = false
+		widgetstate.name(self._name)[prop] = temp
 	}
 
 }

@@ -9,5 +9,5 @@
         "state.php",
         "WidgetComponent.php"
     ],
-    "run_script": "xcopy src C:\\xampp2\\htdocs\\revo\\NEXT\\vendor\\widgets\\c\\src /y"
+    "run_script": "xcopy src C:\\xampp2\\htdocs\\revo\\NEXT\\vendor\\widgets\\c\\src /y /s"
 }

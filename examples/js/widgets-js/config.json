@@ -1,9 +1,6 @@
 {
     "from": "src/",
     "to": "build/widgets.js",
-    "copy": [
-        "C:/xampp2/htdocs/revo/REVOLUTION/core/filter2/vendor/widgets/c/examples/js/widgets-js/build/widgets.js"
-    ],
     "list": [
         "c.js",
         "watcher.js",
@@ -11,6 +8,8 @@
         "widgetdom.js",
         "widgetstate.js",
         "widgettools.js",
-        "widgetsmartprops.js"
-    ]
+        "widgetsmartprops.js",
+        "widgetdialog.js"
+    ],
+    "conf": "C:/watcher_configs/widget-js.json"
 }

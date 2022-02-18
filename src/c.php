@@ -196,6 +196,7 @@ class widget {
             foreach ($element->props as $key => $value) {
                 if (!in_array($key, $exception)) {
                     if (!is_object($value) && !is_array($value) && !c::is_function($value)) {
+                        if ($key=='className') $key = 'class';
                         $html .= " $key='$value'";
                     }
                 }

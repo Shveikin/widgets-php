@@ -1,44 +1,15 @@
+<link rel="stylesheet" href="/css/widgetdialog.css">
 <?php
 
 use Widget\c;
+use Widget\tool\dialog\widgetdialog;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
 
-// if (!$_SERVER['DOCUMENT_ROOT'])
-    // $_SERVER['DOCUMENT_ROOT'] = "C:/xampp/htdocs/revo";
 require_once $_SERVER['DOCUMENT_ROOT'] . '/states/MapState.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/components/Table.php';
-
-
-// imprt([
-//     'function_list',
-//     'sqli_connect',
-//     // 'rashodstate',
-//     // 'rashod',
-//     // 'config',
-//     // // 'ModxClearMashine',
-//     // // 'FilterViewController',
-//     // 'switch',
-//     // 'ParserSettingController',
-//     // // 'console',
-//     // 'HashMaster',
-//     // 'FilterController',
-//     // // 'timer',
-//     // 'DataGet',
-//     // 'SiteController',
-//     // 'types',
-//     // 'datahub',
-//     // 'RequestController',
-//     // 'SliderController',
-//     // 'RequestExecutor',
-//     // 'ModxController',
-// ]);
-
-
-// $mysqli = getConnect();
-// $mysqli_JINO = getConnect(JINO);
 
 
 
@@ -46,11 +17,11 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 echo '<script src="/js/components/widgets.js"></script>';
 
 // echo '<script src="/js/components/slider.js"></script>';
-echo Table::widget()->html(true);
 
-
-
+    // echo Table::widget()->html(true);
+    echo widgetdialog::class;
 ?>
+
 <style>
 
     .filterInput_f2 {
@@ -130,15 +101,5 @@ echo Table::widget()->html(true);
         border: 1px solid #ddd;
     }
 
-    
-    /* input:focus::-webkit-inner-spin-button {
-        padding: 10px;
-    }
 
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        /* padding: 10px; */
-        /* -webkit-appearance: none;
-        margin: 0; */
-    } */
 </style>

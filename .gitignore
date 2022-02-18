@@ -3,3 +3,4 @@ vendor/
 /vendor
 /.vscode
 watcher.exe
+php-watcher.exe

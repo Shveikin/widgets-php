@@ -14,6 +14,8 @@ class state {
     public $onchange = false;
     public $sourceClass = 'state';
 
+    public $runOnFrontend = false;
+
     private $active = false;
 
     /* Обновить */
@@ -99,7 +101,7 @@ class state {
     //     // return  $req;
     // }
 
-
+    static $emptyValue = false;
     function setData($data, $from = false){
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
         
@@ -107,16 +109,13 @@ class state {
 
         
         foreach ($data as $key => $value) {
-            // $alias = $this->dataAlias($key);
             $alias = $key;
-            $old = isset($this->_data[$alias])?$this->_data[$alias]:false;
 
-            if (isset($oldData[$alias]))
-            if ($old!=($oldData[$alias])) {
-                    $aa = [$oldData[$alias], $old, $value];
-                    // cprint_r2('было - сейчас - хотел установить оо остановил', $aa);
-                    continue;
-                }
+            $old = self::$emptyValue;
+            if (isset($this->_data[$alias])){
+                $old = $this->_data[$alias];
+            }
+
 
             if ($old!==$value){
                 $this->_data[$alias] = $value;
@@ -564,7 +563,11 @@ class state {
     static function toArray(){
         $result = [];
         foreach (state::$names as $stateName => $state) {
-            $result[$stateName] = $state->_data;
+            $result[$stateName] = [];
+            $result[$stateName]['data'] = $state->_data;
+            if ($state->runOnFrontend){
+                $result[$stateName]['runOnFrontend'] = $state->runOnFrontend;
+            }
         }
         return $result;
     }
@@ -688,8 +691,14 @@ class state {
         }
     }
 
-    function __call($name, $arguments){
+    function runOnFrontend(){
+        if (!$this->runOnFrontend) $this->runOnFrontend = []; 
+        foreach (func_get_args() as $func) {
+            $this->runOnFrontend[] = $func;
+        }
+    }
 
+    function __call($name, $arguments){
         foreach($arguments as $key => $arg){
             if ($arg instanceof widget) {
                 $arguments[$key] = $arg->toArray();

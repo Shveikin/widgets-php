@@ -24,8 +24,8 @@ class widgettools {
 		widgetdom.render('#app', c.div(props))
 	}
 
-	static render(querySelector, props){
-		widgetdom.render(querySelector, c.div(props))
+	static render(querySelector, props, mode = 'rebuild'){
+		widgetdom.render(querySelector, c.div(props), mode)
 	}
 
 	static getStateFromPath(state, path){
@@ -152,9 +152,20 @@ class widgettools {
 						// Применение стейта
 						if ('state' in res){
 							Object.keys(res.state).forEach(stateName => {
-								Object.keys(res.state[stateName]).forEach(propName => {
-									widgetstate.name(stateName)[propName] = res.state[stateName][propName]
-								})
+								if ('data' in res.state[stateName])
+									Object.keys(res.state[stateName].data).forEach(propName => {
+										widgetstate.name(stateName)[propName] = res.state[stateName].data[propName]
+									})
+
+								if ('runOnFrontend' in res.state[stateName]){
+									console.log('runOnFrontend', res.state[stateName].runOnFrontend)
+
+									res.state[stateName].runOnFrontend.forEach(func => {
+										const func2 = widgetconvertor.toFunction(func)
+										func2()
+									})
+								}
+									
 							})
 						}
 

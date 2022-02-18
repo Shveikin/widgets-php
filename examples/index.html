@@ -14,7 +14,10 @@
     <script src="/js/widgets-js/src/widgettools.js"></script>
     <script src="/js/widgets-js/src/widgetsmartprops.js"></script>
     <script src="/js/widgets-js/src/tools/watcher.js"></script>
+    <script src="/js/widgets-js/src/tools/dialog/widgetdialog.js"></script>
 
+
+    <link rel="stylesheet" href="/js/widgets-js/src/tools/dialog/widgetdialog.css">
     <script src="/js/components/widgets.js"></script>
     <script src="/js/components/slider.js"></script>
 
@@ -276,13 +279,6 @@
 
         const state = widgetstate.use(
             {
-                "_view": [
-                    "stock_count",
-                    "connect_in"
-                ],
-                "kolichestvo_na_sklade_s": 0,
-                "temp": 22,
-                "p2": 2,
                 "_compatibility": [
                     "1",
                     "2",
@@ -295,7 +291,7 @@
         );
 
 
-        c.app(state.watch('_compatibility'))
+        c.app(widgetstate.name('dialogstate').watch('__style'))
 
 
         state._compatibility = [12,45]
