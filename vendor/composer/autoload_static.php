@@ -13,6 +13,7 @@ class ComposerStaticInit0a48ee250bdfee5ff7d4251c1cb6030e
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
+            'Widget\\tool\\' => 12,
             'Widget\\' => 7,
         ),
         'O' => 
@@ -22,6 +23,10 @@ class ComposerStaticInit0a48ee250bdfee5ff7d4251c1cb6030e
     );
 
     public static $prefixDirsPsr4 = array (
+        'Widget\\tool\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/tool',
+        ),
         'Widget\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',

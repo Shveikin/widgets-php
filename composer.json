@@ -3,7 +3,8 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Widget\\": "src/"
+            "Widget\\": "src/",
+            "Widget\\tool\\": "src/tool/"
         }
     },
     "require": {
