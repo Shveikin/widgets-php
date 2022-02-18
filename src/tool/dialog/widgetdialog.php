@@ -18,6 +18,7 @@ class widgetdialog {
 
         foreach (self::$props as $key => $value) {
             if (isset($props[$value])){
+                dialogstate::state()->{$key} = $props[$value];
                 $rules[] = dialogstate::state()->applyTo($key, $props[$value]);
             }
         }

@@ -3,6 +3,7 @@
 namespace Widget;
 
 use ErrorException;
+use Widget\tool\dialog\dialogstate;
 
 class state {
     public $_name; // настоящее имя стейта

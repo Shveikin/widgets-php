@@ -42,7 +42,7 @@ class widgetstate {
 		}
 
 
-
+/* 
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -61,52 +61,79 @@ class widgetstate {
 				}
 			}
 		})
-
+ */
 		obj['___parent'] = false;
 
-        const state = new Proxy(obj, {
-            get(object, prop){
-                if (widgetstate[prop]){
+		let state = false;
+		if (stateName in widgetstate.names){
+			state = widgetstate.names[stateName]
+		} else {
+			state = new Proxy({}, {
+				get(object, prop){
+					if (widgetstate[prop]){
 
-                    return function(){
-						const result = widgetstate[prop].apply(this, [object, ...arguments])
-						if (typeof result == 'function'){
-							const funcres = result.apply(this, arguments)
-							return funcres
-						} else {
-							return result
+						return function(){
+							const result = widgetstate[prop].apply(this, [object, ...arguments])
+							if (typeof result == 'function'){
+								const funcres = result.apply(this, arguments)
+								return funcres
+							} else {
+								return result
+							}
 						}
-					}
-                } else {
-					if (prop in object)
-						return object[prop]
-					else
-						return false
-                }
-            },
-            set(object, prop, value){
-				if (object[prop]!=value){
-
-					if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
-						object[prop] = value
 					} else {
-						object[prop] = widgetstate.use(value)
+						if (prop in object)
+							return object[prop]
+						else
+							return false
 					}
-					widgetstate.updateAll(object._name, prop)
-					widgetstate.setAlias(stateName, prop, value)
+				},
+				set(object, prop, value){
+					if (object[prop]!=value){
+
+						if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
+							object[prop] = value
+						} else {
+							object[prop] = widgetstate.use(value)
+						}
+						widgetstate.updateAll(object._name, prop)
+						widgetstate.setAlias(stateName, prop, value)
+					}
+					return true
 				}
-				return true
-            }
-        })
+			})
 
-		setParents.map(i => {
-			state[i].set('___parent', state)
-		})
+			widgetstate.useName(stateName, state)
+		}
 
-		widgetstate.useName(stateName, state)
+
 		if (props){
 			widgetstate.setupProps(stateName, props)
 		}
+
+		Object.keys(obj).forEach(i => {
+			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
+				let compStateValue = obj[i]
+				if (Array.isArray(compStateValue)){
+					const array = {}
+					compStateValue.map((val, key) => {
+						array[''+key] = val
+					})
+					compStateValue = array
+				}
+				
+				state[i] = widgetstate.use(compStateValue)
+				setParents.push(i)
+			} else {
+				state[i] = obj[i]
+			}
+		})
+
+		setParents.forEach(i => {
+			state[i].set('___parent', state)
+		})
+
+
         return state;
     }
 

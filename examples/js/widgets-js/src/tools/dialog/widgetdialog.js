@@ -1,21 +1,24 @@
 
 class widgetdialog {
-    static show(props){
+    static show(props, title = false){
         const proptype = widgetconvertor.getType(props)
-        console.log('type', proptype)
+        const state = widgetstate.name('dialogstate')
+
         switch (proptype) {
             case 'String':
-                widgetstate.name('dialogstate').__message = props
+                state.__message = props
+                if (title)
+                    state.title = title
             break;
             case 'Object':
                 if ('message' in props)
-                    widgetstate.name('dialogstate').__message = props['message']
+                    state.__message = props['message']
 
                 if ('title' in props)
-                    widgetstate.name('dialogstate').title = props['title']
+                    state.title = props['title']
             break;
             case 'Bool':
-                widgetstate.name('dialogstate').__message = false
+                state.__message = false
             break;
         }
         
@@ -77,3 +80,7 @@ class widgetdialog {
 }
 
 widgetdialog.__init__();
+
+function showDialog(props, title = false){
+    widgetdialog.show(props, title)
+}

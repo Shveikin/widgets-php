@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/widgetdialog.css">
+<link rel="stylesheet" href="/js/widgets-js/src/tools/dialog/widgetdialog.css">
 <?php
 
 use Widget\c;
@@ -17,9 +17,8 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 echo '<script src="/js/components/widgets.js"></script>';
 
 // echo '<script src="/js/components/slider.js"></script>';
-
-    // echo Table::widget()->html(true);
-    echo widgetdialog::class;
+    widgetdialog::show(message: 'Olkds');
+    echo Table::widget()->html(true);
 ?>
 
 <style>

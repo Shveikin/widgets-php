@@ -127,7 +127,6 @@ class widgetwatcher {
                 }
             }
             
-            console.info('IS DEFAULT', this._keys)
 
             if (_bind){
                 return _all_default?_true:_false
