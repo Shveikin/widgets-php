@@ -539,9 +539,19 @@ class state {
     /** 
      * Группировка update
     */
-    static function group(array $group) {
+    static function group($element) {
+        $elementtype = widgetconvertor::getType($element);
+
+        if ($elementtype=='Group'){
+            $element = $element['list'];
+        } else 
+        if ($elementtype!='Array'){
+            $element = [$element];
+        }
+
+
         $temp = [];
-        foreach ($group as $key => $value) {
+        foreach ($element as $key => $value) {
             if ($value instanceof widget){
                 $temp[$key] = $value->toArray();
             } else 

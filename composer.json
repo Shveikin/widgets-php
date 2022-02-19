@@ -7,8 +7,5 @@
             "Widget\\tool\\": "src/tool/",
             "Widget\\tool\\dialog\\": "src/tool/dialog/"
         }
-    },
-    "require": {
-        "opis/closure": "^3.6"
     }
 }

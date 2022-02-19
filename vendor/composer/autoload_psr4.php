@@ -6,7 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Widget\\tool\\dialog\\' => array($baseDir . '/src/tool/dialog'),
     'Widget\\tool\\' => array($baseDir . '/src/tool'),
     'Widget\\' => array($baseDir . '/src'),
-    'Opis\\Closure\\' => array($vendorDir . '/opis/closure/src'),
 );

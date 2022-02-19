@@ -135,19 +135,20 @@ abstract class WidgetsConponent {
         return $this->layout()->print_r();
     }
 
-    static $hashMethods = [];
+    // static $hashMethods = [];
     public function __get($function_name) {
         // Добавить хешироватьние для методов
-        if (isset(self::$hashMethods[$function_name])){
-            return self::$hashMethods[$function_name];
-        }
+        // if (isset(self::$hashMethods[$function_name])){
+        //     return self::$hashMethods[$function_name];
+        // }
 
         $useStates = $this->getUseStateList();
+        $url = static::$url ? static::$url : '/';
 
         // Возвращать тулзу!
         return new BindElement(
             function: $function_name,
-            url: static::$url ? static::$url : realpath(__FILE__),
+            url: $url,
             class: get_class($this),
             useState: $useStates,
         );
@@ -201,6 +202,9 @@ abstract class WidgetsConponent {
         // }
 
         if (isset($data['executor'])){
+            $ob_length = ob_get_length();
+            ob_get_clean();
+
             $executor = $data['executor'];
 
             $class = $executor['class'];
@@ -216,9 +220,10 @@ abstract class WidgetsConponent {
                 'request_id' => $data['request_id'],
                 'result' => $functionResult,
                 'state' => state::toArray(),
+                'rem' => $ob_length,
             ];
 
-            echo json_encode($result);
+            die(json_encode($result));
         }
     }
 

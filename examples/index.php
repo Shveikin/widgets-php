@@ -17,7 +17,7 @@ echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 echo '<script src="/js/components/widgets.js"></script>';
 
 // echo '<script src="/js/components/slider.js"></script>';
-    widgetdialog::show(message: 'Olkds');
+    // widgetdialog::show__fw(message: 'Olkds');
     echo Table::widget()->html(true);
 ?>
 
