@@ -1802,9 +1802,13 @@ class widgettools {
 
 	static current_request = false
 	static request_catcher = false
-	static widget_request(props){
+	static widget_request(props){ 
 		return {
 			link: function(widget = false, prop = false){
+
+				if (this.tagName=='BUTTON'){
+					this.classList.add('waiting')
+				}
 
 				const state = {}
 				props.useState.map(stateName => {
@@ -1816,6 +1820,9 @@ class widgettools {
 				})
 
 				const req_catcher = (result) => {
+					if (this.tagName=='BUTTON'){
+						this.classList.remove('waiting')
+					}
 					if (typeof widgettools.request_catcher == 'function'){
 						widgettools.request_catcher(result)
 						widgettools.request_catcher = false
@@ -1868,6 +1875,7 @@ class widgettools {
 						}
 
 						req_catcher(res)
+						
 
 					}
 				})
@@ -1927,13 +1935,13 @@ class widgettools {
 	}
 
 	static state_update_group(props){
-		return () => {
+		return function(){
 
 			Object.values(props.list).forEach(prop => {
 				if ('bind' in props)
 					prop.bind = props['bind']
 				const func = widgetconvertor.toFunction(prop)
-				func()
+				func.apply(this)
 			})
 
 		}

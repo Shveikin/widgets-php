@@ -22,7 +22,9 @@ echo '<script src="/js/components/widgets.js"></script>';
 ?>
 
 <style>
-
+    .waiting {
+        color: #f00;
+    }
     .filterInput_f2 {
         padding: 5px;
         border: 1px solid #f4f4f4;
