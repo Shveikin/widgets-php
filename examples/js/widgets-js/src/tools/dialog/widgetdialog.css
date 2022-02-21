@@ -9,7 +9,7 @@
 	overflow: auto !important;
 	padding: 10px;
     transition: all .1s;
-	font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', 'sans-serif';
 }
 
 .window_h12nbsx9dk23m32ui4948382 {
@@ -73,7 +73,7 @@
 .window_h12nbsx9dk23m32ui4948382 button,
 .window_h12nbsx9dk23m32ui4948382  .btnx {
     display: inline-block !important;
-    padding: 4px 11px !important;
+    padding: 2px 10px !important;
     background: #fff2;
     margin: 5px 0 !important;
     border: 1px solid #0003;
@@ -110,7 +110,7 @@
 	font-weight: bold !important;
 	font-family: Verdana, Geneva, Tahoma, sans-serif !important;
 	color: inherit;
-	font-size: 16px !important;
+	font-size: 11pt !important;
 }
 
 .black_h12nbsx9dk23m32ui4948382 fieldset {
@@ -155,7 +155,6 @@
 }
 
 .close_panel_h12nbsx9dk23m32ui4948382 {
-	padding: 10px !important;
     border-bottom: 1px solid #0002;
     position: sticky !important;
     top: 0px !important;
@@ -167,7 +166,7 @@
 }
 
 .buttons_panel_h12nbsx9dk23m32ui4948382 {
-	padding: 10px !important;
+	/* padding: 10px !important; */
     background: #ffffff30;
 	/* text-align: right !important; */
 	position: sticky !important;
@@ -177,6 +176,10 @@
 	color: inherit;
 	flex-direction: row-reverse;
 	border-top: 1px solid #0002;
+}
+
+.buttons_panel_h12nbsx9dk23m32ui4948382 button {
+	min-width: 80px;
 }
 
 

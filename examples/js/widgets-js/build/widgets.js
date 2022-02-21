@@ -2189,11 +2189,19 @@ class widgetdialog {
         $state.watch('__message')
             .is(false, 'opacity: 0; visibility: hidden;', '')
             .link(style => { 
+                widgetdom.querySelector('body').then(body => {
+                    if (style)
+                        body.style.overflow = 'auto'
+                    else
+                        body.style.overflow = 'hidden'
+                })
+                
                 $state.__style = style 
             }
         )
 
         c.render('body', window, 'append')
+        $state.__buttons = c.button('Далее')
     }
 }
 

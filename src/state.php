@@ -482,6 +482,48 @@ class state {
         return $result;
     }
 
+
+
+
+
+
+
+
+    static function val($key, $stateName = false){
+        $_stateName = $stateName?$stateName:static::$name; 
+        return state::name($_stateName, static::class)->{$key};
+    }
+
+    static function set($key, $stateName = false, $value = false){
+        $_stateName = $stateName?$stateName:static::$name; 
+        state::name($_stateName, static::class)->{$key} = $value;
+    }
+
+    static function isDefault($key, $stateName = false){
+        $_stateName = $stateName?$stateName:static::$name; 
+        return state::name($_stateName, static::class)->is_default($key);
+    }
+
+
+
+    function is_default($key){
+        if (isset($this->_default[$key])){
+            return $this->_data[$key] == $this->_default[$key];
+        } else {
+            $alias = $this->dataAlias($key);
+            return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+        }
+    }
+
+
+
+
+
+
+
+
+
+
     static function modifiers($state){
         return static::$modifiers;
     }
@@ -693,14 +735,7 @@ class state {
         return $value;
     }
 
-    function isDefault($key){
-        if (isset($this->_default[$key])){
-            return $this->_data[$key] == $this->_default[$key];
-        } else {
-            $alias = $this->dataAlias($key);
-            return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
-        }
-    }
+
 
     function runOnFrontend(){
         if (!$this->runOnFrontend) $this->runOnFrontend = []; 
