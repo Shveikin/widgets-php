@@ -111,11 +111,33 @@ class widgettools {
 
 	static current_request = false
 	static request_catcher = false
+
+	static abort_controllers_by_url = {};
+	static current_request_url = false;
+
+	static get_abort_signal(url){
+		const abort_controllers_by_url = widgettools.abort_controllers_by_url
+
+		if (url in abort_controllers_by_url){
+			abort_controllers_by_url[url].forEach(ac => {
+				ac.abort();
+				ac = null
+			})
+		}
+
+		abort_controllers_by_url[url] = [];
+		const controller = new AbortController();
+		abort_controllers_by_url[url].push(
+			controller
+		)
+		return controller.signal
+	}
+
 	static widget_request(props){ 
 		return {
 			link: function(widget = false, prop = false){
 
-				if (this.tagName=='BUTTON'){
+				if (this && this.tagName=='BUTTON'){
 					this.classList.add('waiting')
 				}
 
@@ -129,7 +151,7 @@ class widgettools {
 				})
 
 				const req_catcher = (result) => {
-					if (this.tagName=='BUTTON'){
+					if (this && this.tagName=='BUTTON'){
 						this.classList.remove('waiting')
 					}
 					if (typeof widgettools.request_catcher == 'function'){
@@ -138,7 +160,12 @@ class widgettools {
 					}
 				}
 
-				widgetstate.current_request = Math.random()
+				const request_id = Math.random()
+				widgetstate.current_request = request_id
+
+
+				// abort_controller.signal.addEventListener('abort', () => alert("отмена!"));
+
 				fetch(props.url, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -151,11 +178,13 @@ class widgettools {
 							bind: props.bind,
 						},
 						request_id: widgetstate.current_request,
-					})
+					}),
+					signal: widgettools.get_abort_signal(props.url)
 				})
 				.then(res => res.json())
 				.then(res => {
-					if (res.request_id==widgetstate.current_request){
+					
+					// if (res.request_id==widgetstate.current_request){
 						// Применение стейта
 						if ('state' in res){
 							Object.keys(res.state).forEach(stateName => {
@@ -172,7 +201,6 @@ class widgettools {
 										func2()
 									})
 								}
-									
 							})
 						}
 
@@ -184,9 +212,8 @@ class widgettools {
 						}
 
 						req_catcher(res)
-						
 
-					}
+					// }
 				})
 				.catch((error) => {
 					req_catcher(error)

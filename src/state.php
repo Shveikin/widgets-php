@@ -64,9 +64,15 @@ class state {
         state::$names[$this->_name] = $this;
         $this->active = true;
 
-        
+        if (static::$default){
+            $this->setData(static::$default, 'create default from array');
+        }
+
         $this->__initAliasFromStaticProp($aliasArray);
-        $this->setData(static::default($this), 'create default');
+
+        if ($default = static::default($this)){
+            $this->setData($default, 'create default');
+        }
         $this->__initAliasFromStaticProp();
         $this->__initAliasFromFunction();
 
@@ -265,12 +271,25 @@ class state {
         // $this->_data[$prop] = $value;
     }
 
+
     function __get($prop) {
         if (!isset($this->_data[$prop])) {
-            $this->setData([$prop => 0], 'empty');
+            $undefined = $this->undefined($prop);
+            $this->setData([$prop => $undefined], 'empty');
         }
 
         return $this->_data[$prop];
+    }
+
+    function undefined($prop){
+        return 0;
+    }
+
+    function add_alias($key, $url){
+        if (!is_array($this->_alias))
+            $this->_alias = [];
+
+            $this->_alias[$key] = $url;
     }
 
     function watch($watch, $callback = false) {
@@ -469,17 +488,13 @@ class state {
         return $js;
     }
 
-    static function state(){
+    static function state($name = false){
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-        return state::name(static::$name, static::class);
+        return state::name($name?$name:static::$name, static::class);
     }
 
     static function default($state){
-        $result = [];
-        if (static::$default!=false){
-            $result = static::$default;
-        }
-        return $result;
+        return false;
     }
 
 

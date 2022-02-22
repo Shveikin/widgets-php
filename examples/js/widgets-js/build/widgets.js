@@ -663,13 +663,6 @@ class widgetdom {
                                 rootElement.innerHTML = newValue
                             break;
                         }
-                        
-                        // if (!('childs' in widget)) widget.childs = {}
-
-                        // const childWidget = c.div(value)
-
-                        // widget.childs.view = [childWidget]
-                        // widgetdom.createElement(childWidget, child)
                     }
                 }
 
@@ -890,10 +883,8 @@ class widgetdom {
                     }
 
 
-                    // widget.rootElement.addEventListener(prop.substr(2), func)
                     widgetdom.assignEventListener(widget, prop, func)
 
-                    // widget.rootElement[prop] = 
                 } else {
                     widget.rootElement[prop] = value()
                 }
@@ -919,29 +910,11 @@ class widgetdom {
             const currNode = widgetdom.active[querySelector]
             widgetdom.update(currNode, widget)
         } else {
-/* 
-            const rootElement = window.document.querySelector(querySelector);
-
-
-            if (rootElement){
-                widgetdom.firstRender(rootElement, querySelector, widget)
-            } else {
-                window.addEventListener('load', () => {
-                    const rootElement = window.document.querySelector(querySelector);
-                    if (rootElement){
-                        widgetdom.firstRender(rootElement, querySelector, widget)
-                    }
-                })
-            } 
-*/
-
             widgetdom.querySelector(querySelector, mode).then(rootElement => {
                 widgetdom.firstRender(rootElement, querySelector, widget)
             }).catch(message => {
                 console.error('widget render ', message)
             })
-
-
         }
     }
 
@@ -1176,6 +1149,7 @@ class widgetstate {
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
+		if (prop!='_name')
 		if (stateName in widgetstate.props)
 		if ('alias' in widgetstate.props[stateName])
 		if (widgetstate.props[stateName].alias==true || prop in widgetstate.props[stateName].alias){
@@ -1802,11 +1776,33 @@ class widgettools {
 
 	static current_request = false
 	static request_catcher = false
+
+	static abort_controllers_by_url = {};
+	static current_request_url = false;
+
+	static get_abort_signal(url){
+		const abort_controllers_by_url = widgettools.abort_controllers_by_url
+
+		if (url in abort_controllers_by_url){
+			abort_controllers_by_url[url].forEach(ac => {
+				ac.abort();
+				ac = null
+			})
+		}
+
+		abort_controllers_by_url[url] = [];
+		const controller = new AbortController();
+		abort_controllers_by_url[url].push(
+			controller
+		)
+		return controller.signal
+	}
+
 	static widget_request(props){ 
 		return {
 			link: function(widget = false, prop = false){
 
-				if (this.tagName=='BUTTON'){
+				if (this && this.tagName=='BUTTON'){
 					this.classList.add('waiting')
 				}
 
@@ -1820,7 +1816,7 @@ class widgettools {
 				})
 
 				const req_catcher = (result) => {
-					if (this.tagName=='BUTTON'){
+					if (this && this.tagName=='BUTTON'){
 						this.classList.remove('waiting')
 					}
 					if (typeof widgettools.request_catcher == 'function'){
@@ -1829,7 +1825,12 @@ class widgettools {
 					}
 				}
 
-				widgetstate.current_request = Math.random()
+				const request_id = Math.random()
+				widgetstate.current_request = request_id
+
+
+				// abort_controller.signal.addEventListener('abort', () => alert("отмена!"));
+
 				fetch(props.url, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -1842,11 +1843,13 @@ class widgettools {
 							bind: props.bind,
 						},
 						request_id: widgetstate.current_request,
-					})
+					}),
+					signal: widgettools.get_abort_signal(props.url)
 				})
 				.then(res => res.json())
 				.then(res => {
-					if (res.request_id==widgetstate.current_request){
+					
+					// if (res.request_id==widgetstate.current_request){
 						// Применение стейта
 						if ('state' in res){
 							Object.keys(res.state).forEach(stateName => {
@@ -1863,7 +1866,6 @@ class widgettools {
 										func2()
 									})
 								}
-									
 							})
 						}
 
@@ -1875,9 +1877,8 @@ class widgettools {
 						}
 
 						req_catcher(res)
-						
 
-					}
+					// }
 				})
 				.catch((error) => {
 					req_catcher(error)

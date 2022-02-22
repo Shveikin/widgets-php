@@ -105,13 +105,6 @@ class widgetdom {
                                 rootElement.innerHTML = newValue
                             break;
                         }
-                        
-                        // if (!('childs' in widget)) widget.childs = {}
-
-                        // const childWidget = c.div(value)
-
-                        // widget.childs.view = [childWidget]
-                        // widgetdom.createElement(childWidget, child)
                     }
                 }
 
@@ -332,10 +325,8 @@ class widgetdom {
                     }
 
 
-                    // widget.rootElement.addEventListener(prop.substr(2), func)
                     widgetdom.assignEventListener(widget, prop, func)
 
-                    // widget.rootElement[prop] = 
                 } else {
                     widget.rootElement[prop] = value()
                 }
@@ -361,29 +352,11 @@ class widgetdom {
             const currNode = widgetdom.active[querySelector]
             widgetdom.update(currNode, widget)
         } else {
-/* 
-            const rootElement = window.document.querySelector(querySelector);
-
-
-            if (rootElement){
-                widgetdom.firstRender(rootElement, querySelector, widget)
-            } else {
-                window.addEventListener('load', () => {
-                    const rootElement = window.document.querySelector(querySelector);
-                    if (rootElement){
-                        widgetdom.firstRender(rootElement, querySelector, widget)
-                    }
-                })
-            } 
-*/
-
             widgetdom.querySelector(querySelector, mode).then(rootElement => {
                 widgetdom.firstRender(rootElement, querySelector, widget)
             }).catch(message => {
                 console.error('widget render ', message)
             })
-
-
         }
     }
 

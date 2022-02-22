@@ -171,6 +171,7 @@ class widgetstate {
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
+		if (prop!='_name')
 		if (stateName in widgetstate.props)
 		if ('alias' in widgetstate.props[stateName])
 		if (widgetstate.props[stateName].alias==true || prop in widgetstate.props[stateName].alias){
