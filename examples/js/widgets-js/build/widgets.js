@@ -429,6 +429,10 @@ class widgetconvertor {
 		return () => {}
 	}
 
+	static ElementToFunction(element){
+		return () => element
+	}
+
 	static BoolToFunction(bool){
 		return () => bool
 	}

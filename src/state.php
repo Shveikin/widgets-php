@@ -53,6 +53,10 @@ class state {
         return $data;
     }
 
+    static function state($name = false){
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        return state::name($name?$name:static::$name, static::class);
+    }
 
     function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
         
@@ -149,8 +153,9 @@ class state {
         }
     }
 
-    function refreshDefaults(){
 
+
+    function refreshDefaults(){
         if (is_array($this->_alias))
         foreach ($this->_alias as $key => $value) {
             if (isset($this->_data[$key])){
@@ -237,8 +242,6 @@ class state {
     }
 
     function checkAliasFromGet($stateKey, $urlKey){
-        
-
         if (is_array($urlKey)){
             foreach ($urlKey as $doubleKey) {
 
@@ -488,10 +491,7 @@ class state {
         return $js;
     }
 
-    static function state($name = false){
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-        return state::name($name?$name:static::$name, static::class);
-    }
+
 
     static function default($state){
         return false;
@@ -522,12 +522,17 @@ class state {
 
 
     function is_default($key){
+        $result = false;
         if (isset($this->_default[$key])){
-            return $this->_data[$key] == $this->_default[$key];
+            $result = $this->_data[$key] == $this->_default[$key];
         } else {
             $alias = $this->dataAlias($key);
-            return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+            if (isset($this->_default[$alias])){
+                $result = $this->_data[$alias] == $this->_default[$alias];
+            }
         }
+
+        return $result;
     }
 
 
@@ -584,7 +589,7 @@ class state {
         }
     }
 
-    static function alias(){
+    static function alias($state){
         return [];
     }
 

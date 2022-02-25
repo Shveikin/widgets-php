@@ -22,7 +22,63 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
     let drag = {}
     let inputs = []
 
-    drag['min'] = c.div({className: 'sliderPoint'})
+
+
+    function rangeArray(){
+        return globalState.__translate[globalState.unit]
+    }
+
+    function convertToCurrentUnit(value){
+        return widgetconvertor.map(
+            value, 
+            globalState.__translate[globalState.default_unit], 
+            globalState.__translate[globalState.unit]
+        ).toFixed(2)
+    }
+
+    // globalState.watch('unit').link(function(unit){
+    //     globalState.range_min = globalState.__translate[unit][0];
+    //     globalState.range_max = globalState.__translate[unit][1];
+    // })
+
+    function getPointTitle(value, unit, default_unit){
+        return default_unit==unit
+                    ?`${value} ${unitToRu(unit)}`
+                    :c.div([
+                        c.div({
+                            child: `${value} ${unitToRu(default_unit)}`,
+                            style: 'color: #ccc'
+                        }), 
+                        c.div(`${convertToCurrentUnit(value)} ${unitToRu(unit)}`)
+                    ])
+    }
+
+
+    drag['min'] = c.div({
+        child: c.div({
+            child: globalState.watch((min, unit, default_unit) => 
+                getPointTitle(min, unit, default_unit)
+            ),
+            className: 'sliderPointTitle',
+            
+            style: sliderType=='single'
+                ?false
+                :globalState.watch((min, max, range_min, range_max, unit, default_unit) => {
+                    const c100 = range_max - range_min
+                    const cRange = max - min
+
+                    return cRange<c100 / 5
+                    ?default_unit==unit
+                        ?'bottom: 35px'
+                        :'bottom: 50px'
+                    :''
+                })
+
+        }),
+        className: 'sliderPoint',
+    })
+
+
     inputs.push(
         c.unitInput({
             value: 'min',
@@ -31,9 +87,17 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
     )
 
     if (sliderType!='single'){
-        drag['max'] = c.div({className: 'sliderPoint'})
+        drag['max'] = c.div({
+            child: c.div({
+                child: globalState.watch((max, unit, default_unit) => 
+                    getPointTitle(max, unit, default_unit)
+                ),
+                className: 'sliderPointTitle',
+            }),
+            className: 'sliderPoint',
+        })
         inputs.push(
-            c.unitInput({
+            c.unitInput2({
                 value: 'max',
                 state: globalState
             })
@@ -44,10 +108,6 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
 
 
 
-    function rangeArray(){
-        return [globalState.range_min, globalState.range_max]
-    }
-
     function getLineBy(index){
         return c.div({
             className: 'sliderLine',
@@ -55,11 +115,11 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
                 let minVal = index==0?slide_min_start:slide_max_start;
                 let maxVal = index==0?slide_min_finish:slide_max_finish;
 
-                if (minVal=='rangeMin') minVal = globalState.range_min
-                if (maxVal=='rangeMax') maxVal = globalState.range_max
+                if (minVal=='rangeMin') minVal = globalState.__translate[globalState.default_unit][0]
+                if (maxVal=='rangeMax') maxVal = globalState.__translate[globalState.default_unit][1]
 
-                const min_pos = widgetconvertor.map(minVal, rangeArray(), [0, sliderWidth])
-                const max_pos = widgetconvertor.map(maxVal, rangeArray(), [0, sliderWidth + boxsizing])
+                const min_pos = widgetconvertor.map(minVal, globalState.__translate[globalState.default_unit], [0, sliderWidth])
+                const max_pos = widgetconvertor.map(maxVal, globalState.__translate[globalState.default_unit], [0, sliderWidth + boxsizing])
 
                 return `left: ${min_pos}px; width: ${max_pos-min_pos}px; background: rgb(154 195 219);`
             })
@@ -81,26 +141,9 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
 
 
     return c.div({
-        style: 'margin-bottom: 20px;',
+        style: 'margin: 40px 0 20px 0px;',
         child: [
-            c.div({
-                className: 'title_f2',
-                innerHTML: globalState.watch((min, max) => {
-                    if (sliderType=='single'){
-                        return `${title}: ${min}`
-                    } else {
-                        return `${title}: <b>от ${min} до ${max}</b> `
-                    }
-                })
-            }),
-
-            c.div({
-                style: 'display: flex; justify-content: space-between; margin-bottom: -10px; margin-top: 5px;',
-                child: [
-                    globalState.watch((range_min, unit) => `от ${range_min} ${unitToRu(unit)}`),
-                    globalState.watch((range_max, unit) => `до ${range_max} ${unitToRu(unit)}`),
-                ],
-            }),
+            
             c.div({
                 dragboard: {
                     childs: back, // Статические элементы
@@ -115,9 +158,10 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
                     
                     ondrag(id, x, y, posx, posy){
                         const value = widgetconvertor.roundValue(
-                            widgetconvertor.map(x, [0, 100], rangeArray()),
+                            widgetconvertor.map(x, [0, 100], globalState.__translate[globalState.default_unit]),
                             type
                         )
+
                         
                         if (id==0){
                             globalState.min = value
@@ -125,9 +169,17 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
                             globalState.max = value
                         }
 
-                        widgetstate.name('filter').inside('_view', url)
+                        widgetstate.name('eye').inside('_view', url)
                     },
                 }
+            }),
+
+            c.div({
+                style: 'display: flex; justify-content: space-between; margin-bottom: 5px; color: rgb(157,157,157);',
+                child: [
+                    globalState.watch((unit) => `<span class='brekts'>|</span> от ${globalState.__translate[globalState.unit][0]} ${unitToRu(unit)}`),
+                    globalState.watch((unit) => `до ${globalState.__translate[globalState.unit][1]} ${unitToRu(unit)} <span class='brekts'>|</span>`),
+                ],
             }),
 
             c.div({
@@ -136,4 +188,4 @@ c.slider = function({state, title, sliderWidth = 500, sliderType = 'single', typ
             })
         ]
     })
-    }
+}

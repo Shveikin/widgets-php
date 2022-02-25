@@ -176,6 +176,15 @@
             background: #fff;
         }
 
+        .sliderPointTitle {
+            position: absolute;
+            bottom: 19px;
+            width: 200px;
+            margin-left: -87px;
+            text-align: center;
+            transition: all .1s;
+        }
+
 
         .sliderLine {
             padding: 2px;
@@ -280,24 +289,48 @@
     <div id="app"></div>
     <script>
 
-        const state = widgetstate.use(
-            {
-                "_compatibility": [
-                    "1",
-                    "2",
-                ],
-            },
-            {
-                name: "filter",
-                alias: true
+        const Units = {};
+
+        // const state = widgetstate.use({
+        //     min: 0,
+        //     max: 15,
+        //     range_min: 0,
+        //     range_max: 100,
+        //     range_ou_min: 0,
+        //     range_ou_max: 100,
+        // });
+
+        const state = widgetstate.use({
+            min: -54,
+            max: 260,
+            default_unit: 'c',
+            unit: 'c',
+            range_min: -54,
+            range_max: 260,
+            __translate: {
+                c: [-54,  260],
+                f: [-154, 160],
             }
-        );
+        })
 
 
-        c.app(widgetstate.name('dialogstate').watch('__style'))
+        c.app([
+            c.slider({
+                state: state._name,
+                title: 'test',
+                url: 'aaa',
+                sliderType: 'double'
+            }),
+            c.select({
+                child: [
+                    c.option('c'),
+                    c.option('f'),
+                ],
+                value: state.model('unit')
+            })
+        ])
 
 
-        state._compatibility = [12,45]
     </script>
 </body>
 </html>

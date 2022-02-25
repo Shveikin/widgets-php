@@ -11,14 +11,24 @@ class widgetdialog {
     static $props = [
         '__message' => 'message',
         'title' => 'title',
+        '__buttons' => 'button',
     ];
 
     static function show(...$props){
-        $rules = [];
 
         foreach (self::$props as $key => $value) {
             if (isset($props[$value])){
                 dialogstate::state()->{$key} = $props[$value];
+            }
+        }
+
+    }
+    
+    static function show__fw(...$props){
+        $rules = [];
+
+        foreach (self::$props as $key => $value) {
+            if (isset($props[$value])){
                 $rules[] = dialogstate::state()->applyTo($key, $props[$value]);
             }
         }
