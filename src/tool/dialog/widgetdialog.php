@@ -11,7 +11,7 @@ class widgetdialog {
     static $props = [
         '__message' => 'message',
         'title' => 'title',
-        '__buttons' => 'button',
+        '__buttons' => 'buttons', 
     ];
 
     static function show(...$props){

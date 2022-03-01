@@ -459,6 +459,10 @@ class state {
         if (isset(self::$names[$stateName]) && self::$names[$stateName]->isActive()){
             return self::$names[$stateName];
         } else {
+            if ($parent==''){
+                $parent = static::class;
+            }
+
             if ($parent!=''){
                 $parent::create($stateName);
 

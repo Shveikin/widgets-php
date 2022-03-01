@@ -7,7 +7,8 @@ class widgetstate {
 
 	static name(name){
 		if (!(name in widgetstate.names)){
-			console.info(`state ${name} отсутствует! Используется пустой state`)
+			if (widgetdom.debug)
+				console.info(`state ${name} отсутствует! Используется пустой state`)
 			widgetstate.names[name] = widgetstate.use({_name: name})
 		}
 		return widgetstate.names[name]

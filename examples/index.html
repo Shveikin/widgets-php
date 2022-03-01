@@ -286,50 +286,33 @@
 
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <div id="title">MESSAGE FROM ME 2</div>
+
+    </div>
     <script>
 
-        const Units = {};
 
-        // const state = widgetstate.use({
-        //     min: 0,
-        //     max: 15,
-        //     range_min: 0,
-        //     range_max: 100,
-        //     range_ou_min: 0,
-        //     range_ou_max: 100,
-        // });
-
-        const state = widgetstate.use({
-            min: -54,
-            max: 260,
-            default_unit: 'c',
-            unit: 'c',
-            range_min: -54,
-            range_max: 260,
-            __translate: {
-                c: [-54,  260],
-                f: [-154, 160],
+        widgetdialog.setup('next', {
+            title: '105 серия',
+            width: '360px',
+            height: '45px',
+            hidetitle: true,
+            linkactive: {
+                element: '#title',
+                // place: 'top'
+            },
+            buttons: {
+                'Перейти в шаровые краны'(){
+                    console.log('форма')
+                }
             }
         })
 
-
-        c.app([
-            c.slider({
-                state: state._name,
-                title: 'test',
-                url: 'aaa',
-                sliderType: 'double'
-            }),
-            c.select({
-                child: [
-                    c.option('c'),
-                    c.option('f'),
-                ],
-                value: state.model('unit')
-            })
-        ])
-
+        
+        widgetdialog.template('next').show('Данная серия недоступна, перейти в доступную?')
 
     </script>
 </body>

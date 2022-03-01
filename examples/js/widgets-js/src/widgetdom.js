@@ -1,6 +1,6 @@
 
 class widgetdom {
-    static debug = true;
+    static debug = false;
     static ids = {}
     static idCounter = 0
 

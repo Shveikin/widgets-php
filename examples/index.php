@@ -18,7 +18,8 @@ echo '<script src="/js/components/widgets.js"></script>';
 
 // echo '<script src="/js/components/slider.js"></script>';
     // widgetdialog::show__fw(message: 'Olkds');
-    echo Table::widget()->html(true);
+    // echo Table::widget()->html(true);
+
 ?>
 
 <style>
@@ -104,3 +105,5 @@ echo '<script src="/js/components/widgets.js"></script>';
 
 
 </style>
+
+

@@ -215,6 +215,10 @@ class widgetwatcher {
 
 
     link(widget, widgetProp = false){
+
+        if (widgetProp=='style')
+        console.log(widgetProp, this)
+
         this._widget = widget
         this._widgetProp = widgetProp
 
@@ -254,7 +258,7 @@ class widgetwatcher {
                 if (typeof callback == 'function'){
 
                     return callback.apply(this, this.arr(ArrayFromState))
-                    
+
                 } else {
                     return ArrayFromState
                 }
