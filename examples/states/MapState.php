@@ -4,13 +4,16 @@ use Widget\state;
 
 class MapState extends state
 {
-    static $name = 'state';
+    static $name = 'myState';
     static $default = [
-        'unit' => 'c',
-        'min' => 23,
+        
     ];
+    static $alias = true;
 
-    static $modifiers = [
-        'unit' => 'unitToRu'
-    ];
+    static $content_type = 'array';
+
+    
+    static function onchange(){
+        return Table::widget()->hello;
+    }
 }

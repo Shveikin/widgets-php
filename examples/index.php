@@ -130,15 +130,4 @@ echo Table::widget()->html(true);
         border: 1px solid #ddd;
     }
 
-    
-    /* input:focus::-webkit-inner-spin-button {
-        padding: 10px;
-    }
-
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        /* padding: 10px; */
-        /* -webkit-appearance: none;
-        margin: 0; */
-    } */
 </style>

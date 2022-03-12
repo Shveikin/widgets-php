@@ -181,6 +181,7 @@ abstract class WidgetsConponent {
             $state = class_exists($stateName)?$stateName::state():state::name($stateName);
             if ($state)
                 $this->stateAlias[$state->getName()] = $state->getName();
+                
         };
         $this->mainState($props);
     }

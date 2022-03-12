@@ -14,6 +14,7 @@ class state {
     public $onchange = false;
     public $sourceClass = 'state';
 
+
     private $active = false;
 
     /* Обновить */
@@ -428,6 +429,7 @@ class state {
     static $default = false;
     static $alias = false; // только для определения get параметров
     static $modifiers = false; // только для определения get параметров
+    static $content_type = false;
 
     public $canSetDefaultFromRequest = false;
 
@@ -647,7 +649,7 @@ class state {
     function getProps(){
         return array_keys((array)$this->_data);
     }
-
+ 
     function getAlias($key){
         if (isset($this->_alias[$key])){
             return $this->_alias[$key];
