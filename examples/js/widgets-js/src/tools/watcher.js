@@ -216,7 +216,7 @@ class widgetwatcher {
 
     link(widget, widgetProp = false){
 
-        if (widgetProp=='style')
+        if (widgetProp=='width')
         console.log(widgetProp, this)
 
         this._widget = widget
@@ -266,7 +266,7 @@ class widgetwatcher {
         }
 
         value = this.get_current_value()
-        this.applyToWidget(this.arr(value)[0])
+        this.applyToWidget(value)
     }
 
     applyToWidget(value){
@@ -276,7 +276,8 @@ class widgetwatcher {
                     const child = c.div(value)
                     widgetdom.update(this._widget, child)
                 } else {
-                    this._widget.props[this._widgetProp] = value
+                    const val = this.arr(value)[0]
+                    this._widget.props[this._widgetProp] = val
                     widgetdom.assignProp(this._widget, this._widgetProp)
                 }
             break;

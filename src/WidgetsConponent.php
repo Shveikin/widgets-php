@@ -157,7 +157,11 @@ abstract class WidgetsConponent {
 
     function getUseStateList(){
         $result = [];
-        foreach (static::$useState as $stateName) {
+        foreach (static::$useState as $state) {
+/* 
+            $stateClass = is_array($state)?$state[0]:$state;
+            $stateName = is_array($state)?$state[1]:false;
+
             if (isset(state::$names[$stateName])){
                 array_push($result, $stateName);
             } else if (class_exists($stateName)){
@@ -166,6 +170,15 @@ abstract class WidgetsConponent {
             } else {
                 array_push($result, $stateName);
                 // throw new Exception("Не получилось определить стейт $stateName");
+            }
+            
+*/
+
+            if (is_array($state)){
+                array_push($result, $state[1]);
+            } else {
+                $stateName = $state::state()->getName();
+                array_push($result, $stateName);
             }
         }
 
@@ -181,7 +194,11 @@ abstract class WidgetsConponent {
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
 
         foreach (static::$useState as $stateName) {
-            $state = class_exists($stateName)?$stateName::state():state::name($stateName);
+            if (is_array($stateName)){
+                $state = $stateName[0]::state(isset($stateName[1])?$stateName[1]:false);
+            } else {
+                $state = class_exists($stateName)?$stateName::state():state::name($stateName);
+            }
             if ($state)
                 $this->stateAlias[$state->getName()] = $state->getName();
         };

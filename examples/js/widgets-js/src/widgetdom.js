@@ -283,6 +283,8 @@ class widgetdom {
     static assignProp(widget, prop) {
         let value = widget.props[prop]
 
+
+
         const [change, newValue] = widgetconvertor.checkState(widget, prop)
         if (newValue==undefined) return false;
 		if (change) {
@@ -294,7 +296,9 @@ class widgetdom {
 
         const type = widgetconvertor.getType(value)
         
-
+        const targetOnly = prop.substr(0, 1)=='_';
+        if (targetOnly)
+            prop = prop.substr(1)
 
 
         switch(type){
@@ -310,9 +314,15 @@ class widgetdom {
                 }
             break;
             case 'Function':
+                
+
                 if (prop.substr(0,2)=='on'){
 
-                    const func = function(){
+                    const func = function(event){
+                        if (targetOnly) 
+                            if (event.target!=this) 
+                                return false
+
                         value.apply(this)
 
                         if (widget.type in widgetconvertor.singleElement){

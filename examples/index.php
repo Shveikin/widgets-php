@@ -16,9 +16,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/components/Table.php';
 echo '<script src="/js/widgets-js/build/widgets.js"></script>';
 echo '<script src="/js/components/widgets.js"></script>';
 
+
+
 // echo '<script src="/js/components/slider.js"></script>';
-    // widgetdialog::show__fw(message: 'Olkds');
-    // echo Table::widget()->html(true);
+
+
+widgetdialog::show(message: 'Olkds');
+echo Table::widget()->html(true);
 
 ?>
 

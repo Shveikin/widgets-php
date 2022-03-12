@@ -241,7 +241,7 @@ class widgetwatcher {
 
     link(widget, widgetProp = false){
 
-        if (widgetProp=='style')
+        if (widgetProp=='width')
         console.log(widgetProp, this)
 
         this._widget = widget
@@ -291,7 +291,7 @@ class widgetwatcher {
         }
 
         value = this.get_current_value()
-        this.applyToWidget(this.arr(value)[0])
+        this.applyToWidget(value)
     }
 
     applyToWidget(value){
@@ -301,7 +301,8 @@ class widgetwatcher {
                     const child = c.div(value)
                     widgetdom.update(this._widget, child)
                 } else {
-                    this._widget.props[this._widgetProp] = value
+                    const val = this.arr(value)[0]
+                    this._widget.props[this._widgetProp] = val
                     widgetdom.assignProp(this._widget, this._widgetProp)
                 }
             break;
@@ -849,6 +850,8 @@ class widgetdom {
     static assignProp(widget, prop) {
         let value = widget.props[prop]
 
+
+
         const [change, newValue] = widgetconvertor.checkState(widget, prop)
         if (newValue==undefined) return false;
 		if (change) {
@@ -860,7 +863,9 @@ class widgetdom {
 
         const type = widgetconvertor.getType(value)
         
-
+        const targetOnly = prop.substr(0, 1)=='_';
+        if (targetOnly)
+            prop = prop.substr(1)
 
 
         switch(type){
@@ -876,9 +881,15 @@ class widgetdom {
                 }
             break;
             case 'Function':
+                
+
                 if (prop.substr(0,2)=='on'){
 
-                    const func = function(){
+                    const func = function(event){
+                        if (targetOnly) 
+                            if (event.target!=this) 
+                                return false
+
                         value.apply(this)
 
                         if (widget.type in widgetconvertor.singleElement){
@@ -2139,6 +2150,7 @@ class widgetdialog {
 
     
     static props = {
+        template: 'template',
         __message: 'message',
         title: 'title',
         __buttons: 'buttons', 
@@ -2147,7 +2159,8 @@ class widgetdialog {
         width: 'width',
         height: 'height',
         
-        _linkactive: 'linkactive',
+        _active: 'active',
+        active_arrow: 'active_arrow',
     }
     static templates = []
 
@@ -2181,7 +2194,7 @@ class widgetdialog {
                                 child: $state.watch('__message')
                             }),
                             className: '_form_h12nbsx9dk23m32ui4948382',
-                            style: $state.watch(height => `min-height: ${height?height:'120px'};`)
+                            style: $state.watch(height => `min-height: ${height?height:120}px;`)
                         }),
                         className: 'form_panel_h12nbsx9dk23m32ui4948382',
                     }),
@@ -2190,38 +2203,63 @@ class widgetdialog {
                         className: 'buttons_panel_h12nbsx9dk23m32ui4948382'
                     })
                 ],
-                className: 'window_h12nbsx9dk23m32ui4948382',
+                className: $state.watch(active_arrow => active_arrow
+                    ?`window_h12nbsx9dk23m32ui4948382 window_active_arrow_${active_arrow}`
+                    :'window_h12nbsx9dk23m32ui4948382'
+                ),
                 style: $state.watch('__position')
             }),
-            className: 'black_h12nbsx9dk23m32ui4948382',
-            style: $state.watch('__style')
+            className: $state.watch(active_arrow => active_arrow
+                ?`black_h12nbsx9dk23m32ui4948382 black_habsolute`
+                :'black_h12nbsx9dk23m32ui4948382'
+            ),
+            
+            style: $state.watch('__style'),
+            _onclick(){
+                $state.__message = false
+            }
         })
 
         $state.watch('__message')
             .is(false, 'opacity: 0; visibility: hidden;', '')
             .link(style => { 
                 widgetdom.querySelector('body').then(body => {
-                    if (style)
+                    if ($state.__style)
                         body.style.overflow = 'auto'
                     else
                         body.style.overflow = 'hidden'
                 })
 
-                $state.__style = style 
+                $state.__style = style
             }
         )
 
-        $state.watch(['width', 'height', '_linkactive'])
-        .link((width, height, linkactive) => {
+        $state.watch(['width', 'height', '_active', 'hidetitle'])
+        .link((width, height, active, hidetitle) => {
             let window_style = ''
 
-            if (width) window_style += `width: ${width};`
-            if (height) window_style += `height: ${height};`
-            // if (linkactive) {
-                console.log('linkactive', linkactive)
-                console.log('window_style', window_style)
+            if (width) window_style += `width: ${width}px; `
+            if (height) window_style += `min-height: ${hidetitle?height:height+39}px; `
 
-            // }
+            if (active){
+                if ('element' in active){
+                    widgetdom.querySelector(active.element).then(element => {
+                        const rect = element.getBoundingClientRect()
+                        window_style += `position: absolute; margin: 0;`
+
+
+                        window_style += `bottom: calc(100% - ${rect.y-10}px); `
+                        window_style += `left: ${rect.x}px; `
+
+                        $state.active_arrow = 'bottom'
+
+                        $state.__position = window_style
+                    })
+                }
+            } else {
+                $state.active_arrow = false
+            }
+
 
             $state.__position = window_style
         })
@@ -2236,6 +2274,7 @@ class widgetdialog {
     }
 
     static template(template_name){
+        if (template_name)
         if (template_name in widgetdialog.templates){
 
             const template = widgetdialog.templates[template_name];
@@ -2247,6 +2286,9 @@ class widgetdialog {
                     widgetdialog.setPorp(statekey, false)
                 }
             }
+        } else {
+            if (widgetdom.debug)
+                console.info(template_name, ' отсутствует')
         }
 
         return widgetdialog
@@ -2255,9 +2297,6 @@ class widgetdialog {
     static show(props = true, title = false){
         const proptype = widgetconvertor.getType(props)
         const state = widgetstate.name('dialogstate')
-
-
-
 
         switch (proptype) {
             case 'String':
@@ -2283,23 +2322,31 @@ class widgetdialog {
 
     static setPorp(prop, value){
         const state = widgetstate.name('dialogstate')
-        if (prop=='__buttons' && typeof value == 'object'){
-            const buttons = [];
-            for (const [buttontitle, func] of Object.entries(value)){
-                buttons.push(
-                    c.button({
-                        child: buttontitle,
-                        className: 'btn btnx',
-                        onclick: () => {
-                            widgetconvertor.toFunction(func).apply(this)
-                        } 
-                    })
-                )
-            }
+        switch (prop){
+            case '__buttons':
+                if (typeof value == 'object'){
+                    const buttons = [];
+                    for (const [buttontitle, func] of Object.entries(value)){
+                        buttons.push(
+                            c.button({
+                                child: buttontitle,
+                                className: 'btn btnx',
+                                onclick: () => {
+                                    widgetconvertor.toFunction(func).apply(this)
+                                } 
+                            })
+                        )
+                    }
 
-            state[prop] = buttons
-        } else {
-            state[prop] = value
+                    state[prop] = buttons
+                }
+            break;
+            case 'template':
+                widgetdialog.template(value)
+            break;
+            default:
+                state[prop] = value
+            break;
         }
     }
 }

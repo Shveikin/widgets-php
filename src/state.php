@@ -14,6 +14,7 @@ class state {
     public $_modifiers = false; // список js модификаторов
     public $onchange = false;
     public $sourceClass = 'state';
+    public $stateInitPath = false;
 
     public $runOnFrontend = false;
 
@@ -118,7 +119,7 @@ class state {
         
         $oldData = $this->_data;
 
-        
+        if ($data)
         foreach ($data as $key => $value) {
             $alias = $key;
 
@@ -454,7 +455,7 @@ class state {
     public $canSetDefaultFromRequest = false;
 
     static function name(string $stateName, string $parent = '') {
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__));
         
         if (isset(self::$names[$stateName]) && self::$names[$stateName]->isActive()){
             return self::$names[$stateName];
@@ -465,8 +466,11 @@ class state {
 
             if ($parent!=''){
                 $parent::create($stateName);
+                $currentState = self::$names[$stateName];
 
-                return self::$names[$stateName];
+                $currentState->stateInitPath = $er;
+
+                return $currentState;
             }
             die("Стейт не определен - $stateName [$parent]<br>$er");
             return false;
