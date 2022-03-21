@@ -1206,11 +1206,20 @@ class widgetstate {
 				?[[]]
 				:[false]
 		} else {
-			let defaultValue = widgetstate.props[stateName]?.default
-			if (defaultValue && prop in defaultValue) 
-				return [defaultValue[prop]]
-			else
-				return false
+
+			if ('default' in widgetstate.props[stateName]){
+				let defaultValue = widgetstate.props[stateName].default
+				if (defaultValue && prop in defaultValue) 
+					return [defaultValue[prop]]
+			} else {
+				
+				const defaultTypes = widgetstate.props[stateName].defaultTypes
+				if (defaultTypes!=false){
+					return [[]]
+				}
+			}
+
+			return false
 		}
 	}
 
@@ -1627,7 +1636,7 @@ class widgetstate {
 						if (callback){
 							return callback(value)
 						} else {
-							return value
+							return value?value:''
 						}
 					}).link(widget, argument)
 				}
