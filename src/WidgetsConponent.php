@@ -138,7 +138,6 @@ abstract class WidgetsConponent extends widget__static {
             }
             if ($state)
                 $this->stateAlias[$state->getName()] = $state->getName();
-                
         };
         $this->mainState($props);
     }
