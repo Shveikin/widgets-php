@@ -41,15 +41,15 @@ class widgetwatcher {
 
     _current_value = false 
     check_current_value(){
-        return Array.isArray(this._current_value)
+        return typeof this._current_value == 'object' && 'currentValue' in this._current_value
     }
 
     get_current_value(){
-        return this._current_value[0]
+        return this._current_value.currentValue
     }
 
     set_current_value(value){
-        this._current_value = [value]
+        this._current_value = {currentValue: value}
         return value
     }
 
@@ -127,7 +127,6 @@ class widgetwatcher {
                 }
             }
             
-            console.info('IS DEFAULT', this._keys)
 
             if (_bind){
                 return _all_default?_true:_false
@@ -216,6 +215,10 @@ class widgetwatcher {
 
 
     link(widget, widgetProp = false){
+
+        if (widgetProp=='width')
+        console.log(widgetProp, this)
+
         this._widget = widget
         this._widgetProp = widgetProp
 
@@ -251,14 +254,10 @@ class widgetwatcher {
 
         if (this._callback)
         for (const callback of Object.values(this._callback)){
-            value = this.current_value(ArrayFromState => {
+            this.current_value(ArrayFromState => {
                 if (typeof callback == 'function'){
 
-                    return callback.apply(this, 
-                        Array.isArray(ArrayFromState)
-                            ?ArrayFromState
-                            :[ArrayFromState]
-                    )
+                    return callback.apply(this, this.arr(ArrayFromState))
 
                 } else {
                     return ArrayFromState
@@ -266,6 +265,7 @@ class widgetwatcher {
             })
         }
 
+        value = this.get_current_value()
         this.applyToWidget(value)
     }
 
@@ -276,7 +276,8 @@ class widgetwatcher {
                     const child = c.div(value)
                     widgetdom.update(this._widget, child)
                 } else {
-                    this._widget.props[this._widgetProp] = value
+                    const val = this.arr(value)[0]
+                    this._widget.props[this._widgetProp] = val
                     widgetdom.assignProp(this._widget, this._widgetProp)
                 }
             break;

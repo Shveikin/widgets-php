@@ -3,8 +3,9 @@
 namespace Widget;
 
 use ErrorException;
+use Widget\tool\dialog\dialogstate;
 
-class state {
+class state extends state__static {
     public $_name; // настоящее имя стейта
     public $_data = [];
     public $_alias = false; // [значение в state => значение в URL]
@@ -13,6 +14,9 @@ class state {
     public $_modifiers = false; // список js модификаторов
     public $onchange = false;
     public $sourceClass = 'state';
+    public $stateInitPath = false;
+
+    public $runOnFrontend = false;
 
     private $active = false;
 
@@ -20,6 +24,55 @@ class state {
     public $refrashDefaultException = [];
 
     private $outStateValues = [];
+
+
+
+
+
+
+
+    function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
+        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
+
+        
+        $this->sourceClass = static::class;
+        $this->_name = $name;
+        state::$names[$this->_name] = $this;
+        $this->active = true;
+
+        if (static::$default){
+            $this->setData(static::$default, 'create default from array');
+        }
+
+        $this->__initAliasFromStaticProp($aliasArray);
+
+        if ($default = static::default($this)){
+            $this->setData($default, 'create default');
+        }
+        $this->__initAliasFromStaticProp();
+        $this->__initAliasFromFunction();
+
+        if ($onchange!=false){
+            $this->onchange = $onchange;
+        } else {
+            $this->onchange = static::onchange();
+        }
+
+        if ($defaultArray!=false){
+            $this->setData($defaultArray, 'defaultArray');
+        }
+
+        $this->_modifiers = static::modifiers($this);
+
+        $this->refreshDefaults();
+        $this->updateStartingValues();
+        if ($this->canSetDefaultFromRequest){
+            $this->refreshDefaults();
+        }
+
+        $this->afterDefault();
+    }
+
 
     function isActive(){
         return $this->active;
@@ -51,72 +104,22 @@ class state {
     }
 
 
-    function __construct($name, $defaultArray = false, $aliasArray = false, $onchange = false) {
-        
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
 
-        
-        $this->sourceClass = static::class;
-        $this->_name = $name;
-        state::$names[$this->_name] = $this;
-        $this->active = true;
-
-        
-        $this->__initAliasFromStaticProp($aliasArray);
-        $this->setData(static::default($this), 'create default');
-        $this->__initAliasFromStaticProp();
-        $this->__initAliasFromFunction();
-
-        if ($onchange!=false){
-            $this->onchange = $onchange;
-        } else {
-            $this->onchange = static::onchange();
-        }
-
-        if ($defaultArray!=false){
-            $this->setData($defaultArray, 'defaultArray');
-        }
-
-        $this->_modifiers = static::modifiers($this);
-
-        $this->refreshDefaults();
-        $this->updateStartingValues();
-        if ($this->canSetDefaultFromRequest){
-            $this->refreshDefaults();
-        }
-
-    }
-
-
-    // function getRequest($name){
-
-    //     return c::state_request(
-    //         state: $this->_name,
-    //         request: $name,
-    //     );
-
-    //     // $req = $this->_request[$name];
-    //     // return  $req;
-    // }
-
-
+    
     function setData($data, $from = false){
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
         
         $oldData = $this->_data;
 
-        
+        if ($data)
         foreach ($data as $key => $value) {
-            // $alias = $this->dataAlias($key);
             $alias = $key;
-            $old = isset($this->_data[$alias])?$this->_data[$alias]:false;
 
-            if (isset($oldData[$alias]))
-            if ($old!=($oldData[$alias])) {
-                    $aa = [$oldData[$alias], $old, $value];
-                    // cprint_r2('было - сейчас - хотел установить оо остановил', $aa);
-                    continue;
-                }
+            $old = self::$emptyValue;
+            if (isset($this->_data[$alias])){
+                $old = $this->_data[$alias];
+            }
+
 
             if ($old!==$value){
                 $this->_data[$alias] = $value;
@@ -143,8 +146,11 @@ class state {
         }
     }
 
-    function refreshDefaults(){
+    function afterDefault(){
 
+    }
+
+    function refreshDefaults(){
         if (is_array($this->_alias))
         foreach ($this->_alias as $key => $value) {
             if (isset($this->_data[$key])){
@@ -159,7 +165,9 @@ class state {
         $props = [
             'name' => $this->_name,
             'sourceClass' => $this->sourceClass,
+            'defaultTypes' => static::$defaultTypes,
         ];
+        
         if ($this->_alias){
             $props['alias'] = $this->_alias;
         }
@@ -231,24 +239,47 @@ class state {
     }
 
     function checkAliasFromGet($stateKey, $urlKey){
-        
-
         if (is_array($urlKey)){
             foreach ($urlKey as $doubleKey) {
-
                 //FIX
                 $this->checkAliasFromGet($stateKey, $doubleKey);
             }
         } else {
             if (isset($_GET[$urlKey])){
-                if (/* isset($this->_default[$stateKey]) && */ isset($this->_data[$stateKey]) && (is_array($this->_data[$stateKey])  ) ){
-                    $this->setData([$stateKey => explode(',', $_GET[$urlKey])], 'from get');
-                } else {
-                    $this->setData([$stateKey => $_GET[$urlKey]], 'from get'); // Установил значения по умолчанию
-                }
+                $this->__readGet($stateKey, $urlKey);
             }
         }
     }
+
+
+    function __readGet($stateKey, $urlKey){
+        $getData = $_GET[$urlKey];
+        if (
+            (isset($this->_data[$stateKey]) && is_array($this->_data[$stateKey])) ||
+            static::$defaultTypes!=state::typeDefault
+        ){
+            $getData = explode(',', $getData);
+            switch (static::$defaultTypes) {
+                case state::typeIntArray:
+
+                    $getData = array_map(function($itm){
+                        return (int)$itm;
+                    }, $getData);
+                    self::keyIsArray($stateKey);
+                break;
+                case state::typeFloatArray:
+                    $getData = array_map(function($itm){
+                        return (float)$itm;
+                    }, $getData);
+                    self::keyIsArray($stateKey);
+                break;
+            }
+        }
+
+        $this->setData([$stateKey => $getData], 'from get'); // Установил значения по умолчанию
+    }
+
+    
 
     function isMultiArray($a){ 
 		return array_values($a)!==$a;
@@ -260,17 +291,33 @@ class state {
 
     function __set($prop, $value) {
         $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-        $alias = $this->dataAlias($prop);
-        $this->setData([$alias => $value], "Прямая запись $er");
+        // $alias = $this->dataAlias($prop);
+        // $this->setData([$alias => $value], "Прямая запись $er");
+
+        $this->setData([$prop => $value], "Прямая запись $er");
+
         // $this->_data[$prop] = $value;
     }
 
+
     function __get($prop) {
         if (!isset($this->_data[$prop])) {
-            $this->setData([$prop => 0], 'empty');
+            $undefined = $this->undefined($prop);
+            $this->setData([$prop => $undefined], 'empty');
         }
 
         return $this->_data[$prop];
+    }
+
+    function undefined($prop){
+        return 0;
+    }
+
+    function add_alias($key, $url){
+        if (!is_array($this->_alias))
+            $this->_alias = [];
+
+            $this->_alias[$key] = $url;
     }
 
     function watch($watch, $callback = false) {
@@ -279,9 +326,10 @@ class state {
             watch: $watch,
             callback: $callback,
             view: function () use ($watch) {
-                return isset($this->_data[$watch])
-                    ?$this->_data[$watch]
-                    :0;
+                if (!is_array($watch) && isset($this->_data[$watch]))
+                    return $this->_data[$watch];
+                else 
+                    return '';
             },
         );
     }
@@ -422,70 +470,23 @@ class state {
 
 //---------------------------------------------------------
 
-    static $names = [];
-
-    static $name = 'global'; // используется только для определения имени в классе
-    static $default = false;
-    static $alias = false; // только для определения get параметров
-    static $modifiers = false; // только для определения get параметров
-
     public $canSetDefaultFromRequest = false;
 
-    static function name(string $stateName, string $parent = '') {
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-        
-        if (isset(self::$names[$stateName]) && self::$names[$stateName]->isActive()){
-            return self::$names[$stateName];
+
+
+    function is_default($key){
+        $result = false;
+        if (isset($this->_default[$key])){
+            $result = $this->_data[$key] == $this->_default[$key];
         } else {
-            if ($parent!=''){
-                $parent::create($stateName);
-
-                return self::$names[$stateName];
-            }
-            die("Стейт не определен - $stateName [$parent]<br>$er");
-            return false;
-        }
-    }
-
-    static function all(){
-        $data = [];
-        foreach(self::$names as $name => $state){
-            $data[$name] = $state->_data;
-        }
-
-        return $data;
-    }
-
-    static $sendetToPage = [];
-    static function toJs($states){
-        $js = '';
-        foreach (self::$names as $state) {
-            if (!in_array($state->_name, self::$sendetToPage) || in_array($state->_name, $states)) {
-                $js .= $state->stateJsContructor() . "\n";
-                self::$sendetToPage[] = $state->_name;
+            $alias = $this->dataAlias($key);
+            if (isset($this->_default[$alias])){
+                $result = $this->_data[$alias] == $this->_default[$alias];
             }
         }
 
-        return $js;
-    }
-
-    static function state(){
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-        return state::name(static::$name, static::class);
-    }
-
-    static function default($state){
-        $result = [];
-        if (static::$default!=false){
-            $result = static::$default;
-        }
         return $result;
     }
-
-    static function modifiers($state){
-        return static::$modifiers;
-    }
-
 
     /** 
      * Создание псевдонимов в стейте
@@ -514,12 +515,18 @@ class state {
                 $isMulti = $this->isMultiArray($alias);
                 $this->_alias = [];
                 foreach ($alias as $key => $val){
-                    if (!$isMulti) $key = $val;
+                    if (!$isMulti) {
+                        $key = $val;
+
+                        $this->keyTypeCorrector($key);
+                        
+                        
+                    }
 
                     if (is_array($val)){
                         
                     } else {
-                        if (substr($val, 0, 1)=='_') $val = substr($val, 1);
+                        // if (substr($val, 0, 1)=='_') $val = substr($val, 1);
                         $this->_alias[$key] = $val;
                     }
                 }
@@ -527,89 +534,18 @@ class state {
         }
     }
 
-    static function alias(){
-        return [];
-    }
-
-    static function onchange(){
-        return false;
-    }
-
-
-    /** 
-     * Группировка update
-    */
-    static function group(array $group) {
-        $temp = [];
-        foreach ($group as $key => $value) {
-            if ($value instanceof widget){
-                $temp[$key] = $value->toArray();
-            } else 
-            if ($value instanceof BindElement) {
-                $temp[$key] = $value->appy();
-            } else {
-                $temp[$key] = $value;
-            }
+    function keyTypeCorrector(&$key){
+        switch (static::$defaultTypes) {
+            case state::typeArray:
+            case state::typeIntArray:
+            case state::typeFloatArray:
+                self::keyIsArray($key);
+            break;
+            case state::typeWidget:
+                self::keyIsWidget($key);
+            break;
         }
-
-        $result = [
-            'element' => 'state_update_group',
-            'list' => $temp,
-        ];
-        return $result;
     }
-
-
-
-    static function toArray(){
-        $result = [];
-        foreach (state::$names as $stateName => $state) {
-            $result[$stateName] = $state->_data;
-        }
-        return $result;
-    }
-
-    static function create($stateName, $data = false) {
-        $er = explode('#', new ErrorException('test', 0, 56, __FILE__, __LINE__))[1];
-
-        $state = new static($stateName);
-        if ($data)
-            $state->setData($data, 'create');
-    }
-    
-    static $dataHash = [];
-    static function getData() {
-        $result = [];
-        $states = state::$names;
-        foreach ($states as $stateName => $state) {
-            
-
-            if (method_exists($state, 'data')){
-                if (!isset(self::$dataHash[$stateName])) {
-                    self::$dataHash[$stateName] = $state->data();
-                }
-
-                $data = self::$dataHash[$stateName];
-                if (!empty($data)){
-                    foreach ($data as $key => $value) {
-                        // list($key, $value) = $array;
-                        $result[$key] = $value;
-                    }
-                }
-            } else {
-                foreach ($state->_data as $key => $value) {
-                    $result[$state->_name . '_' . $key] = $value;
-                }
-            }
-
-        }
-        return $result;
-    }
-
-    static function setRequest(){
-        return [];
-    }
-
 
     /** 
      * Получить только данные которые отличаются от данных по умолчанию
@@ -679,17 +615,16 @@ class state {
         return $value;
     }
 
-    function isDefault($key){
-        if (isset($this->_default[$key])){
-            return $this->_data[$key] == $this->_default[$key];
-        } else {
-            $alias = $this->dataAlias($key);
-            return isset($this->_default[$alias]) && $this->_data[$alias] == $this->_default[$alias];
+
+
+    function runOnFrontend(){
+        if (!$this->runOnFrontend) $this->runOnFrontend = []; 
+        foreach (func_get_args() as $func) {
+            $this->runOnFrontend[] = $func;
         }
     }
 
     function __call($name, $arguments){
-
         foreach($arguments as $key => $arg){
             if ($arg instanceof widget) {
                 $arguments[$key] = $arg->toArray();

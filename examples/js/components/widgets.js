@@ -464,18 +464,79 @@ c.ButtonLengthCounterClickReset = ({stateName, prop}) => {
     )
 }
 
-c.unitInput = ({value, unitState}) => 
-    c.div({
+
+
+function unitToRu(unit){
+    if (unit in Units)
+        return Units[unit]
+    else 
+        return unit
+}
+
+c.unitInput = ({value, stateName = false, state = false}) => {
+
+    return c.div({
         child: [
             c.input({
-                value: widgetstate.name(unitState).model(value),
+                value: (state?state:widgetstate.name(stateName)).model(value),
                 className: 'filterInput_f2',
                 type: 'number',
             }),
             c.div({
-                child: widgetstate.name(unitState).watch('unit'),
+                child: (state?state:widgetstate.name(stateName)).watch(unit => unitToRu(unit)),
                 className: 'inputUnit',
             })
         ],
         className: 'inputWrapper',
+    })
+}
+
+
+c.unitInput2 = ({value, stateName = false, state = false}) => {
+    const _state = (state?state:widgetstate.name(stateName))
+
+    return c.div({
+        child: [
+            c.input({
+                // value: _state.model(value),
+                value: _state.watch([value, 'unit'], function(value, unit){
+                    return widgetconvertor.map(
+                        value, 
+                        _state.__translate[_state.default_unit],
+                        _state.__translate[_state.unit]
+                    ).toFixed(2)
+                }),
+                onchange(){
+                    const val = this.value
+                    _state[value] = widgetconvertor.map(
+                        val, 
+                        _state.__translate[_state.unit],
+                        _state.__translate[_state.default_unit],
+                    ).toFixed(2)
+                },
+                className: 'filterInput_f2',
+                type: 'number',
+            }),
+            c.div({
+                child: _state.watch(unit => unitToRu(unit)),
+                className: 'inputUnit',
+            })
+        ],
+        className: 'inputWrapper',
+    })
+}
+
+
+
+c.WaitButton = ({title, onclick = false}) =>
+    c.button({
+        child: title,
+        className: 'btn btn-sm btn-secondary',
+        onclick(){
+            this.className = 'btn btn-sm btn-secondary btn-loading'
+            widgettools.catch_request().then(result => {
+                this.className = 'btn btn-sm btn-secondary'
+            })
+            widgetconvertor.toFunction(onclick)();
+        }
     })

@@ -7,7 +7,8 @@ class widgetstate {
 
 	static name(name){
 		if (!(name in widgetstate.names)){
-			console.info(`state ${name} отсутствует! Используется пустой state`)
+			if (widgetdom.debug)
+				console.info(`state ${name} отсутствует! Используется пустой state`)
 			widgetstate.names[name] = widgetstate.use({_name: name})
 		}
 		return widgetstate.names[name]
@@ -42,7 +43,7 @@ class widgetstate {
 		}
 
 
-
+/* 
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -61,50 +62,79 @@ class widgetstate {
 				}
 			}
 		})
-
+ */
 		obj['___parent'] = false;
 
-        const state = new Proxy(obj, {
-            get(object, prop){
-                if (widgetstate[prop]){
+		let state = false;
+		if (stateName in widgetstate.names){
+			state = widgetstate.names[stateName]
+		} else {
+			state = new Proxy({}, {
+				get(object, prop){
+					if (widgetstate[prop]){
 
-                    return function(){
-						const result = widgetstate[prop].apply(this, [object, ...arguments])
-						if (typeof result == 'function'){
-							const funcres = result.apply(this, arguments)
-							return funcres
-						} else {
-							return result
+						return function(){
+							const result = widgetstate[prop].apply(this, [object, ...arguments])
+							if (typeof result == 'function'){
+								const funcres = result.apply(this, arguments)
+								return funcres
+							} else {
+								return result
+							}
 						}
-					}
-                } else {
-                    // return widgetstate.modefiersCheck(stateName, prop, object[prop])
-					return object[prop]
-                }
-            },
-            set(object, prop, value){
-				if (object[prop]!=value){
-
-					if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
-						object[prop] = value
 					} else {
-						object[prop] = widgetstate.use(value)
+						if (prop in object)
+							return object[prop]
+						else
+							return false
 					}
-					widgetstate.updateAll(object._name, prop)
-					widgetstate.setAlias(stateName, prop, value)
+				},
+				set(object, prop, value){
+					if (object[prop]!=value){
+
+						if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
+							object[prop] = value
+						} else {
+							object[prop] = widgetstate.use(value)
+						}
+						widgetstate.updateAll(object._name, prop)
+						widgetstate.setAlias(stateName, prop, value)
+					}
+					return true
 				}
-				return true
-            }
-        })
+			})
 
-		setParents.map(i => {
-			state[i].set('___parent', state)
-		})
+			widgetstate.useName(stateName, state)
+		}
 
-		widgetstate.useName(stateName, state)
+
 		if (props){
 			widgetstate.setupProps(stateName, props)
 		}
+
+		Object.keys(obj).forEach(i => {
+			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
+				let compStateValue = obj[i]
+				if (Array.isArray(compStateValue)){
+					const array = {}
+					compStateValue.map((val, key) => {
+						array[''+key] = val
+					})
+					compStateValue = array
+				}
+				
+				state[i] = widgetstate.use(compStateValue)
+				setParents.push(i)
+			} else {
+				state[i] = obj[i]
+			}
+		})
+
+		setParents.forEach(i => {
+			state[i].set('___parent', state)
+		})
+
+
         return state;
     }
 
@@ -142,6 +172,7 @@ class widgetstate {
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
+		if (prop!='_name')
 		if (stateName in widgetstate.props)
 		if ('alias' in widgetstate.props[stateName])
 		if (widgetstate.props[stateName].alias==true || prop in widgetstate.props[stateName].alias){
@@ -178,11 +209,20 @@ class widgetstate {
 				?[[]]
 				:[false]
 		} else {
-			let defaultValue = widgetstate.props[stateName]?.default
-			if (defaultValue && prop in defaultValue) 
-				return [defaultValue[prop]]
-			else
-				return false
+
+			if ('default' in widgetstate.props[stateName]){
+				let defaultValue = widgetstate.props[stateName].default
+				if (defaultValue && prop in defaultValue) 
+					return [defaultValue[prop]]
+			} else {
+				
+				const defaultTypes = widgetstate.props[stateName].defaultTypes
+				if (defaultTypes!=false){
+					return [[]]
+				}
+			}
+
+			return false
 		}
 	}
 
@@ -599,7 +639,7 @@ class widgetstate {
 						if (callback){
 							return callback(value)
 						} else {
-							return value
+							return value?value:''
 						}
 					}).link(widget, argument)
 				}
@@ -617,7 +657,8 @@ class widgetstate {
 
 					widgetdom.setChange(widget, 'modelIn' + prop, function() {
 						const checkboxValue = this[argument]
-						const unique = new Set(state[prop])
+						const statevalue = state[prop] 
+						const unique = new Set(Array.isArray(statevalue)?statevalue:[])
 						if (checkboxValue){
 							unique.add(value)
 						} else {
@@ -642,6 +683,14 @@ class widgetstate {
 
 	static applyTo(self, prop, value){
 		return () => widgetstate.name(self._name)[prop] = value
+	}
+
+	static pushTo(self, prop, value){
+		let temp = widgetstate.name(self._name)[prop]
+		if (!Array.isArray(temp)) temp = [temp]
+		temp.push(value)
+		widgetstate.name(self._name)[prop] = false
+		widgetstate.name(self._name)[prop] = temp
 	}
 
 }

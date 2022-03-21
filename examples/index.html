@@ -14,11 +14,17 @@
     <script src="/js/widgets-js/src/widgettools.js"></script>
     <script src="/js/widgets-js/src/widgetsmartprops.js"></script>
     <script src="/js/widgets-js/src/tools/watcher.js"></script>
+    <script src="/js/widgets-js/src/tools/dialog/widgetdialog.js"></script>
 
+
+    <link rel="stylesheet" href="/js/widgets-js/src/tools/dialog/widgetdialog.css">
     <script src="/js/components/widgets.js"></script>
     <script src="/js/components/slider.js"></script>
 
     <style>
+        .waiting {
+            color: #f00;
+        }
         .filterInput_f2 {
             padding: 5px;
             border: 1px solid #f4f4f4;
@@ -170,6 +176,15 @@
             background: #fff;
         }
 
+        .sliderPointTitle {
+            position: absolute;
+            bottom: 19px;
+            width: 200px;
+            margin-left: -87px;
+            text-align: center;
+            transition: all .1s;
+        }
+
 
         .sliderLine {
             padding: 2px;
@@ -271,34 +286,57 @@
 
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <div id="title">MESSAGE FROM ME 2</div>
+        <div id="title2" style="margin-left: 100px">MESSAGE FROM ME 2</div>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    </div>
     <script>
 
-        const state = widgetstate.use(
-            {
-                "_view": [
-                    "stock_count",
-                    "connect_in"
-                ],
-                "kolichestvo_na_sklade_s": 0,
-                "temp": 22,
-                "p2": 2,
-                "_compatibility": [
-                    "1",
-                    "2",
-                ],
+
+        widgetdialog.setup('next', {
+            title: '105 серия',
+            width: 300,
+            height: 50,
+            hidetitle: true,
+            active: {
+                element: '#title',
             },
-            {
-                name: "filter",
-                alias: true
+            buttons: {
+                'Перейти в шаровые краны'(){
+                    console.log('форма')
+                }
             }
-        );
+        })
 
+        
+        widgetdialog.show({
+            message: 'Данная серия недоступна, перейти в доступную?', 
+            template: 'next',
+        })
 
-        c.app(state.watch('_compatibility'))
-
-
-        state._compatibility = [12,45]
     </script>
 </body>
 </html>

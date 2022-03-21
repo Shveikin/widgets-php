@@ -66,15 +66,15 @@ class widgetwatcher {
 
     _current_value = false 
     check_current_value(){
-        return Array.isArray(this._current_value)
+        return typeof this._current_value == 'object' && 'currentValue' in this._current_value
     }
 
     get_current_value(){
-        return this._current_value[0]
+        return this._current_value.currentValue
     }
 
     set_current_value(value){
-        this._current_value = [value]
+        this._current_value = {currentValue: value}
         return value
     }
 
@@ -152,7 +152,6 @@ class widgetwatcher {
                 }
             }
             
-            console.info('IS DEFAULT', this._keys)
 
             if (_bind){
                 return _all_default?_true:_false
@@ -241,6 +240,10 @@ class widgetwatcher {
 
 
     link(widget, widgetProp = false){
+
+        if (widgetProp=='width')
+        console.log(widgetProp, this)
+
         this._widget = widget
         this._widgetProp = widgetProp
 
@@ -276,14 +279,10 @@ class widgetwatcher {
 
         if (this._callback)
         for (const callback of Object.values(this._callback)){
-            value = this.current_value(ArrayFromState => {
+            this.current_value(ArrayFromState => {
                 if (typeof callback == 'function'){
 
-                    return callback.apply(this, 
-                        Array.isArray(ArrayFromState)
-                            ?ArrayFromState
-                            :[ArrayFromState]
-                    )
+                    return callback.apply(this, this.arr(ArrayFromState))
 
                 } else {
                     return ArrayFromState
@@ -291,6 +290,7 @@ class widgetwatcher {
             })
         }
 
+        value = this.get_current_value()
         this.applyToWidget(value)
     }
 
@@ -301,7 +301,8 @@ class widgetwatcher {
                     const child = c.div(value)
                     widgetdom.update(this._widget, child)
                 } else {
-                    this._widget.props[this._widgetProp] = value
+                    const val = this.arr(value)[0]
+                    this._widget.props[this._widgetProp] = val
                     widgetdom.assignProp(this._widget, this._widgetProp)
                 }
             break;
@@ -433,6 +434,10 @@ class widgetconvertor {
 		return () => {}
 	}
 
+	static ElementToFunction(element){
+		return () => element
+	}
+
 	static BoolToFunction(bool){
 		return () => bool
 	}
@@ -562,7 +567,7 @@ class widgetconvertor {
 // widgetdom.js
 
 class widgetdom {
-    static debug = true;
+    static debug = false;
     static ids = {}
     static idCounter = 0
 
@@ -667,13 +672,6 @@ class widgetdom {
                                 rootElement.innerHTML = newValue
                             break;
                         }
-                        
-                        // if (!('childs' in widget)) widget.childs = {}
-
-                        // const childWidget = c.div(value)
-
-                        // widget.childs.view = [childWidget]
-                        // widgetdom.createElement(childWidget, child)
                     }
                 }
 
@@ -852,6 +850,8 @@ class widgetdom {
     static assignProp(widget, prop) {
         let value = widget.props[prop]
 
+
+
         const [change, newValue] = widgetconvertor.checkState(widget, prop)
         if (newValue==undefined) return false;
 		if (change) {
@@ -863,7 +863,9 @@ class widgetdom {
 
         const type = widgetconvertor.getType(value)
         
-
+        const targetOnly = prop.substr(0, 1)=='_';
+        if (targetOnly)
+            prop = prop.substr(1)
 
 
         switch(type){
@@ -879,9 +881,15 @@ class widgetdom {
                 }
             break;
             case 'Function':
+                
+
                 if (prop.substr(0,2)=='on'){
 
-                    const func = function(){
+                    const func = function(event){
+                        if (targetOnly) 
+                            if (event.target!=this) 
+                                return false
+
                         value.apply(this)
 
                         if (widget.type in widgetconvertor.singleElement){
@@ -894,10 +902,8 @@ class widgetdom {
                     }
 
 
-                    // widget.rootElement.addEventListener(prop.substr(2), func)
                     widgetdom.assignEventListener(widget, prop, func)
 
-                    // widget.rootElement[prop] = 
                 } else {
                     widget.rootElement[prop] = value()
                 }
@@ -918,23 +924,44 @@ class widgetdom {
     /**
      * RENDER
      */
-    static render(querySelector, widget){
+    static render(querySelector, widget, mode = 'rebuild'){
         if (querySelector in widgetdom.active){
             const currNode = widgetdom.active[querySelector]
             widgetdom.update(currNode, widget)
         } else {
+            widgetdom.querySelector(querySelector, mode).then(rootElement => {
+                widgetdom.firstRender(rootElement, querySelector, widget)
+            }).catch(message => {
+                console.error('widget render ', message)
+            })
+        }
+    }
+
+    static querySelector(querySelector, mode = 'rebuild'){
+        return new Promise(function(resolve, reject){
             const rootElement = window.document.querySelector(querySelector);
             if (rootElement){
-                widgetdom.firstRender(rootElement, querySelector, widget)
+                switch (mode) {
+                    case 'rebuild':
+                        resolve(rootElement);
+                    break;
+                    case 'append':
+                        const wrapper = document.createElement('div')
+                        rootElement.appendChild(wrapper)
+                        resolve(wrapper);
+                    break;
+                }
             } else {
                 window.addEventListener('load', () => {
-                    const rootElement = window.document.querySelector(querySelector);
+                    const rootElement = widgetdom.querySelector(querySelector, mode);
                     if (rootElement){
-                        widgetdom.firstRender(rootElement, querySelector, widget)
+                        resolve(rootElement)
+                    } else {
+                        reject('Элемента нет ' + querySelector)
                     }
                 })
             }
-        }
+        })
     }
 
     static active = {}
@@ -977,7 +1004,8 @@ class widgetstate {
 
 	static name(name){
 		if (!(name in widgetstate.names)){
-			console.info(`state ${name} отсутствует! Используется пустой state`)
+			if (widgetdom.debug)
+				console.info(`state ${name} отсутствует! Используется пустой state`)
 			widgetstate.names[name] = widgetstate.use({_name: name})
 		}
 		return widgetstate.names[name]
@@ -1012,7 +1040,7 @@ class widgetstate {
 		}
 
 
-
+/* 
 
 		Object.keys(obj).map(i => {
 			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
@@ -1031,50 +1059,79 @@ class widgetstate {
 				}
 			}
 		})
-
+ */
 		obj['___parent'] = false;
 
-        const state = new Proxy(obj, {
-            get(object, prop){
-                if (widgetstate[prop]){
+		let state = false;
+		if (stateName in widgetstate.names){
+			state = widgetstate.names[stateName]
+		} else {
+			state = new Proxy({}, {
+				get(object, prop){
+					if (widgetstate[prop]){
 
-                    return function(){
-						const result = widgetstate[prop].apply(this, [object, ...arguments])
-						if (typeof result == 'function'){
-							const funcres = result.apply(this, arguments)
-							return funcres
-						} else {
-							return result
+						return function(){
+							const result = widgetstate[prop].apply(this, [object, ...arguments])
+							if (typeof result == 'function'){
+								const funcres = result.apply(this, arguments)
+								return funcres
+							} else {
+								return result
+							}
 						}
-					}
-                } else {
-                    // return widgetstate.modefiersCheck(stateName, prop, object[prop])
-					return object[prop]
-                }
-            },
-            set(object, prop, value){
-				if (object[prop]!=value){
-
-					if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
-						object[prop] = value
 					} else {
-						object[prop] = widgetstate.use(value)
+						if (prop in object)
+							return object[prop]
+						else
+							return false
 					}
-					widgetstate.updateAll(object._name, prop)
-					widgetstate.setAlias(stateName, prop, value)
+				},
+				set(object, prop, value){
+					if (object[prop]!=value){
+
+						if (prop.substr(0, 1)=='_' || !Array.isArray(value)){
+							object[prop] = value
+						} else {
+							object[prop] = widgetstate.use(value)
+						}
+						widgetstate.updateAll(object._name, prop)
+						widgetstate.setAlias(stateName, prop, value)
+					}
+					return true
 				}
-				return true
-            }
-        })
+			})
 
-		setParents.map(i => {
-			state[i].set('___parent', state)
-		})
+			widgetstate.useName(stateName, state)
+		}
 
-		widgetstate.useName(stateName, state)
+
 		if (props){
 			widgetstate.setupProps(stateName, props)
 		}
+
+		Object.keys(obj).forEach(i => {
+			if (obj && typeof obj[i]=='object' && i.substr(0,1)!='_'){
+				let compStateValue = obj[i]
+				if (Array.isArray(compStateValue)){
+					const array = {}
+					compStateValue.map((val, key) => {
+						array[''+key] = val
+					})
+					compStateValue = array
+				}
+				
+				state[i] = widgetstate.use(compStateValue)
+				setParents.push(i)
+			} else {
+				state[i] = obj[i]
+			}
+		})
+
+		setParents.forEach(i => {
+			state[i].set('___parent', state)
+		})
+
+
         return state;
     }
 
@@ -1112,6 +1169,7 @@ class widgetstate {
 	static url = {}
 	static urlshadow = {}
 	static setAlias(stateName, prop, value){
+		if (prop!='_name')
 		if (stateName in widgetstate.props)
 		if ('alias' in widgetstate.props[stateName])
 		if (widgetstate.props[stateName].alias==true || prop in widgetstate.props[stateName].alias){
@@ -1148,11 +1206,20 @@ class widgetstate {
 				?[[]]
 				:[false]
 		} else {
-			let defaultValue = widgetstate.props[stateName]?.default
-			if (defaultValue && prop in defaultValue) 
-				return [defaultValue[prop]]
-			else
-				return false
+
+			if ('default' in widgetstate.props[stateName]){
+				let defaultValue = widgetstate.props[stateName].default
+				if (defaultValue && prop in defaultValue) 
+					return [defaultValue[prop]]
+			} else {
+				
+				const defaultTypes = widgetstate.props[stateName].defaultTypes
+				if (defaultTypes!=false){
+					return [[]]
+				}
+			}
+
+			return false
 		}
 	}
 
@@ -1569,7 +1636,7 @@ class widgetstate {
 						if (callback){
 							return callback(value)
 						} else {
-							return value
+							return value?value:''
 						}
 					}).link(widget, argument)
 				}
@@ -1587,7 +1654,8 @@ class widgetstate {
 
 					widgetdom.setChange(widget, 'modelIn' + prop, function() {
 						const checkboxValue = this[argument]
-						const unique = new Set(state[prop])
+						const statevalue = state[prop] 
+						const unique = new Set(Array.isArray(statevalue)?statevalue:[])
 						if (checkboxValue){
 							unique.add(value)
 						} else {
@@ -1612,6 +1680,14 @@ class widgetstate {
 
 	static applyTo(self, prop, value){
 		return () => widgetstate.name(self._name)[prop] = value
+	}
+
+	static pushTo(self, prop, value){
+		let temp = widgetstate.name(self._name)[prop]
+		if (!Array.isArray(temp)) temp = [temp]
+		temp.push(value)
+		widgetstate.name(self._name)[prop] = false
+		widgetstate.name(self._name)[prop] = temp
 	}
 
 }
@@ -1642,8 +1718,8 @@ class widgettools {
 		widgetdom.render('#app', c.div(props))
 	}
 
-	static render(querySelector, props){
-		widgetdom.render(querySelector, c.div(props))
+	static render(querySelector, props, mode = 'rebuild'){
+		widgetdom.render(querySelector, c.div(props), mode)
 	}
 
 	static getStateFromPath(state, path){
@@ -1729,9 +1805,35 @@ class widgettools {
 
 	static current_request = false
 	static request_catcher = false
-	static widget_request(props){
+
+	static abort_controllers_by_url = {};
+	static current_request_url = false;
+
+	static get_abort_signal(url){
+		const abort_controllers_by_url = widgettools.abort_controllers_by_url
+
+		if (url in abort_controllers_by_url){
+			abort_controllers_by_url[url].forEach(ac => {
+				ac.abort();
+				ac = null
+			})
+		}
+
+		abort_controllers_by_url[url] = [];
+		const controller = new AbortController();
+		abort_controllers_by_url[url].push(
+			controller
+		)
+		return controller.signal
+	}
+
+	static widget_request(props){ 
 		return {
 			link: function(widget = false, prop = false){
+
+				if (this && this.tagName=='BUTTON'){
+					this.classList.add('waiting')
+				}
 
 				const state = {}
 				props.useState.map(stateName => {
@@ -1743,13 +1845,21 @@ class widgettools {
 				})
 
 				const req_catcher = (result) => {
+					if (this && this.tagName=='BUTTON'){
+						this.classList.remove('waiting')
+					}
 					if (typeof widgettools.request_catcher == 'function'){
 						widgettools.request_catcher(result)
 						widgettools.request_catcher = false
 					}
 				}
 
-				widgetstate.current_request = Math.random()
+				const request_id = Math.random()
+				widgetstate.current_request = request_id
+
+
+				// abort_controller.signal.addEventListener('abort', () => alert("отмена!"));
+
 				fetch(props.url, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -1762,17 +1872,29 @@ class widgettools {
 							bind: props.bind,
 						},
 						request_id: widgetstate.current_request,
-					})
+					}),
+					signal: widgettools.get_abort_signal(props.url)
 				})
 				.then(res => res.json())
 				.then(res => {
-					if (res.request_id==widgetstate.current_request){
+					
+					// if (res.request_id==widgetstate.current_request){
 						// Применение стейта
 						if ('state' in res){
 							Object.keys(res.state).forEach(stateName => {
-								Object.keys(res.state[stateName]).forEach(propName => {
-									widgetstate.name(stateName)[propName] = res.state[stateName][propName]
-								})
+								if ('data' in res.state[stateName])
+									Object.keys(res.state[stateName].data).forEach(propName => {
+										widgetstate.name(stateName)[propName] = res.state[stateName].data[propName]
+									})
+
+								if ('runOnFrontend' in res.state[stateName]){
+									console.log('runOnFrontend', res.state[stateName].runOnFrontend)
+
+									res.state[stateName].runOnFrontend.forEach(func => {
+										const func2 = widgetconvertor.toFunction(func)
+										func2()
+									})
+								}
 							})
 						}
 
@@ -1785,7 +1907,7 @@ class widgettools {
 
 						req_catcher(res)
 
-					}
+					// }
 				})
 				.catch((error) => {
 					req_catcher(error)
@@ -1843,13 +1965,13 @@ class widgettools {
 	}
 
 	static state_update_group(props){
-		return () => {
+		return function(){
 
 			Object.values(props.list).forEach(prop => {
 				if ('bind' in props)
 					prop.bind = props['bind']
 				const func = widgetconvertor.toFunction(prop)
-				func()
+				func.apply(this)
 			})
 
 		}
@@ -2031,3 +2153,217 @@ class widgetsmartprops {
         })
     }
 }
+// widgetdialog.js
+
+class widgetdialog {
+
+    
+    static props = {
+        template: 'template',
+        __message: 'message',
+        title: 'title',
+        __buttons: 'buttons', 
+
+        hidetitle: 'hidetitle',
+        width: 'width',
+        height: 'height',
+        
+        _active: 'active',
+        active_arrow: 'active_arrow',
+    }
+    static templates = []
+
+    static __init__(){
+        const $state = widgetstate.name('dialogstate')
+        const window = c.div({
+            child: c.div({
+                child: [
+                    $state.check('hidetitle', false,
+                        c.div({
+                            child: [
+                                '',
+                                c.div({
+                                    child: $state.watch('title'),
+                                    className: 'dialogTitle_h12nbsx9dk23m32ui4948382'
+                                }),
+                                c.button({
+                                    child: '✖',
+                                    onclick(){
+                                        $state.__message = false
+                                    }
+                                })
+                            ],
+                            className: 'close_panel_h12nbsx9dk23m32ui4948382'
+                        }),
+                        false
+                    ),
+                    c.div({
+                        child: c.form({
+                            child: c.fieldset({
+                                child: $state.watch('__message')
+                            }),
+                            className: '_form_h12nbsx9dk23m32ui4948382',
+                            style: $state.watch(height => `min-height: ${height?height:120}px;`)
+                        }),
+                        className: 'form_panel_h12nbsx9dk23m32ui4948382',
+                    }),
+                    c.div({
+                        child: ['', $state.watch('__buttons')],
+                        className: 'buttons_panel_h12nbsx9dk23m32ui4948382'
+                    })
+                ],
+                className: $state.watch(active_arrow => active_arrow
+                    ?`window_h12nbsx9dk23m32ui4948382 window_active_arrow_${active_arrow}`
+                    :'window_h12nbsx9dk23m32ui4948382'
+                ),
+                style: $state.watch('__position')
+            }),
+            className: $state.watch(active_arrow => active_arrow
+                ?`black_h12nbsx9dk23m32ui4948382 black_habsolute`
+                :'black_h12nbsx9dk23m32ui4948382'
+            ),
+            
+            style: $state.watch('__style'),
+            _onclick(){
+                $state.__message = false
+            }
+        })
+
+        $state.watch('__message')
+            .is(false, 'opacity: 0; visibility: hidden;', '')
+            .link(style => { 
+                widgetdom.querySelector('body').then(body => {
+                    if ($state.__style)
+                        body.style.overflow = 'auto'
+                    else
+                        body.style.overflow = 'hidden'
+                })
+
+                $state.__style = style
+            }
+        )
+
+        $state.watch(['width', 'height', '_active', 'hidetitle'])
+        .link((width, height, active, hidetitle) => {
+            let window_style = ''
+
+            if (width) window_style += `width: ${width}px; `
+            if (height) window_style += `min-height: ${hidetitle?height:height+39}px; `
+
+            if (active){
+                if ('element' in active){
+                    widgetdom.querySelector(active.element).then(element => {
+                        const rect = element.getBoundingClientRect()
+                        window_style += `position: absolute; margin: 0;`
+
+
+                        window_style += `bottom: calc(100% - ${rect.y-10}px); `
+                        window_style += `left: ${rect.x}px; `
+
+                        $state.active_arrow = 'bottom'
+
+                        $state.__position = window_style
+                    })
+                }
+            } else {
+                $state.active_arrow = false
+            }
+
+
+            $state.__position = window_style
+        })
+
+
+        c.render('body', window, 'append')
+    }
+
+
+    static setup(template_name, props){
+        widgetdialog.templates[template_name] = props
+    }
+
+    static template(template_name){
+        if (template_name)
+        if (template_name in widgetdialog.templates){
+
+            const template = widgetdialog.templates[template_name];
+
+            for (const [statekey, objectkey] of Object.entries(widgetdialog.props)){
+                if (objectkey in template){
+                    widgetdialog.setPorp(statekey, template[objectkey])
+                } else {
+                    widgetdialog.setPorp(statekey, false)
+                }
+            }
+        } else {
+            if (widgetdom.debug)
+                console.info(template_name, ' отсутствует')
+        }
+
+        return widgetdialog
+    }
+
+    static show(props = true, title = false){
+        const proptype = widgetconvertor.getType(props)
+        const state = widgetstate.name('dialogstate')
+
+        switch (proptype) {
+            case 'String':
+                state.__message = props
+                if (title)
+                    state.title = title
+            break;
+            case 'Object':
+
+                for (const [statekey, propkey] of Object.entries(widgetdialog.props)) {
+                    if (propkey in props){
+                        widgetdialog.setPorp(statekey, props[propkey])
+                    }
+                }
+
+            break;
+            case 'Bool':
+                if (!props)
+                    state.__message = false
+            break;
+        }
+    }
+
+    static setPorp(prop, value){
+        const state = widgetstate.name('dialogstate')
+        switch (prop){
+            case '__buttons':
+                if (typeof value == 'object'){
+                    const buttons = [];
+                    for (const [buttontitle, func] of Object.entries(value)){
+                        buttons.push(
+                            c.button({
+                                child: buttontitle,
+                                className: 'btn btnx',
+                                onclick: () => {
+                                    widgetconvertor.toFunction(func).apply(this)
+                                } 
+                            })
+                        )
+                    }
+
+                    state[prop] = buttons
+                }
+            break;
+            case 'template':
+                widgetdialog.template(value)
+            break;
+            default:
+                state[prop] = value
+            break;
+        }
+    }
+}
+
+widgetdialog.__init__();
+
+function showDialog(props, title = false){
+    widgetdialog.show(props, title)
+}
+
+

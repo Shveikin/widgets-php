@@ -24,8 +24,8 @@ class widgettools {
 		widgetdom.render('#app', c.div(props))
 	}
 
-	static render(querySelector, props){
-		widgetdom.render(querySelector, c.div(props))
+	static render(querySelector, props, mode = 'rebuild'){
+		widgetdom.render(querySelector, c.div(props), mode)
 	}
 
 	static getStateFromPath(state, path){
@@ -111,9 +111,35 @@ class widgettools {
 
 	static current_request = false
 	static request_catcher = false
-	static widget_request(props){
+
+	static abort_controllers_by_url = {};
+	static current_request_url = false;
+
+	static get_abort_signal(url){
+		const abort_controllers_by_url = widgettools.abort_controllers_by_url
+
+		if (url in abort_controllers_by_url){
+			abort_controllers_by_url[url].forEach(ac => {
+				ac.abort();
+				ac = null
+			})
+		}
+
+		abort_controllers_by_url[url] = [];
+		const controller = new AbortController();
+		abort_controllers_by_url[url].push(
+			controller
+		)
+		return controller.signal
+	}
+
+	static widget_request(props){ 
 		return {
 			link: function(widget = false, prop = false){
+
+				if (this && this.tagName=='BUTTON'){
+					this.classList.add('waiting')
+				}
 
 				const state = {}
 				props.useState.map(stateName => {
@@ -125,13 +151,21 @@ class widgettools {
 				})
 
 				const req_catcher = (result) => {
+					if (this && this.tagName=='BUTTON'){
+						this.classList.remove('waiting')
+					}
 					if (typeof widgettools.request_catcher == 'function'){
 						widgettools.request_catcher(result)
 						widgettools.request_catcher = false
 					}
 				}
 
-				widgetstate.current_request = Math.random()
+				const request_id = Math.random()
+				widgetstate.current_request = request_id
+
+
+				// abort_controller.signal.addEventListener('abort', () => alert("отмена!"));
+
 				fetch(props.url, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -144,17 +178,29 @@ class widgettools {
 							bind: props.bind,
 						},
 						request_id: widgetstate.current_request,
-					})
+					}),
+					signal: widgettools.get_abort_signal(props.url)
 				})
 				.then(res => res.json())
 				.then(res => {
-					if (res.request_id==widgetstate.current_request){
+					
+					// if (res.request_id==widgetstate.current_request){
 						// Применение стейта
 						if ('state' in res){
 							Object.keys(res.state).forEach(stateName => {
-								Object.keys(res.state[stateName]).forEach(propName => {
-									widgetstate.name(stateName)[propName] = res.state[stateName][propName]
-								})
+								if ('data' in res.state[stateName])
+									Object.keys(res.state[stateName].data).forEach(propName => {
+										widgetstate.name(stateName)[propName] = res.state[stateName].data[propName]
+									})
+
+								if ('runOnFrontend' in res.state[stateName]){
+									console.log('runOnFrontend', res.state[stateName].runOnFrontend)
+
+									res.state[stateName].runOnFrontend.forEach(func => {
+										const func2 = widgetconvertor.toFunction(func)
+										func2()
+									})
+								}
 							})
 						}
 
@@ -167,7 +213,7 @@ class widgettools {
 
 						req_catcher(res)
 
-					}
+					// }
 				})
 				.catch((error) => {
 					req_catcher(error)
@@ -225,13 +271,13 @@ class widgettools {
 	}
 
 	static state_update_group(props){
-		return () => {
+		return function(){
 
 			Object.values(props.list).forEach(prop => {
 				if ('bind' in props)
 					prop.bind = props['bind']
 				const func = widgetconvertor.toFunction(prop)
-				func()
+				func.apply(this)
 			})
 
 		}

@@ -1,6 +1,6 @@
 
 class widgetdom {
-    static debug = true;
+    static debug = false;
     static ids = {}
     static idCounter = 0
 
@@ -105,13 +105,6 @@ class widgetdom {
                                 rootElement.innerHTML = newValue
                             break;
                         }
-                        
-                        // if (!('childs' in widget)) widget.childs = {}
-
-                        // const childWidget = c.div(value)
-
-                        // widget.childs.view = [childWidget]
-                        // widgetdom.createElement(childWidget, child)
                     }
                 }
 
@@ -290,6 +283,8 @@ class widgetdom {
     static assignProp(widget, prop) {
         let value = widget.props[prop]
 
+
+
         const [change, newValue] = widgetconvertor.checkState(widget, prop)
         if (newValue==undefined) return false;
 		if (change) {
@@ -301,7 +296,9 @@ class widgetdom {
 
         const type = widgetconvertor.getType(value)
         
-
+        const targetOnly = prop.substr(0, 1)=='_';
+        if (targetOnly)
+            prop = prop.substr(1)
 
 
         switch(type){
@@ -317,9 +314,15 @@ class widgetdom {
                 }
             break;
             case 'Function':
+                
+
                 if (prop.substr(0,2)=='on'){
 
-                    const func = function(){
+                    const func = function(event){
+                        if (targetOnly) 
+                            if (event.target!=this) 
+                                return false
+
                         value.apply(this)
 
                         if (widget.type in widgetconvertor.singleElement){
@@ -332,10 +335,8 @@ class widgetdom {
                     }
 
 
-                    // widget.rootElement.addEventListener(prop.substr(2), func)
                     widgetdom.assignEventListener(widget, prop, func)
 
-                    // widget.rootElement[prop] = 
                 } else {
                     widget.rootElement[prop] = value()
                 }
@@ -356,23 +357,44 @@ class widgetdom {
     /**
      * RENDER
      */
-    static render(querySelector, widget){
+    static render(querySelector, widget, mode = 'rebuild'){
         if (querySelector in widgetdom.active){
             const currNode = widgetdom.active[querySelector]
             widgetdom.update(currNode, widget)
         } else {
+            widgetdom.querySelector(querySelector, mode).then(rootElement => {
+                widgetdom.firstRender(rootElement, querySelector, widget)
+            }).catch(message => {
+                console.error('widget render ', message)
+            })
+        }
+    }
+
+    static querySelector(querySelector, mode = 'rebuild'){
+        return new Promise(function(resolve, reject){
             const rootElement = window.document.querySelector(querySelector);
             if (rootElement){
-                widgetdom.firstRender(rootElement, querySelector, widget)
+                switch (mode) {
+                    case 'rebuild':
+                        resolve(rootElement);
+                    break;
+                    case 'append':
+                        const wrapper = document.createElement('div')
+                        rootElement.appendChild(wrapper)
+                        resolve(wrapper);
+                    break;
+                }
             } else {
                 window.addEventListener('load', () => {
-                    const rootElement = window.document.querySelector(querySelector);
+                    const rootElement = widgetdom.querySelector(querySelector, mode);
                     if (rootElement){
-                        widgetdom.firstRender(rootElement, querySelector, widget)
+                        resolve(rootElement)
+                    } else {
+                        reject('Элемента нет ' + querySelector)
                     }
                 })
             }
-        }
+        })
     }
 
     static active = {}

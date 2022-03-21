@@ -6,29 +6,27 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit0a48ee250bdfee5ff7d4251c1cb6030e
 {
-    public static $files = array (
-        '538ca81a9a966a6716601ecf48f4eaef' => __DIR__ . '/..' . '/opis/closure/functions.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
+            'Widget\\tool\\dialog\\' => 19,
+            'Widget\\tool\\' => 12,
             'Widget\\' => 7,
-        ),
-        'O' => 
-        array (
-            'Opis\\Closure\\' => 13,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Widget\\tool\\dialog\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/tool/dialog',
+        ),
+        'Widget\\tool\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/tool',
+        ),
         'Widget\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
-        ),
-        'Opis\\Closure\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/opis/closure/src',
         ),
     );
 
