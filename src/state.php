@@ -18,6 +18,7 @@ class state extends state__static {
 
     public $runOnFrontend = false;
 
+
     private $active = false;
 
     /* Обновить */
@@ -470,6 +471,14 @@ class state extends state__static {
 
 //---------------------------------------------------------
 
+    static $names = [];
+
+    static $name = 'global'; // используется только для определения имени в классе
+    static $default = false;
+    static $alias = false; // только для определения get параметров
+    static $modifiers = false; // только для определения get параметров
+    static $content_type = false;
+
     public $canSetDefaultFromRequest = false;
 
 
@@ -583,7 +592,7 @@ class state extends state__static {
     function getProps(){
         return array_keys((array)$this->_data);
     }
-
+ 
     function getAlias($key){
         if (isset($this->_alias[$key])){
             return $this->_alias[$key];

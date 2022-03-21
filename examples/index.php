@@ -107,7 +107,4 @@ echo Table::widget()->html(true);
         border: 1px solid #ddd;
     }
 
-
 </style>
-
-
